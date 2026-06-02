@@ -1,14 +1,40 @@
-// Core screens ported from aq-ui.jsx: SearchHome (hero + topics + recent),
-// Results (ranked ayah cards), and Reader (single-ayah focus).
+// Core screens: SearchHome (hero + API-loaded suggested questions + recent),
+// Results (live /api/ask search), and Reader. Search and suggested questions
+// come from the backend API (like the web app); the bundled TOPICS are only an
+// offline fallback so the screen is never empty.
 
-import React, { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { useApp } from "../AQContext";
 import { AyahCard, BlockTitle, FieldLabel, IconBtn, OrnDivider, PlaceBadge, SegLabel, Translation } from "../atoms";
 import { Icon, RawIcon } from "../Icon";
 import { SearchBar } from "../SearchBar";
-import { RECENT, RESULTS, TOPICS, type AyahItem } from "../data";
+import { RECENT, TOPICS, type AyahItem } from "../data";
 import { FONTS, mix } from "../tokens";
+import { ask, getSuggestedQuestions, AqError, type AyahResult, type SuggestedGroup } from "@/api";
+
+/* ---------- map an API AyahResult → the card's AyahItem shape ---------- */
+function placeNorm(p: string): "Mecca" | "Madinah" {
+  const s = (p || "").toLowerCase();
+  return s.startsWith("mec") || s.startsWith("mak") ? "Mecca" : "Madinah";
+}
+function toItem(r: AyahResult): AyahItem {
+  return {
+    surah: `Surah ${r.surahNameEn}`,
+    ref: r.verseKey,
+    arName: r.surahNameAr,
+    juz: r.juz,
+    place: placeNorm(r.revelationPlace),
+    relevance: (r.relevanceScore ?? 0).toFixed(2),
+    topics: [],
+    arabic: r.arabic,
+    en: r.translation,
+    ur: r.translation,
+    tafseer: r.tafseer || "",
+    surrounding: (r.context?.verses ?? []).map((v) => ({ ref: v.verse_key, ar: v.arabic, en: v.translation, center: v.isMatch })),
+    sources: { arabic: r.sources?.arabic ?? "", translation: r.sources?.translation ?? "", tafseer: r.sources?.tafseer ?? "" },
+  };
+}
 
 /* ---------- HOME / SEARCH ---------- */
 export function SearchHome() {
@@ -17,6 +43,19 @@ export function SearchHome() {
   const [q, setQ] = useState("");
   const grid = app.homeLayout === "Grid";
   const submit = () => { if (q.trim()) app.runSearch(q.trim()); };
+
+  // Suggested questions, loaded from the API (grouped, like the web).
+  const [groups, setGroups] = useState<SuggestedGroup[] | null>(null);
+  const [qLoading, setQLoading] = useState(true);
+  useEffect(() => {
+    let alive = true;
+    getSuggestedQuestions()
+      .then((g) => { if (alive) { setGroups(g); setQLoading(false); } })
+      .catch(() => { if (alive) { setGroups(null); setQLoading(false); } });
+    return () => { alive = false; };
+  }, []);
+
+  const hasApiQuestions = groups && groups.length > 0;
 
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 26 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
@@ -37,33 +76,43 @@ export function SearchHome() {
       <View style={{ paddingHorizontal: 16, paddingTop: 6 }}>
         <SearchBar value={q} onChangeText={setQ} placeholder="Ask about a topic or theme…" onSubmit={submit} showGo />
 
-        <FieldLabel>{grid ? "Explore topics" : "Suggested topics"}</FieldLabel>
-        {grid ? (
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 11 }}>
-            {TOPICS.map((t) => (
-              <Pressable key={t.q} onPress={() => app.runSearch(t.q)} style={[{ width: "47.5%", backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 16, padding: 15, gap: 9 }, tokens.cardShadow]}>
-                <View style={{ width: 38, height: 38, borderRadius: 11, alignItems: "center", justifyContent: "center", backgroundColor: mix(tokens.brand, 11) }}>
-                  <RawIcon inner={t.ic} size={20} color={tokens.brand} />
-                </View>
-                <View>
-                  <Text style={{ fontFamily: FONTS.serif[600], fontSize: 17, color: tokens.text }}>{t.q}</Text>
-                  <Text style={{ fontFamily: FONTS.ar, fontSize: 14, color: tokens.text3 }}>{t.ar}</Text>
-                </View>
-              </Pressable>
-            ))}
-          </View>
+        {hasApiQuestions ? (
+          /* API-loaded suggested questions, grouped by topic */
+          groups!.map((g) => (
+            <View key={g.id}>
+              <FieldLabel>{g.title}</FieldLabel>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
+                {g.questions.map((qq) => {
+                  const label = (qq.translations && qq.translations[app.language]) || qq.text;
+                  return (
+                    <Pressable key={qq.id} onPress={() => app.runSearch(label)} style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 999, paddingVertical: 9, paddingHorizontal: 15 }, tokens.cardShadow]}>
+                      <Text style={{ fontSize: 13.5, fontFamily: FONTS.sans[600], color: tokens.text }}>{label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          ))
         ) : (
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
-            {TOPICS.map((t) => (
-              <Pressable key={t.q} onPress={() => app.runSearch(t.q)} style={[{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 999, paddingVertical: 9, paddingLeft: 12, paddingRight: 15 }, tokens.cardShadow]}>
-                <View style={{ width: 24, height: 24, borderRadius: 7, alignItems: "center", justifyContent: "center", backgroundColor: mix(tokens.brand, 11) }}>
-                  <RawIcon inner={t.ic} size={14} w={1.9} color={tokens.brand} />
-                </View>
-                <Text style={{ fontSize: 13.5, fontFamily: FONTS.sans[600], color: tokens.text }}>{t.q}</Text>
-                <Text style={{ fontFamily: FONTS.ar, fontSize: 14, color: tokens.text3 }}>{t.ar}</Text>
-              </Pressable>
-            ))}
-          </View>
+          <>
+            <FieldLabel>{qLoading ? "Loading suggestions…" : "Suggested topics"}</FieldLabel>
+            {qLoading ? (
+              <ActivityIndicator color={tokens.brand} style={{ alignSelf: "flex-start", marginLeft: 2 }} />
+            ) : (
+              /* offline fallback: the bundled topic chips */
+              <View style={{ flexDirection: grid ? "row" : "row", flexWrap: "wrap", gap: grid ? 11 : 9 }}>
+                {TOPICS.map((t) => (
+                  <Pressable key={t.q} onPress={() => app.runSearch(t.q)} style={[{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 999, paddingVertical: 9, paddingLeft: 12, paddingRight: 15 }, tokens.cardShadow]}>
+                    <View style={{ width: 24, height: 24, borderRadius: 7, alignItems: "center", justifyContent: "center", backgroundColor: mix(tokens.brand, 11) }}>
+                      <RawIcon inner={t.ic} size={14} w={1.9} color={tokens.brand} />
+                    </View>
+                    <Text style={{ fontSize: 13.5, fontFamily: FONTS.sans[600], color: tokens.text }}>{t.q}</Text>
+                    <Text style={{ fontFamily: FONTS.ar, fontSize: 14, color: tokens.text3 }}>{t.ar}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </>
         )}
 
         <FieldLabel>Recent searches</FieldLabel>
@@ -81,37 +130,68 @@ export function SearchHome() {
   );
 }
 
-/* ---------- RESULTS ---------- */
-function matches(item: AyahItem, q: string): boolean {
-  const t = q.trim().toLowerCase();
-  if (!t) return true;
-  if (item.topics.some((tp) => tp.includes(t) || t.includes(tp))) return true;
-  return (item.en + " " + item.surah + " " + item.ref).toLowerCase().includes(t);
-}
-
+/* ---------- RESULTS (live /api/ask) ---------- */
 export function Results() {
   const app = useApp();
   const { tokens } = app;
   const q = app.query;
-  const list = RESULTS.filter((d) => matches(d, q));
+
+  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<AyahItem[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const run = React.useCallback(() => {
+    let alive = true;
+    setLoading(true); setError(null); setMessage(null);
+    ask(q, { language: app.language })
+      .then((res) => {
+        if (!alive) return;
+        setItems(res.results.map(toItem));
+        setMessage(res.count === 0 ? res.message || "No matching Quran reference found." : null);
+        setLoading(false);
+      })
+      .catch((e) => {
+        if (!alive) return;
+        setError(e instanceof AqError ? e.message : "Couldn’t reach the search service.");
+        setItems([]);
+        setLoading(false);
+      });
+    return () => { alive = false; };
+  }, [q, app.language]);
+
+  useEffect(() => run(), [run]);
+
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 18, paddingBottom: 26 }} showsVerticalScrollIndicator={false}>
       <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 10, marginBottom: 14, marginHorizontal: 2 }}>
         <Text style={{ fontSize: 14, fontFamily: FONTS.sans[700], color: tokens.text }}>
           Results for <Text style={{ color: tokens.brand }}>“{q}”</Text>
         </Text>
-        <Text style={{ fontSize: 12, color: tokens.text3 }}>{list.length} {list.length === 1 ? "source" : "sources"}</Text>
+        {!loading && !error ? <Text style={{ fontSize: 12, color: tokens.text3 }}>{items.length} {items.length === 1 ? "source" : "sources"}</Text> : null}
       </View>
-      {list.length ? (
+
+      {loading ? (
+        <View style={{ alignItems: "center", paddingVertical: 56 }}>
+          <ActivityIndicator color={tokens.brand} />
+          <Text style={{ marginTop: 12, fontSize: 13, color: tokens.text3 }}>Searching the Quran…</Text>
+        </View>
+      ) : error ? (
+        <View style={{ alignItems: "center", paddingVertical: 48, paddingHorizontal: 20 }}>
+          <Icon name="search" size={38} w={1.6} color={tokens.text3} />
+          <Text style={{ marginTop: 12, fontSize: 14, lineHeight: 22, color: tokens.text3, textAlign: "center" }}>{error}</Text>
+          <Pressable onPress={run} style={{ marginTop: 18, backgroundColor: tokens.brand, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 20 }}>
+            <Text style={{ fontSize: 14, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>Retry</Text>
+          </Pressable>
+        </View>
+      ) : items.length ? (
         <View style={{ gap: 16 }}>
-          {list.map((d, i) => <AyahCard item={d} rank={i + 1} key={d.ref + i} />)}
+          {items.map((d, i) => <AyahCard item={d} rank={i + 1} key={d.ref + i} />)}
         </View>
       ) : (
         <View style={{ alignItems: "center", paddingVertical: 48, paddingHorizontal: 20 }}>
           <Icon name="search" size={38} w={1.6} color={tokens.text3} />
-          <Text style={{ marginTop: 12, fontSize: 14, lineHeight: 24, color: tokens.text3, textAlign: "center" }}>
-            No indexed sources matched “{q}”.{"\n"}Try: {TOPICS.map((t) => <Text key={t.q} style={{ color: tokens.brand2, fontFamily: FONTS.sans[700] }}>{t.q} </Text>)}
-          </Text>
+          <Text style={{ marginTop: 12, fontSize: 14, lineHeight: 24, color: tokens.text3, textAlign: "center" }}>{message}</Text>
         </View>
       )}
     </ScrollView>
@@ -164,10 +244,14 @@ export function Reader() {
           </>
         ) : null}
 
-        <FieldLabel>Tafsir</FieldLabel>
-        <View style={{ paddingHorizontal: 15, paddingVertical: 14, backgroundColor: mix(tokens.gold, 7, tokens.surface2), borderWidth: 1, borderColor: tokens.lineSoft, borderRadius: 12 }}>
-          <Text style={{ fontFamily: FONTS.serif[400], fontSize: 14, lineHeight: 24.5, color: tokens.text }}>{item.tafseer}</Text>
-        </View>
+        {item.tafseer ? (
+          <>
+            <FieldLabel>Tafsir</FieldLabel>
+            <View style={{ paddingHorizontal: 15, paddingVertical: 14, backgroundColor: mix(tokens.gold, 7, tokens.surface2), borderWidth: 1, borderColor: tokens.lineSoft, borderRadius: 12 }}>
+              <Text style={{ fontFamily: FONTS.serif[400], fontSize: 14, lineHeight: 24.5, color: tokens.text }}>{item.tafseer}</Text>
+            </View>
+          </>
+        ) : null}
       </View>
     </ScrollView>
   );

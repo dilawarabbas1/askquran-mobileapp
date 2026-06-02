@@ -4,15 +4,19 @@
 // on its own. Text is verbatim — nothing generated.
 
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Animated, Pressable, ScrollView, Text, View } from "react-native";
 import { Audio, type AVPlaybackStatus } from "expo-av";
 import { SvgXml } from "react-native-svg";
 import { useApp } from "../AQContext";
 import { Icon } from "../Icon";
 import { SearchBar } from "../SearchBar";
 import { SURAHS } from "../data";
-import { BISMILLAH, RECITE, ayahAudioUrl, hasRecitation, type ReciteAyah } from "../reciteData";
+import { BISMILLAH, RECITE, ayahAudioUrl, hasRecitation } from "../reciteData";
 import { FONTS, mix } from "../tokens";
+import { getVerses, translationIdForLanguage, AqError } from "@/api";
+
+/** A recite ayah: number, Arabic, and translation in the current language. */
+type RAyah = { n: number; ar: string; tr: string };
 
 /* ---- recite-specific (filled) icons ---- */
 const RECITE_ICONS: Record<string, string> = {
@@ -113,10 +117,11 @@ export function Recite() {
   const name = meta[2];
   const cnt = meta[3];
   const place = meta[4] as string;
-  const data = RECITE[num];
-  const ayahs: ReciteAyah[] | null = data ? data.ayahs : null;
   const showBismillah = num !== 1 && num !== 9;
 
+  const [ayahs, setAyahs] = useState<RAyah[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
   const [activeAyah, setActiveAyah] = useState<number | null>(null);
   const [mode, setMode] = useState<"surah" | "single">("surah");
@@ -125,6 +130,7 @@ export function Recite() {
 
   const soundRef = useRef<Audio.Sound | null>(null);
   const tokenRef = useRef(0);
+  const loadTokenRef = useRef(0);
   const stateRef = useRef({ mode, repeat, activeAyah, ayahs, num });
   stateRef.current = { mode, repeat, activeAyah, ayahs, num };
 
@@ -134,8 +140,9 @@ export function Recite() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // stop & reset when the surah changes
-  useEffect(() => { void stop(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [num]);
+  // load the selected surah's ayahs from the API (any of the 114), refetching
+  // when the surah or language changes; falls back to bundled short surahs.
+  useEffect(() => { loadSurah(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [num, app.lang]);
 
   async function unload() {
     const s = soundRef.current;
@@ -148,6 +155,33 @@ export function Recite() {
     setPlaying(false);
     setActiveAyah(null);
     setProgress(0);
+  }
+
+  async function loadSurah() {
+    const my = ++loadTokenRef.current;
+    await stop();
+    setLoading(true);
+    setError(null);
+    try {
+      const trId = await translationIdForLanguage(app.language);
+      const verses = await getVerses([`${num}:1-${num}:${cnt}`], trId || "");
+      if (my !== loadTokenRef.current) return;
+      setAyahs(verses.map((v) => ({ n: v.ayah, ar: v.arabic, tr: v.translation || "" })));
+      setLoading(false);
+    } catch (e) {
+      if (my !== loadTokenRef.current) return;
+      // offline / no-backend fallback: bundled short surahs
+      const bundled = RECITE[num];
+      if (bundled) {
+        setAyahs(bundled.ayahs.map((a) => ({ n: a.n, ar: a.ar, tr: app.lang === "ur" ? a.ur : a.en })));
+        setLoading(false);
+        setError(null);
+      } else {
+        setAyahs(null);
+        setLoading(false);
+        setError(e instanceof AqError ? e.message : "Couldn’t load this surah.");
+      }
+    }
   }
 
   function onStatus(st: AVPlaybackStatus, myToken: number) {
@@ -248,7 +282,12 @@ export function Recite() {
 
       {/* body */}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: 14 }} showsVerticalScrollIndicator={false}>
-        {ayahs ? (
+        {loading ? (
+          <View style={{ alignItems: "center", paddingTop: 64 }}>
+            <ActivityIndicator color={tokens.brand} />
+            <Text style={{ marginTop: 12, fontSize: 13, color: tokens.text3 }}>Loading {name}…</Text>
+          </View>
+        ) : ayahs ? (
           <>
             {showBismillah ? (
               <Text style={{ fontFamily: FONTS.ar, fontSize: 24, lineHeight: 43, color: tokens.text, textAlign: "center", writingDirection: "rtl", paddingTop: 8, paddingBottom: 18 }}>{BISMILLAH.ar}</Text>
@@ -280,11 +319,13 @@ export function Recite() {
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontFamily: FONTS.ar, fontSize: 25, lineHeight: 51, color: tokens.arColor, textAlign: "right", writingDirection: "rtl" }}>{a.ar}</Text>
-                      <Text style={app.lang === "ur"
-                        ? { marginTop: 9, fontFamily: FONTS.ur[400], fontSize: 16, lineHeight: 37, color: tokens.text2, textAlign: "right", writingDirection: "rtl" }
-                        : { marginTop: 9, fontFamily: FONTS.serif[400], fontSize: 14, lineHeight: 24, color: tokens.text2 }}>
-                        {app.lang === "ur" ? a.ur : a.en}
-                      </Text>
+                      {a.tr ? (
+                        <Text style={app.lang === "ur"
+                          ? { marginTop: 9, fontFamily: FONTS.ur[400], fontSize: 16, lineHeight: 37, color: tokens.text2, textAlign: "right", writingDirection: "rtl" }
+                          : { marginTop: 9, fontFamily: FONTS.serif[400], fontSize: 14, lineHeight: 24, color: tokens.text2 }}>
+                          {a.tr}
+                        </Text>
+                      ) : null}
                       {on && playing ? <Equalizer color={tokens.brand} /> : null}
                     </View>
                   </Pressable>
@@ -297,9 +338,11 @@ export function Recite() {
           <View style={{ alignItems: "center", paddingTop: 60, paddingHorizontal: 20 }}>
             <RIcon name="wave" size={40} color={tokens.brand} />
             <Text style={{ marginTop: 12, fontSize: 14, lineHeight: 24, color: tokens.text3, textAlign: "center" }}>
-              Recitation for <Text style={{ fontFamily: FONTS.sans[700], color: tokens.text2 }}>{name}</Text> isn’t bundled in this preview.{"\n"}Try a short surah —{" "}
-              <Text onPress={app.openSurahSheet} style={{ fontFamily: FONTS.sans[700], color: tokens.brand2 }}>Al-Fatiha, Al-Ikhlas, An-Nas…</Text>
+              {error || `Couldn’t load ${name}.`}
             </Text>
+            <Pressable onPress={loadSurah} style={{ marginTop: 18, backgroundColor: tokens.brand, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 20 }}>
+              <Text style={{ fontSize: 14, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>Retry</Text>
+            </Pressable>
           </View>
         )}
       </ScrollView>
