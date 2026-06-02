@@ -1,0 +1,279 @@
+// Shared visual atoms ported from aq-ui.jsx — the logo mark, wordmark, ornament
+// divider, translation block, ayah card, and the settings toggle. Styling
+// mirrors aq-app.css using the live theme tokens.
+
+import React, { useState } from "react";
+import { Pressable, Text, View } from "react-native";
+import { SvgXml } from "react-native-svg";
+import { useApp } from "./AQContext";
+import { Icon } from "./Icon";
+import type { AyahItem } from "./data";
+import { FONTS, mix, type Tokens } from "./tokens";
+
+/* ---------- logo mark (lens + open book) ---------- */
+export function Mark({ size = 26 }: { size?: number }) {
+  const { tokens } = useApp();
+  const xml = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="43" cy="43" r="27" fill="none" stroke="${tokens.brand}" stroke-width="6.4" stroke-linecap="round"/>
+    <line x1="62.2" y1="62.2" x2="83" y2="83" stroke="${tokens.brand}" stroke-width="8" stroke-linecap="round"/>
+    <g fill="none" stroke="${tokens.orn}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M43,34 C38,30.5 31,30 26,33 L26,49 C31,46.5 38,47 43,50.5"/>
+      <path d="M43,34 C48,30.5 55,30 60,33 L60,49 C55,46.5 48,47 43,50.5"/>
+      <path d="M43,34 L43,50.5"/>
+    </g></svg>`;
+  return <SvgXml xml={xml} width={size} height={size} />;
+}
+
+export function Wordmark({ size = 18 }: { size?: number }) {
+  const { tokens } = useApp();
+  return (
+    <Text style={{ fontSize: size, color: tokens.brand, letterSpacing: -size * 0.02 }}>
+      <Text style={{ fontFamily: FONTS.sans[500] }}>Ask </Text>
+      <Text style={{ fontFamily: FONTS.sans[800] }}>Quran</Text>
+    </Text>
+  );
+}
+
+/* ---------- ornament divider ---------- */
+export function OrnDivider() {
+  const { tokens } = useApp();
+  const orn = tokens.orn;
+  const xml = `<svg xmlns="http://www.w3.org/2000/svg" width="230" height="24" viewBox="0 0 230 24">
+    <defs>
+      <linearGradient id="lg" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="${orn}" stop-opacity="0"/><stop offset="1" stop-color="${orn}" stop-opacity="0.55"/>
+      </linearGradient>
+      <linearGradient id="rg" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="${orn}" stop-opacity="0.55"/><stop offset="1" stop-color="${orn}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <rect x="0" y="11.5" width="94" height="1" fill="url(#lg)"/>
+    <g transform="translate(103 0)" fill="none" stroke="${orn}" stroke-width="4">
+      <rect x="9" y="9" width="6" height="6"/><rect x="9" y="9" width="6" height="6" transform="rotate(45 12 12)"/>
+    </g>
+    <circle cx="115" cy="12" r="2.6" fill="${orn}"/>
+    <rect x="136" y="11.5" width="94" height="1" fill="url(#rg)"/>
+  </svg>`;
+  return (
+    <View style={{ alignItems: "center", marginTop: 20, marginBottom: 4 }}>
+      <SvgXml xml={xml} width={230} height={24} />
+    </View>
+  );
+}
+
+/* ---------- translation block ---------- */
+export function Translation({ item, lang }: { item: AyahItem; lang: "en" | "ur" | "both" }) {
+  const { tokens } = useApp();
+  const label = (text: string, mt = 0) => (
+    <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 1.4, textTransform: "uppercase", color: tokens.text3, marginBottom: 7, marginTop: mt }}>
+      {text}
+    </Text>
+  );
+  const en = (
+    <Text style={{ fontSize: 14.5, lineHeight: 26, color: tokens.text, fontFamily: FONTS.serif[400] }}>{item.en}</Text>
+  );
+  const ur = (
+    <Text style={{ fontSize: 17, lineHeight: 41, color: tokens.text, fontFamily: FONTS.ur[400], textAlign: "right", writingDirection: "rtl" }}>{item.ur}</Text>
+  );
+  if (lang === "both") {
+    return (
+      <View>
+        {label("Translation · English")}
+        {en}
+        {label("Translation · Urdu", 14)}
+        {ur}
+      </View>
+    );
+  }
+  return (
+    <View>
+      {label("Translation")}
+      {lang === "ur" ? ur : en}
+    </View>
+  );
+}
+
+/* ---------- place badge ---------- */
+export function PlaceBadge({ place, tokens, madinahLabel = "Medinan" }: { place: string; tokens: Tokens; madinahLabel?: string }) {
+  const meccan = place === "Mecca";
+  return (
+    <Text
+      style={{
+        fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 0.3, paddingHorizontal: 8, paddingVertical: 2,
+        borderRadius: 5, overflow: "hidden",
+        color: meccan ? tokens.mecca : tokens.medina,
+        backgroundColor: meccan ? tokens.meccaBg : tokens.medinaBg,
+      }}
+    >
+      {meccan ? "Meccan" : madinahLabel}
+    </Text>
+  );
+}
+
+/* ---------- expander row ---------- */
+function Expander({ label, open, onToggle, tokens }: { label: string; open: boolean; onToggle: () => void; tokens: Tokens }) {
+  return (
+    <Pressable onPress={onToggle} style={{ flexDirection: "row", alignItems: "center", paddingTop: 11, paddingBottom: 4 }}>
+      <Text style={{ flex: 1, fontSize: 11, fontFamily: FONTS.sans[700], letterSpacing: 1.1, textTransform: "uppercase", color: tokens.brand2 }}>{label}</Text>
+      <Text style={{ fontSize: 9, color: tokens.brand2, transform: [{ rotate: open ? "180deg" : "0deg" }] }}>▼</Text>
+    </Pressable>
+  );
+}
+
+function Surrounding({ item, tokens }: { item: AyahItem; tokens: Tokens }) {
+  return (
+    <View style={{ marginTop: 6, marginBottom: 2, gap: 9 }}>
+      {item.surrounding.map((n, i) => (
+        <View
+          key={i}
+          style={{
+            paddingHorizontal: 13, paddingVertical: 11, borderRadius: 11, borderWidth: 1,
+            borderColor: n.center ? mix(tokens.brand, 35) : tokens.lineSoft,
+            backgroundColor: n.center ? mix(tokens.brand, 5, tokens.surface2) : tokens.surface2,
+          }}
+        >
+          <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 0.4, color: tokens.text3, marginBottom: 5 }}>
+            {n.ref}{n.center ? " · matched" : ""}
+          </Text>
+          <Text style={{ fontFamily: FONTS.ar, fontSize: 18, lineHeight: 33, color: tokens.arColor, textAlign: "right", writingDirection: "rtl" }}>{n.ar}</Text>
+          <Text style={{ fontFamily: FONTS.serif[400], fontSize: 12.5, color: tokens.text2, marginTop: 4 }}>{n.en}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/* ---------- AYAH CARD ---------- */
+export function AyahCard({ item, rank }: { item: AyahItem; rank?: number }) {
+  const app = useApp();
+  const { tokens } = app;
+  const [taf, setTaf] = useState(false);
+  const [sur, setSur] = useState(false);
+  const saved = app.isSaved(item.ref);
+
+  return (
+    <View style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 18, paddingHorizontal: 18, paddingTop: 18, paddingBottom: 15 }, tokens.cardShadow]}>
+      {/* top */}
+      <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexShrink: 1 }}>
+          {rank ? (
+            <View style={{ width: 24, height: 24, borderRadius: 999, backgroundColor: tokens.brand, alignItems: "center", justifyContent: "center" }}>
+              <Text style={{ color: tokens.onBrand, fontSize: 12, fontFamily: FONTS.sans[700] }}>{rank}</Text>
+            </View>
+          ) : null}
+          <Text style={{ fontFamily: FONTS.serif[500], fontSize: 17.5, color: tokens.text }}>
+            {item.surah} <Text style={{ color: tokens.brand2 }}>{item.ref}</Text>
+          </Text>
+        </View>
+        <Text style={{ fontSize: 10, fontFamily: FONTS.sans[600], color: tokens.text3, paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, overflow: "hidden", backgroundColor: mix(tokens.gold, 13), borderWidth: 1, borderColor: mix(tokens.gold, 32) }}>
+          rel {item.relevance}
+        </Text>
+      </View>
+
+      {/* meta */}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 9, marginTop: 7, marginBottom: 14, paddingLeft: rank ? 34 : 0, flexWrap: "wrap" }}>
+        <Text style={{ fontFamily: FONTS.ar, fontSize: 15, color: tokens.orn }}>{item.arName}</Text>
+        <View style={{ width: 3, height: 3, borderRadius: 2, backgroundColor: tokens.text3, opacity: 0.6 }} />
+        <Text style={{ fontSize: 11.5, color: tokens.text3 }}>Juz {item.juz}</Text>
+        <PlaceBadge place={item.place} tokens={tokens} />
+      </View>
+
+      {/* arabic */}
+      <Pressable onPress={() => app.openReader(item)}>
+        <Text style={{ fontFamily: FONTS.ar, fontSize: 27, lineHeight: 54, color: tokens.arColor, textAlign: "center", writingDirection: "rtl", paddingVertical: 4 }}>{item.arabic}</Text>
+      </Pressable>
+      <View style={{ height: 1, backgroundColor: tokens.lineSoft, marginVertical: 12 }} />
+
+      <Translation item={item} lang={app.lang} />
+
+      {/* surrounding */}
+      <Expander label="Surrounding ayahs" open={sur} onToggle={() => setSur((v) => !v)} tokens={tokens} />
+      {sur ? <Surrounding item={item} tokens={tokens} /> : null}
+
+      {/* tafseer */}
+      <Expander label="Tafseer" open={taf} onToggle={() => setTaf((v) => !v)} tokens={tokens} />
+      {taf ? (
+        <View style={{ marginTop: 6, marginBottom: 4, paddingHorizontal: 15, paddingVertical: 14, backgroundColor: mix(tokens.gold, 7, tokens.surface2), borderWidth: 1, borderColor: tokens.lineSoft, borderRadius: 12 }}>
+          <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 0.5, textTransform: "uppercase", color: tokens.orn, marginBottom: 6 }}>Tafsir</Text>
+          <Text style={{ fontFamily: FONTS.serif[400], fontSize: 14, lineHeight: 24.5, color: tokens.text }}>{item.tafseer}</Text>
+        </View>
+      ) : null}
+
+      {/* foot */}
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: tokens.lineSoft }}>
+        <Pressable onPress={() => app.openReader(item)} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+          <Text style={{ fontSize: 12, fontFamily: FONTS.sans[700], color: tokens.brand2 }}>Read in context </Text>
+          <Text style={{ fontSize: 13, color: tokens.brand2 }}>→</Text>
+        </Pressable>
+        <View style={{ flexDirection: "row", gap: 6 }}>
+          <IconBtn name={saved ? "bookmarkFill" : "bookmark"} active={saved} onPress={() => app.toggleSave(item)} />
+          <IconBtn name="share" onPress={() => {}} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/* ---------- small icon button (sm) ---------- */
+export function IconBtn({ name, onPress, active, w = 1.9 }: { name: string; onPress: () => void; active?: boolean; w?: number }) {
+  const { tokens } = useApp();
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        width: 32, height: 32, borderRadius: 9, borderWidth: 1, alignItems: "center", justifyContent: "center",
+        backgroundColor: tokens.surface2,
+        borderColor: active ? mix(tokens.brand, 40, tokens.line) : tokens.line,
+      }}
+    >
+      <Icon name={name} size={16} w={w} color={active ? tokens.brand : tokens.text2} />
+    </Pressable>
+  );
+}
+
+/* ---------- toolbar icon button (default) ---------- */
+export function ToolBtn({ name, onPress }: { name: string; onPress: () => void }) {
+  const { tokens } = useApp();
+  return (
+    <Pressable onPress={onPress} style={{ width: 36, height: 36, borderRadius: 11, borderWidth: 1, borderColor: tokens.line, backgroundColor: tokens.surface2, alignItems: "center", justifyContent: "center" }}>
+      <Icon name={name} size={18} color={tokens.text2} />
+    </Pressable>
+  );
+}
+
+/* ---------- toggle switch ---------- */
+export function Switch({ on, onPress }: { on: boolean; onPress: () => void }) {
+  const { tokens } = useApp();
+  return (
+    <Pressable onPress={onPress} style={{ width: 42, height: 25, borderRadius: 999, backgroundColor: on ? tokens.brand : tokens.line, justifyContent: "center" }}>
+      <View style={{ position: "absolute", top: 2.5, left: on ? 19.5 : 2.5, width: 20, height: 20, borderRadius: 10, backgroundColor: "#fff", shadowColor: "#000", shadowOpacity: 0.3, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 2 }} />
+    </Pressable>
+  );
+}
+
+/* ---------- field label ---------- */
+export function FieldLabel({ children }: { children: React.ReactNode }) {
+  const { tokens } = useApp();
+  return (
+    <Text style={{ fontSize: 11, fontFamily: FONTS.sans[700], letterSpacing: 1.3, textTransform: "uppercase", color: tokens.text3, marginTop: 24, marginBottom: 11, marginHorizontal: 2 }}>
+      {children}
+    </Text>
+  );
+}
+
+/* ---------- section kicker label (gold) ---------- */
+export function SegLabel({ children }: { children: React.ReactNode }) {
+  const { tokens } = useApp();
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <View style={{ width: 18, height: 1.5, backgroundColor: tokens.orn, opacity: 0.7 }} />
+      <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[700], letterSpacing: 1.6, textTransform: "uppercase", color: tokens.orn }}>{children}</Text>
+    </View>
+  );
+}
+
+/* ---------- block title (serif) ---------- */
+export function BlockTitle({ children, style }: { children: React.ReactNode; style?: object }) {
+  const { tokens } = useApp();
+  return <Text style={[{ fontFamily: FONTS.serif[500], fontSize: 20, color: tokens.text }, style]}>{children}</Text>;
+}

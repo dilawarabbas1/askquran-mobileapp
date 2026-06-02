@@ -1,91 +1,72 @@
 # Ask Quran — Mobile App
 
-A React Native + Expo client for **Ask Quran**, the source-grounded Quran
-search portal. Ask a natural-language question and receive **only relevant
-Quran source material** — Arabic ayah text, translation, surah/ayah reference,
-transliteration, recitation audio, and tafsir where available.
+A React Native + Expo implementation of the **AskQuran** mobile design
+(Claude Design handoff, `mobile/AskQuran Mobile App.html`). Ask a question and
+get **only referenced Quran source material** — Arabic ayah text, translation,
+surah/ayah reference, surrounding context, and tafsir — nothing generated.
 
-> **No-Generation Policy.** This app never writes religious explanations. There
-> is no language model in the request path. Every result is assembled
-> deterministically by the backend and rendered **verbatim** here. If nothing
-> matches, the app shows the fixed *"No matching Quran reference found"*
-> response. The mobile app is a thin client — it never generates, paraphrases,
-> or summarizes text.
+> **No-Generation Policy.** Every answer is referenced and unaltered. No
+> AI-written religious text, no opinions — only the Quran, authentic
+> translations, and attributed tafsir.
 
-It mirrors the web frontend's full feature set: search with Language →
-Translation → Tafsir selectors, filters, rich result cards (context passages,
-audio, on-demand tafsir, source badges), 44-language UI, RTL, light/dark theme,
-and the content pages (Quran Facts, Quranic Duas, Prophet Stories, Parables,
-Commands & Prohibitions, Warnings, Ethical Character Map).
+This app reproduces the design pixel-faithfully in native UI: the emerald /
+gold / parchment system, the Plus Jakarta Sans + Newsreader + Amiri + Noto
+Nastaliq Urdu type scale, the lens-over-book logo, and the khatam ornament.
+
+## Flow & screens
+
+- **Splash** — bismillah above the logo, then auto-advances.
+- **Onboarding** — 3 steps: "Ask a question, get the source" · "Nothing is
+  generated" · "Choose your language for Translation and Tafsir" (44-language
+  picker, English first and selected by default).
+- **Search** (tab) — top-left logo, shahada hero, search bar, suggested topics
+  (Chips or Grid), recent searches.
+- **Results** — pinned editable search bar, ranked ayah cards (Arabic,
+  translation, expandable *Surrounding ayahs* and *Tafseer*, save/share,
+  *Read in context*).
+- **Reader** — single-ayah focus: Arabic, translation, *In context*, then
+  *Tafsir* below it.
+- **Facts** (tab) — segmented sub-tabs: **Structure** (metrics + hierarchy),
+  **Surahs** (real 114-surah metadata, searchable + Meccan/Medinan filter),
+  **Topics**, **Sajdah** (15 references), **Sources**.
+- **Saved** (tab) — bookmarked ayahs with a tab badge, plus an empty state.
+- **Settings** (tab) — language sheet, Arabic/tajweed toggles, theme
+  (Light / Dark / Auto), daily-verse notification, topics layout, about.
+- **Language sheet** — the same 44-language picker, reachable from the Search
+  and Facts globe icons and from Settings.
+
+Light & dark themes are both implemented and switch live from Settings →
+Appearance.
 
 ## Architecture
 
-| Layer | Where |
+| Piece | Where |
 | --- | --- |
-| Config (API base URL + key) | `src/config.ts` (from `app.json` → `extra`) |
-| API client | `src/api/client.ts` |
-| Types | `src/types.ts` (mirrors the backend response shapes) |
-| Theme (light/dark) | `src/theme/` |
-| i18n (44 catalogs) | `src/i18n/` |
-| Shared state | `src/context/` (settings, search bus) |
-| Components | `src/components/` |
-| Screens | `src/screens/` |
-| Reference data | `src/data/` (Quran-backed references only — no ayah text) |
+| Color tokens (light/dark) + `color-mix` shim + fonts | `src/design/tokens.ts` |
+| Content data (ayahs, topics, 114 surahs, facts, 44 languages) | `src/design/data.ts` |
+| App state + theme (navigation stack, query, saved, language) | `src/design/AQContext.tsx` |
+| Icons (SVG, via `react-native-svg`) | `src/design/Icon.tsx` |
+| Shared atoms (logo, divider, ayah card, switch, …) | `src/design/atoms.tsx` |
+| Search input | `src/design/SearchBar.tsx` |
+| App shell (app bar, tab bar, router, staging) | `src/design/AppShell.tsx` |
+| Screens | `src/design/screens/` |
 
-### Backend API usage
-
-Reads go through the **key-gated external API** (`/api/v1/*`, authenticated with
-`x-api-key`): translations, tafsir editions, surah verses, single ayahs, and
-audio. Search has no v1 equivalent, so it uses the public `POST /api/ask`, which
-returns the full rich response (context, transliteration, audio, tafsir,
-sources, match reasons).
-
-When **no API key** is configured, the client gracefully falls back to the
-public `/api/*` endpoints so the app still runs out of the box.
+The content is the design's seed data (Tanzil Arabic + carried-over
+translations/tafsir summaries); it is presented verbatim, never generated.
 
 ## Setup
 
 ```bash
 npm install
 npm start          # Expo dev server — open in Expo Go or a simulator
-npm run android    # or
-npm run ios
+npm run android    # Android
+npm run ios        # iOS (macOS + Xcode)
 ```
 
-### Configuration
-
-Set the backend URL and (optionally) an API key in `app.json` → `expo.extra`,
-or via env at start:
-
-```bash
-EXPO_PUBLIC_API_BASE_URL=http://192.168.1.10:4000 \
-EXPO_PUBLIC_API_KEY=your_api_key \
-npm start
-```
-
-> On a **physical device**, `localhost` will not reach your dev machine — use
-> your machine's LAN IP (e.g. `http://192.168.1.10:4000`). Make sure the Ask
-> Quran backend is running and (for `/api/v1/*`) you have a valid API key with
-> the `quran:read`, `translations:read`, and `tafsir:read` scopes.
+Runs on **Android and iOS** from the one codebase.
 
 ## Type-check
 
 ```bash
 npm run lint   # tsc --noEmit
 ```
-
-## Features
-
-- **Search** — question + Language/Translation/Tafsir selectors, filters
-  (revelation place, surah, juz, has-tafsir), result cards with Arabic,
-  transliteration, recitation audio, translation (with term highlighting),
-  surrounding context passages, on-demand tafsir, and verbatim source badges.
-- **Quran Facts** — structure metrics, surah list, guided topics, Quran
-  mentions (prophets/nations/angels/scriptures/places), divine-punishment
-  themes, plants, and source integrity. Tapping any ayah reference runs it as a
-  search.
-- **Quranic Duas** — supplications present directly in the Quran, each anchored
-  to verbatim ayah references with optional tafsir.
-- **Prophet Stories**, **Quranic Parables**, **Commands & Prohibitions**,
-  **Quranic Warnings**, **Ethical Character Map** — Quran-backed reference pages.
-- **44-language UI** with RTL support, **light/dark theme**, persisted settings.

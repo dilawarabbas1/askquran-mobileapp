@@ -9,7 +9,7 @@
     "newArchEnabled": true,
     "splash": {
       "resizeMode": "contain",
-      "backgroundColor": "#0f1b16"
+      "backgroundColor": "#0F5D45"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -19,15 +19,11 @@
     "android": {
       "package": "net.eocean.askquran",
       "adaptiveIcon": {
-        "backgroundColor": "#0f1b16"
+        "backgroundColor": "#0F5D45"
       }
     },
     "web": {
       "bundler": "metro"
-    },
-    "extra": {
-      "apiBaseUrl": "http://localhost:4000",
-      "apiKey": ""
     }
   }
 }
