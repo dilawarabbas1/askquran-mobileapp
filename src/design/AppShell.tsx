@@ -185,12 +185,14 @@ export function AppShell() {
   const { tokens } = app;
   const insets = useSafeAreaInsets();
 
+  // Only advance splash → onboarding once prefs are hydrated. If the user has
+  // already onboarded, hydration sends them straight to the app (stage !== splash).
   useEffect(() => {
-    if (app.stage === "splash") {
+    if (app.stage === "splash" && app.hydrated) {
       const id = setTimeout(() => app.goOnboarding(), 1700);
       return () => clearTimeout(id);
     }
-  }, [app.stage]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [app.stage, app.hydrated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <View style={{ flex: 1, backgroundColor: tokens.bg, paddingTop: insets.top }}>

@@ -3,10 +3,13 @@
 // list, language, appearance and home-layout — every interaction in the design
 // is driven through this context.
 
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useColorScheme } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RESULTS, type AyahItem } from "./data";
 import { TOKENS, type Mode, type Tokens } from "./tokens";
+
+const PREFS_KEY = "aq:prefs:v1";
 
 export type Stage = "splash" | "onboarding" | "app";
 export type Screen = "searchHome" | "results" | "reader" | "recite" | "facts" | "saved" | "settings";
@@ -32,6 +35,7 @@ export interface AQApi {
   reciteSurah: number;
   activeTab: Tab;
   canBack: boolean;
+  hydrated: boolean;
   mode: Mode;
   tokens: Tokens;
 
@@ -70,13 +74,47 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const [readerItem, setReaderItem] = useState<AyahItem>(RESULTS[0]);
   const [factTab, setFactTab] = useState("structure");
   const [appearance, setAppearance] = useState<Appearance>("light");
-  const [savedList, setSavedList] = useState<AyahItem[]>([RESULTS[0], RESULTS[3]]);
+  const [savedList, setSavedList] = useState<AyahItem[]>([]);
   const [navKey, setNavKey] = useState(0);
   const [langSheetOpen, setLangSheetOpen] = useState(false);
   const [surahSheetOpen, setSurahSheetOpen] = useState(false);
   const [reciteSurah, setReciteSurah] = useState(1);
   const [language, setLanguageState] = useState("English");
   const [homeLayout, setHomeLayout] = useState<HomeLayout>("Chips");
+  const [hydrated, setHydrated] = useState(false);
+  const [onboarded, setOnboarded] = useState(false);
+
+  // Hydrate persisted preferences once on launch. While loading we stay on the
+  // splash; if the user has onboarded before we go straight to the app.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(PREFS_KEY);
+        if (raw && alive) {
+          const p = JSON.parse(raw) as Partial<{
+            onboarded: boolean; language: string; appearance: Appearance; homeLayout: HomeLayout; savedList: AyahItem[];
+          }>;
+          if (p.language) setLanguageState(p.language);
+          if (p.appearance) setAppearance(p.appearance);
+          if (p.homeLayout) setHomeLayout(p.homeLayout);
+          if (Array.isArray(p.savedList)) setSavedList(p.savedList);
+          if (p.onboarded) { setOnboarded(true); setStage("app"); }
+        }
+      } catch {
+        /* corrupt/empty prefs — start fresh */
+      } finally {
+        if (alive) setHydrated(true);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  // Persist preferences whenever they change (after hydration).
+  useEffect(() => {
+    if (!hydrated) return;
+    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ onboarded, language, appearance, homeLayout, savedList })).catch(() => {});
+  }, [hydrated, onboarded, language, appearance, homeLayout, savedList]);
 
   const lang: "en" | "ur" = language === "Urdu" ? "ur" : "en";
   const mode: Mode = appearance === "system" ? (system === "dark" ? "dark" : "light") : appearance;
@@ -88,9 +126,9 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const api: AQApi = useMemo(
     () => ({
       stage, current, navKey, query, readerItem, factTab, appearance, homeLayout,
-      language, lang, langSheetOpen, surahSheetOpen, reciteSurah, activeTab, canBack: nav.length > 1, mode, tokens,
+      language, lang, langSheetOpen, surahSheetOpen, reciteSurah, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
       goOnboarding: () => setStage("onboarding"),
-      finishOnboarding: () => setStage("app"),
+      finishOnboarding: () => { setOnboarded(true); setStage("app"); },
       goTab: (tab) => { setNav([{ screen: ROOT[tab] }]); bump(); },
       runSearch: (q) => { setQuery(q); setNav([{ screen: "searchHome" }, { screen: "results" }]); bump(); },
       openReader: (item) => { setReaderItem(item); setNav((n) => [...n, { screen: "reader" }]); bump(); },
@@ -109,7 +147,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
         setSavedList((list) => (list.some((s) => s.ref === item.ref) ? list.filter((s) => s.ref !== item.ref) : [item, ...list])),
       savedItems: savedList,
     }),
-    [stage, query, readerItem, factTab, appearance, homeLayout, language, lang, langSheetOpen, surahSheetOpen, reciteSurah, navKey, savedList, mode, tokens, nav],
+    [stage, query, readerItem, factTab, appearance, homeLayout, language, lang, langSheetOpen, surahSheetOpen, reciteSurah, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
   );
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;

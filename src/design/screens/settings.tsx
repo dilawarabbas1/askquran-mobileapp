@@ -108,15 +108,21 @@ export function Settings() {
         <Row tokens={tokens} icon="share" title="Share the app" onPress={() => {}} last right={chev} />
       </Group>
 
+      {/* Footer — matches the web app's Footer verbatim. */}
       <View style={{ alignItems: "center", paddingTop: 24, paddingBottom: 8, paddingHorizontal: 18 }}>
         <Text style={{ fontFamily: FONTS.ar, fontSize: 19, color: tokens.orn, marginBottom: 12 }}>صدق الله العظيم</Text>
-        <Text style={{ fontFamily: FONTS.serif.italic, fontStyle: "italic", fontSize: 14, color: tokens.text }}>
-          Built by <Text style={{ fontFamily: FONTS.sans[600], fontStyle: "normal", color: tokens.brand }}>Dilawar Abbas</Text> as Sadaqah Jariyah.
+        <Text style={{ fontFamily: FONTS.serif.italic, fontStyle: "italic", fontSize: 14, lineHeight: 22, color: tokens.text, textAlign: "center" }}>
+          Built by <Text style={{ fontFamily: FONTS.sans[600], fontStyle: "normal", color: tokens.brand }}>Dilawar Abbas</Text> with the support of <Text style={{ fontFamily: FONTS.sans[600], fontStyle: "normal", color: tokens.text }}>Ghazala Zafar</Text> as Sadaqah Jariyah.
         </Text>
-        <Text style={{ fontSize: 12, lineHeight: 19.2, color: tokens.text2, marginTop: 10, maxWidth: 260, textAlign: "center" }}>
-          Free, ad-free, and always will be. Answers are based only on the Quran, authentic translations, and tafsir — with no generated religious text.
+        <Text style={{ fontSize: 12, lineHeight: 19.2, color: tokens.text2, marginTop: 12, maxWidth: 280, textAlign: "center" }}>
+          <Text style={{ fontFamily: FONTS.sans[700], color: tokens.text }}>AskQuran is free, ad-free, and always will be.</Text> It does not ask for donations. Its answers are based only on the Quran, authentic translations, and tafsir, with no generated religious text.
         </Text>
-        <Text style={{ fontSize: 11, color: tokens.text3, marginTop: 14 }}>AskQuran · v1.0.0</Text>
+        <Text style={{ fontSize: 12, lineHeight: 18, color: tokens.text2, marginTop: 12, maxWidth: 280, textAlign: "center", fontStyle: "italic" }}>
+          May Allah accept this effort, make it beneficial, and forgive any shortcomings.
+        </Text>
+        <Text style={{ fontSize: 10.5, lineHeight: 15, color: tokens.text3, marginTop: 14, maxWidth: 280, textAlign: "center" }}>
+          Source text from Tanzil · Translations & tafsir presented unaltered with full attribution
+        </Text>
       </View>
     </ScrollView>
   );
