@@ -7,7 +7,9 @@
     "userInterfaceStyle": "automatic",
     "scheme": "askquran",
     "newArchEnabled": true,
+    "icon": "./assets/images/icon.png",
     "splash": {
+      "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0F5D45"
     },
@@ -19,11 +21,13 @@
     "android": {
       "package": "net.eocean.askquran",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0F5D45"
       }
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "favicon": "./assets/images/favicon.png"
     }
   }
 }
