@@ -21,6 +21,9 @@ Nastaliq Urdu type scale, the lens-over-book logo, and the khatam ornament.
   picker, English first and selected by default).
 - **Search** (tab) — top-left logo, shahada hero, search bar, suggested topics
   (Chips or Grid), recent searches.
+- **Recite** (tab) — tap the surah header to pick a chapter, read ayah by ayah,
+  and play recitation (Mishary Alafasy) with a sticky player (play/pause, prev/
+  next, repeat); the active ayah highlights with an equalizer and auto-advances.
 - **Results** — pinned editable search bar, ranked ayah cards (Arabic,
   translation, expandable *Surrounding ayahs* and *Tafseer*, save/share,
   *Read in context*).
@@ -44,6 +47,7 @@ Appearance.
 | --- | --- |
 | Color tokens (light/dark) + `color-mix` shim + fonts | `src/design/tokens.ts` |
 | Content data (ayahs, topics, 114 surahs, facts, 44 languages) | `src/design/data.ts` |
+| Recite data (short surahs, per-ayah audio URLs) | `src/design/reciteData.ts` |
 | App state + theme (navigation stack, query, saved, language) | `src/design/AQContext.tsx` |
 | Icons (SVG, via `react-native-svg`) | `src/design/Icon.tsx` |
 | Shared atoms (logo, divider, ayah card, switch, …) | `src/design/atoms.tsx` |

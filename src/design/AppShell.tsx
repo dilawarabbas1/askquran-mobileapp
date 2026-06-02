@@ -11,6 +11,7 @@ import { Icon } from "./Icon";
 import { SearchBar } from "./SearchBar";
 import { Splash, Onboarding, LangSheet } from "./screens/onboarding";
 import { SearchHome, Results, Reader } from "./screens/core";
+import { Recite, SurahSheet } from "./screens/recite";
 import { Facts } from "./screens/facts";
 import { Saved } from "./screens/saved";
 import { Settings } from "./screens/settings";
@@ -41,6 +42,7 @@ function ResultsBar() {
 /* ---------- per-screen app bar ---------- */
 const TITLES: Record<string, [string, string | null]> = {
   reader: ["Reader", null],
+  recite: ["Recite", "Listen & read ayah by ayah"],
   facts: ["Quran Facts", "Source-backed structural facts"],
   saved: ["Saved", null],
   settings: ["Settings", null],
@@ -83,7 +85,7 @@ function AppBar({ screen }: { screen: Screen }) {
         {sub ? <Text style={{ fontSize: 11.5, color: tokens.text2, marginTop: 1 }}>{sub}</Text> : null}
       </View>
       <View style={{ flex: 1 }} />
-      {screen === "facts" ? (
+      {screen === "facts" || screen === "recite" ? (
         <Pressable onPress={app.openLangSheet} style={chip(tokens)}>
           <Icon name="globe" size={18} color={tokens.text2} />
         </Pressable>
@@ -107,6 +109,7 @@ function ScreenRouter({ screen }: { screen: Screen }) {
     case "searchHome": return <SearchHome />;
     case "results": return <Results />;
     case "reader": return <Reader />;
+    case "recite": return <Recite />;
     case "facts": return <Facts />;
     case "saved": return <Saved />;
     case "settings": return <Settings />;
@@ -117,6 +120,7 @@ function ScreenRouter({ screen }: { screen: Screen }) {
 /* ---------- bottom tab bar ---------- */
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "search", label: "Search", icon: "search" },
+  { id: "recite", label: "Recite", icon: "recite" },
   { id: "facts", label: "Facts", icon: "grid" },
   { id: "saved", label: "Saved", icon: "bookmark" },
   { id: "settings", label: "Settings", icon: "gear" },
@@ -162,6 +166,7 @@ function MainApp() {
   }, [app.navKey, fade]);
 
   if (app.langSheetOpen) return <LangSheet />;
+  if (app.surahSheetOpen) return <SurahSheet />;
 
   return (
     <View style={{ flex: 1, backgroundColor: tokens.bg }}>

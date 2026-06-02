@@ -30,6 +30,7 @@ const ICONS: Record<string, string> = {
   filter: '<path d="M3 5h18l-7 8v6l-4-2v-4z"/>',
   external: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"/>',
   prostrate: '<path d="M6 3h12a1 1 0 0 1 1 1v16l-7-4-7 4V4a1 1 0 0 1 1-1z"/>',
+  recite: '<path d="M12 6.8C10.4 5.3 7.6 4.8 5 5.5v12.2c2.6-.7 5.4-.2 7 1.3 1.6-1.5 4.4-2 7-1.3V5.5c-2.6-.7-5.4-.2-7 1.3z"/><path d="M12 6.8V19.3"/>',
 };
 
 export function iconMarkup(name: string): string {
