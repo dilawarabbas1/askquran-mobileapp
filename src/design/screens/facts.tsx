@@ -557,7 +557,8 @@ export function Facts() {
   const tab = app.factTab;
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 28 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16, flexGrow: 0 }} contentContainerStyle={{ gap: 7, paddingRight: 8 }}>
+      {/* All 9 tabs wrap onto multiple rows so none are hidden off-screen. */}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7, marginBottom: 16 }}>
         {FACT_TABS.map((t) => {
           const on = tab === t.id;
           return (
@@ -572,7 +573,7 @@ export function Facts() {
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
 
       {tab === "structure" ? <FactsStructure tokens={tokens} /> : null}
       {tab === "surahs" ? <FactsSurahs tokens={tokens} /> : null}
