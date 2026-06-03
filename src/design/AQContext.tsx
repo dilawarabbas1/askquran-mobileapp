@@ -28,9 +28,14 @@ export interface AQApi {
   factTab: string;
   appearance: Appearance;
   homeLayout: HomeLayout;
+  /** Quran translation edition language (alias kept as `language` for callers). */
   language: string;
+  appLanguage: string; // UI/interface language
+  translationLanguage: string; // Quran translation edition language
+  tafsirLanguage: string; // tafsir edition language (English fallback)
   lang: "en" | "ur";
   langSheetOpen: boolean;
+  langSheetTarget: "app" | "translation" | "tafsir";
   surahSheetOpen: boolean;
   reciteSurah: number;
   refCollection: string | null;
@@ -49,8 +54,11 @@ export interface AQApi {
   openAbout: () => void;
   back: () => void;
   setFactTab: (id: string) => void;
-  setLanguage: (name: string) => void;
-  openLangSheet: () => void;
+  setLanguage: (name: string) => void; // sets the translation language
+  setAppLanguage: (name: string) => void;
+  setTranslationLanguage: (name: string) => void;
+  setTafsirLanguage: (name: string) => void;
+  openLangSheet: (target?: "app" | "translation" | "tafsir") => void;
   closeLangSheet: () => void;
   openSurahSheet: () => void;
   closeSurahSheet: () => void;
@@ -80,10 +88,14 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const [savedList, setSavedList] = useState<AyahItem[]>([]);
   const [navKey, setNavKey] = useState(0);
   const [langSheetOpen, setLangSheetOpen] = useState(false);
+  const [langSheetTarget, setLangSheetTarget] = useState<"app" | "translation" | "tafsir">("translation");
   const [surahSheetOpen, setSurahSheetOpen] = useState(false);
   const [reciteSurah, setReciteSurah] = useState(1);
   const [refCollection, setRefCollection] = useState<string | null>(null);
-  const [language, setLanguageState] = useState("English");
+  // Three independent language preferences (all persisted).
+  const [appLanguage, setAppLanguageState] = useState("English");
+  const [translationLanguage, setTranslationLanguageState] = useState("English");
+  const [tafsirLanguage, setTafsirLanguageState] = useState("English");
   const [homeLayout, setHomeLayout] = useState<HomeLayout>("Chips");
   const [hydrated, setHydrated] = useState(false);
   const [onboarded, setOnboarded] = useState(false);
@@ -97,9 +109,15 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
         const raw = await AsyncStorage.getItem(PREFS_KEY);
         if (raw && alive) {
           const p = JSON.parse(raw) as Partial<{
-            onboarded: boolean; language: string; appearance: Appearance; homeLayout: HomeLayout; savedList: AyahItem[];
+            onboarded: boolean; language: string; appLanguage: string; translationLanguage: string; tafsirLanguage: string;
+            appearance: Appearance; homeLayout: HomeLayout; savedList: AyahItem[];
           }>;
-          if (p.language) setLanguageState(p.language);
+          // Migrate the old single `language` pref → translation language.
+          const tr = p.translationLanguage ?? p.language;
+          if (tr) setTranslationLanguageState(tr);
+          if (p.appLanguage) setAppLanguageState(p.appLanguage);
+          if (p.tafsirLanguage) setTafsirLanguageState(p.tafsirLanguage);
+          else if (tr) setTafsirLanguageState(tr); // default tafsir → translation lang
           if (p.appearance) setAppearance(p.appearance);
           if (p.homeLayout) setHomeLayout(p.homeLayout);
           if (Array.isArray(p.savedList)) setSavedList(p.savedList);
@@ -117,10 +135,11 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   // Persist preferences whenever they change (after hydration).
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ onboarded, language, appearance, homeLayout, savedList })).catch(() => {});
-  }, [hydrated, onboarded, language, appearance, homeLayout, savedList]);
+    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, savedList })).catch(() => {});
+  }, [hydrated, onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, savedList]);
 
-  const lang: "en" | "ur" = language === "Urdu" ? "ur" : "en";
+  const language = translationLanguage; // alias: content callers use the translation language
+  const lang: "en" | "ur" = translationLanguage === "Urdu" ? "ur" : "en";
   const mode: Mode = appearance === "system" ? (system === "dark" ? "dark" : "light") : appearance;
   const tokens = TOKENS[mode];
   const current = nav[nav.length - 1].screen;
@@ -130,7 +149,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const api: AQApi = useMemo(
     () => ({
       stage, current, navKey, query, readerItem, factTab, appearance, homeLayout,
-      language, lang, langSheetOpen, surahSheetOpen, reciteSurah, refCollection, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
+      language, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, refCollection, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
       goOnboarding: () => setStage("onboarding"),
       finishOnboarding: () => { setOnboarded(true); setStage("app"); },
       goTab: (tab) => { setNav([{ screen: ROOT[tab] }]); bump(); },
@@ -140,8 +159,11 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       openAbout: () => { setNav((n) => [...n, { screen: "about" }]); bump(); },
       back: () => { setNav((n) => (n.length > 1 ? n.slice(0, -1) : n)); bump(); },
       setFactTab,
-      setLanguage: (name) => setLanguageState(name),
-      openLangSheet: () => setLangSheetOpen(true),
+      setLanguage: (name) => setTranslationLanguageState(name),
+      setAppLanguage: (name) => setAppLanguageState(name),
+      setTranslationLanguage: (name) => setTranslationLanguageState(name),
+      setTafsirLanguage: (name) => setTafsirLanguageState(name),
+      openLangSheet: (target = "translation") => { setLangSheetTarget(target); setLangSheetOpen(true); },
       closeLangSheet: () => setLangSheetOpen(false),
       openSurahSheet: () => setSurahSheetOpen(true),
       closeSurahSheet: () => setSurahSheetOpen(false),
@@ -153,7 +175,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
         setSavedList((list) => (list.some((s) => s.ref === item.ref) ? list.filter((s) => s.ref !== item.ref) : [item, ...list])),
       savedItems: savedList,
     }),
-    [stage, query, readerItem, factTab, appearance, homeLayout, language, lang, langSheetOpen, surahSheetOpen, reciteSurah, refCollection, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
+    [stage, query, readerItem, factTab, appearance, homeLayout, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, refCollection, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
   );
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;

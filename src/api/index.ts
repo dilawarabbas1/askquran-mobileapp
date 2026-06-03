@@ -27,5 +27,5 @@ export { isValidVerseKey } from "./client";
 export { HAS_API_KEY } from "./config";
 
 // Public backend client — search, suggested questions, verses, tafsir (like the web).
-export { ask, getSuggestedQuestions, getTranslations, getVerses, getTafsir, translationIdForLanguage, type AskOptions, type TafsirItem } from "./public";
-export type { AskResponse, AyahResult, SuggestedGroup, SuggestedQuestion, TranslationMeta } from "./publicTypes";
+export { ask, getSuggestedQuestions, getTranslations, getTafsirLanguages, getVerses, getTafsir, translationIdForLanguage, type AskOptions, type TafsirItem } from "./public";
+export type { AskResponse, AyahResult, SuggestedGroup, SuggestedQuestion, TranslationMeta, TafsirMeta } from "./publicTypes";

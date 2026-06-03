@@ -65,7 +65,7 @@ function AppBar({ screen }: { screen: Screen }) {
           <Wordmark size={18} />
         </View>
         <View style={{ flex: 1 }} />
-        <Pressable onPress={app.openLangSheet} style={chip(tokens)}>
+        <Pressable onPress={() => app.openLangSheet()} style={chip(tokens)}>
           <Icon name="globe" size={18} color={tokens.text2} />
         </Pressable>
         <Pressable style={chip(tokens)}>
@@ -95,7 +95,7 @@ function AppBar({ screen }: { screen: Screen }) {
       </View>
       <View style={{ flex: 1 }} />
       {showGlobe ? (
-        <Pressable onPress={app.openLangSheet} style={chip(tokens)}>
+        <Pressable onPress={() => app.openLangSheet()} style={chip(tokens)}>
           <Icon name="globe" size={18} color={tokens.text2} />
         </Pressable>
       ) : null}

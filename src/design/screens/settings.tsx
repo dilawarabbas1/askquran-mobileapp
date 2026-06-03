@@ -48,20 +48,19 @@ export function Settings() {
     }).catch(() => {});
 
   const chev = <Icon name="chevR" size={16} color={tokens.text3} />;
+  const val = (v: string) => (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+      <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[600], color: tokens.text2 }}>{v}</Text>
+      {chev}
+    </View>
+  );
 
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: 26 }} showsVerticalScrollIndicator={false}>
       <Group label="Reading" tokens={tokens}>
-        <Row
-          tokens={tokens} icon="globe" title="Language" sub="For translation & tafsir · 44 available"
-          onPress={app.openLangSheet}
-          right={
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[600], color: tokens.text2 }}>{app.language}</Text>
-              {chev}
-            </View>
-          }
-        />
+        <Row tokens={tokens} icon="globe" title="App language" sub="Interface language" onPress={() => app.openLangSheet("app")} right={val(app.appLanguage)} />
+        <Row tokens={tokens} icon="type" title="Translation language" sub="Language of the Quran translation" onPress={() => app.openLangSheet("translation")} right={val(app.translationLanguage)} />
+        <Row tokens={tokens} icon="info" title="Tafsir language" sub="Language for tafsir · English fallback" onPress={() => app.openLangSheet("tafsir")} right={val(app.tafsirLanguage)} />
         <Row tokens={tokens} icon="type" title="Show Arabic text" sub="Uthmani script" right={<Switch on={arOn} onPress={() => setArOn((v) => !v)} />} />
         <Row tokens={tokens} icon="type" title="Tajweed colouring" sub="Highlight recitation rules" last right={<Switch on={tajweed} onPress={() => setTajweed((v) => !v)} />} />
       </Group>

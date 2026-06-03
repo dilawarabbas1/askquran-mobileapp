@@ -54,6 +54,7 @@ export interface AskResponse {
 }
 
 export interface TranslationMeta { id: string; name: string; language: string }
+export interface TafsirMeta { id: string; name: string; language: string }
 
 export interface SuggestedQuestion {
   id: string;

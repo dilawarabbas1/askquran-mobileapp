@@ -140,7 +140,7 @@ export function Recite() {
     if (existing && !existing.error) return; // cached
     setTafData((p) => ({ ...p, [n]: { loading: true, available: false, text: "" } }));
     try {
-      const d = await getTafsir([`${num}:${n}`], app.language);
+      const d = await getTafsir([`${num}:${n}`], app.tafsirLanguage);
       const it = d.items[0];
       setTafData((p) => ({ ...p, [n]: { loading: false, available: !!it?.available, text: it?.tafsir ?? "", edition: it?.edition?.name } }));
     } catch {
@@ -305,7 +305,7 @@ export function Recite() {
             <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: tokens.brand }} />
             <Text style={{ fontSize: 12, fontFamily: FONTS.sans[600], color: tokens.text2 }}>Mishary Alafasy</Text>
           </View>
-          <Pressable onPress={app.openLangSheet} style={{ flexDirection: "row", alignItems: "center", gap: 7, borderWidth: 1, borderColor: tokens.line, backgroundColor: tokens.surface2, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 12 }}>
+          <Pressable onPress={() => app.openLangSheet()} style={{ flexDirection: "row", alignItems: "center", gap: 7, borderWidth: 1, borderColor: tokens.line, backgroundColor: tokens.surface2, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 12 }}>
             <Icon name="globe" size={15} color={tokens.text2} />
             <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[600], color: tokens.text }}>{app.language}</Text>
             <Icon name="chevDown" size={13} w={2.1} color={tokens.text3} />
@@ -376,7 +376,7 @@ export function Recite() {
                           ) : td.error ? (
                             <Text style={{ fontSize: 12.5, color: tokens.text3 }}>Couldn’t load tafsir.</Text>
                           ) : !td.available ? (
-                            <Text style={{ fontSize: 12.5, color: tokens.text3, fontStyle: "italic" }}>No stored tafsir for this ayah in {app.language}.</Text>
+                            <Text style={{ fontSize: 12.5, color: tokens.text3, fontStyle: "italic" }}>No stored tafsir for this ayah in {app.tafsirLanguage}.</Text>
                           ) : (
                             <>
                               <Text style={{ fontFamily: FONTS.serif[400], fontSize: 13.5, lineHeight: 23, color: tokens.text }}>{td.text}</Text>

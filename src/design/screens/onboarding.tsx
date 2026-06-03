@@ -1,15 +1,18 @@
-// Splash, Onboarding carousel, and the shared 44-language picker (LangList) +
-// full-screen language sheet, ported from aq-ui.jsx. Reflects the final design:
-// bismillah sits above the logo on splash; English is pinned first/selected.
+// Splash, Onboarding carousel, and the shared language picker (LangList) +
+// full-screen language sheet. Onboarding now sets three independent languages —
+// App (interface), Translation, and Tafsir — all saved to preferences; the
+// sheet edits whichever target was opened. Quran/translation/tafsir text stays
+// verbatim; the App language only affects the interface.
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useApp } from "../AQContext";
 import { Mark, Wordmark } from "../atoms";
 import { Icon, RawIcon } from "../Icon";
 import { SearchBar } from "../SearchBar";
 import { LANGUAGES } from "../data";
-import { FONTS, mix } from "../tokens";
+import { FONTS, mix, type Tokens } from "../tokens";
+import { getTafsirLanguages } from "@/api";
 
 /* ---------- SPLASH ---------- */
 export function Splash() {
@@ -45,17 +48,43 @@ const ONB = [
     body: "Every answer is referenced and unaltered. No AI-written religious text, no opinions — only the Quran, authentic translations, and attributed tafsir.",
     lang: false,
   },
-  { art: null, lang: true, title: "Choose your language for Translation and Tafsir", body: "Pick the language you’re most comfortable reading in. You can change it anytime in Settings." },
+  { art: null, lang: true, title: "Choose your languages", body: "Set the app, translation, and tafsir languages. You can change any of them anytime in Settings." },
 ];
+
+type Target = "app" | "translation" | "tafsir";
+
+/* A selector row showing the current value for one language target. */
+function LangRow({ label, value, onPress, tokens }: { label: string; value: string; onPress: () => void; tokens: Tokens }) {
+  return (
+    <Pressable onPress={onPress} style={[{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 14, paddingHorizontal: 15, paddingVertical: 14 }, tokens.cardShadow]}>
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[700], letterSpacing: 0.6, textTransform: "uppercase", color: tokens.text3 }}>{label}</Text>
+        <Text style={{ fontSize: 15, fontFamily: FONTS.sans[600], color: tokens.text, marginTop: 3 }}>{value}</Text>
+      </View>
+      <Icon name="chevR" size={17} color={tokens.text3} />
+    </Pressable>
+  );
+}
 
 export function Onboarding() {
   const app = useApp();
   const { tokens } = app;
   const [step, setStep] = useState(0);
   const [q, setQ] = useState("");
+  const [picking, setPicking] = useState<Target | null>(null);
+  const [tafLangs, setTafLangs] = useState<string[] | null>(null);
   const last = step === ONB.length - 1;
   const slide = ONB[step];
   const next = () => (last ? app.finishOnboarding() : setStep(step + 1));
+
+  useEffect(() => { getTafsirLanguages().then(setTafLangs).catch(() => {}); }, []);
+
+  const valueFor = (t: Target) => (t === "app" ? app.appLanguage : t === "tafsir" ? app.tafsirLanguage : app.translationLanguage);
+  const selectFor = (t: Target, n: string) => {
+    if (t === "app") app.setAppLanguage(n);
+    else if (t === "tafsir") app.setTafsirLanguage(n);
+    else app.setTranslationLanguage(n);
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: tokens.bg }}>
@@ -73,9 +102,33 @@ export function Onboarding() {
       {/* body */}
       {slide.lang ? (
         <View style={{ flex: 1, paddingHorizontal: 18, paddingTop: 6 }}>
-          <Text style={{ fontFamily: FONTS.serif[600], fontSize: 22, lineHeight: 26.4, color: tokens.text, marginTop: 6 }}>{slide.title}</Text>
-          <Text style={{ fontSize: 13, lineHeight: 19.5, color: tokens.text2, marginTop: 8 }}>{slide.body}</Text>
-          <LangList selected={app.language} onSelect={app.setLanguage} q={q} setQ={setQ} />
+          {picking ? (
+            <>
+              <Pressable onPress={() => { setPicking(null); setQ(""); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8 }}>
+                <Icon name="back" size={18} w={2.1} color={tokens.text2} />
+                <Text style={{ fontSize: 14, fontFamily: FONTS.sans[600], color: tokens.text2 }}>
+                  {picking === "app" ? "App language" : picking === "tafsir" ? "Tafsir language" : "Translation language"}
+                </Text>
+              </Pressable>
+              <LangList
+                selected={valueFor(picking)}
+                onSelect={(n) => { selectFor(picking, n); setPicking(null); setQ(""); }}
+                q={q}
+                setQ={setQ}
+                filterLangs={picking === "tafsir" ? tafLangs ?? undefined : undefined}
+              />
+            </>
+          ) : (
+            <>
+              <Text style={{ fontFamily: FONTS.serif[600], fontSize: 22, lineHeight: 26.4, color: tokens.text, marginTop: 6 }}>{slide.title}</Text>
+              <Text style={{ fontSize: 13, lineHeight: 19.5, color: tokens.text2, marginTop: 8 }}>{slide.body}</Text>
+              <View style={{ gap: 11, marginTop: 18 }}>
+                <LangRow label="App language" value={app.appLanguage} onPress={() => setPicking("app")} tokens={tokens} />
+                <LangRow label="Translation language" value={app.translationLanguage} onPress={() => setPicking("translation")} tokens={tokens} />
+                <LangRow label="Tafsir language" value={app.tafsirLanguage} onPress={() => setPicking("tafsir")} tokens={tokens} />
+              </View>
+            </>
+          )}
         </View>
       ) : (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 30 }}>
@@ -87,38 +140,41 @@ export function Onboarding() {
         </View>
       )}
 
-      {/* footer */}
-      <View style={{ paddingHorizontal: 22, paddingTop: 16, paddingBottom: 24, gap: 12 }}>
-        <View style={{ flexDirection: "row", gap: 7, justifyContent: "center", marginBottom: 2 }}>
-          {ONB.map((_, i) => (
-            <View key={i} style={{ width: i === step ? 22 : 7, height: 7, borderRadius: 4, backgroundColor: i === step ? tokens.brand : tokens.line }} />
-          ))}
-        </View>
-        <Pressable onPress={next} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9, backgroundColor: tokens.brand, borderRadius: 14, paddingVertical: 15 }}>
-          <Text style={{ fontSize: 15.5, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>{last ? "Enter AskQuran" : "Continue"}</Text>
-          <Icon name="chevR" size={17} w={2.4} color={tokens.onBrand} />
-        </Pressable>
-        {step > 0 ? (
-          <Pressable onPress={() => setStep(step - 1)} style={{ alignItems: "center", paddingVertical: 4 }}>
-            <Text style={{ fontSize: 14, fontFamily: FONTS.sans[600], color: tokens.text2 }}>Back</Text>
+      {/* footer (hidden while actively picking a language so the list gets full height) */}
+      {picking ? null : (
+        <View style={{ paddingHorizontal: 22, paddingTop: 16, paddingBottom: 24, gap: 12 }}>
+          <View style={{ flexDirection: "row", gap: 7, justifyContent: "center", marginBottom: 2 }}>
+            {ONB.map((_, i) => (
+              <View key={i} style={{ width: i === step ? 22 : 7, height: 7, borderRadius: 4, backgroundColor: i === step ? tokens.brand : tokens.line }} />
+            ))}
+          </View>
+          <Pressable onPress={next} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9, backgroundColor: tokens.brand, borderRadius: 14, paddingVertical: 15 }}>
+            <Text style={{ fontSize: 15.5, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>{last ? "Enter AskQuran" : "Continue"}</Text>
+            <Icon name="chevR" size={17} w={2.4} color={tokens.onBrand} />
           </Pressable>
-        ) : null}
-      </View>
+          {step > 0 ? (
+            <Pressable onPress={() => setStep(step - 1)} style={{ alignItems: "center", paddingVertical: 4 }}>
+              <Text style={{ fontSize: 14, fontFamily: FONTS.sans[600], color: tokens.text2 }}>Back</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      )}
     </View>
   );
 }
 
-/* ---------- shared 44-language list ---------- */
-export function LangList({ selected, onSelect, q, setQ }: { selected: string; onSelect: (n: string) => void; q: string; setQ: (s: string) => void }) {
+/* ---------- shared language list (optionally filtered to a subset) ---------- */
+export function LangList({ selected, onSelect, q, setQ, filterLangs }: { selected: string; onSelect: (n: string) => void; q: string; setQ: (s: string) => void; filterLangs?: string[] }) {
   const { tokens } = useApp();
+  const base = filterLangs ? LANGUAGES.filter((l) => filterLangs.includes(l.name)) : LANGUAGES;
   const t = (q || "").trim().toLowerCase();
-  const list = LANGUAGES.filter((l) => !t || l.name.toLowerCase().includes(t) || l.native.toLowerCase().includes(t) || l.code.includes(t));
+  const list = base.filter((l) => !t || l.name.toLowerCase().includes(t) || l.native.toLowerCase().includes(t) || l.code.includes(t));
   const ordered = [...list].sort((a, b) => (a.name === "English" ? -1 : b.name === "English" ? 1 : 0));
 
   return (
     <View style={{ flex: 1, marginTop: 0 }}>
       <View style={{ marginVertical: 12 }}>
-        <SearchBar value={q} onChangeText={setQ} placeholder="Search 44 languages…" small />
+        <SearchBar value={q} onChangeText={setQ} placeholder={`Search ${base.length} languages…`} small />
       </View>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 8, gap: 8 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         {ordered.map((l) => {
@@ -141,11 +197,31 @@ export function LangList({ selected, onSelect, q, setQ }: { selected: string; on
   );
 }
 
-/* ---------- full-screen language sheet ---------- */
+/* ---------- full-screen language sheet (edits the opened target) ---------- */
 export function LangSheet() {
   const app = useApp();
   const { tokens } = app;
   const [q, setQ] = useState("");
+  const target = app.langSheetTarget;
+  const [tafLangs, setTafLangs] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    if (target !== "tafsir") return;
+    let alive = true;
+    getTafsirLanguages().then((l) => { if (alive) setTafLangs(l); }).catch(() => {});
+    return () => { alive = false; };
+  }, [target]);
+
+  const selected = target === "app" ? app.appLanguage : target === "tafsir" ? app.tafsirLanguage : app.translationLanguage;
+  const onSelect = (n: string) => {
+    if (target === "app") app.setAppLanguage(n);
+    else if (target === "tafsir") app.setTafsirLanguage(n);
+    else app.setTranslationLanguage(n);
+    app.closeLangSheet();
+  };
+  const title = target === "app" ? "App language" : target === "tafsir" ? "Tafsir language" : "Translation language";
+  const sub = target === "app" ? "Interface language" : target === "tafsir" ? "Language for tafsir" : "Language for the Quran translation";
+
   return (
     <View style={{ flex: 1, backgroundColor: tokens.bg }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: tokens.lineSoft }}>
@@ -153,12 +229,12 @@ export function LangSheet() {
           <Icon name="back" size={18} w={2.1} color={tokens.text2} />
         </Pressable>
         <View>
-          <Text style={{ fontFamily: FONTS.serif[500], fontSize: 19, color: tokens.text }}>Language</Text>
-          <Text style={{ fontSize: 11.5, color: tokens.text2, marginTop: 1 }}>For translation & tafsir</Text>
+          <Text style={{ fontFamily: FONTS.serif[500], fontSize: 19, color: tokens.text }}>{title}</Text>
+          <Text style={{ fontSize: 11.5, color: tokens.text2, marginTop: 1 }}>{sub}</Text>
         </View>
       </View>
       <View style={{ flex: 1, paddingHorizontal: 18, paddingTop: 4 }}>
-        <LangList selected={app.language} onSelect={(n) => { app.setLanguage(n); app.closeLangSheet(); }} q={q} setQ={setQ} />
+        <LangList selected={selected} onSelect={onSelect} q={q} setQ={setQ} filterLangs={target === "tafsir" ? tafLangs ?? undefined : undefined} />
       </View>
     </View>
   );

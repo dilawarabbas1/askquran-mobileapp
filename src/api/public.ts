@@ -11,7 +11,7 @@
 import { AqError, mapStatusToError } from "./errors";
 import { PUBLIC_API_BASE_URL, API_KEY } from "./config";
 import { TtlCache, createMemoryStorage, type Storage } from "./cache";
-import type { AskResponse, AyahResult, SuggestedGroup, TranslationMeta } from "./publicTypes";
+import type { AskResponse, AyahResult, SuggestedGroup, TranslationMeta, TafsirMeta } from "./publicTypes";
 
 /** Headers for public /api calls — adds x-api-key when a key is configured. */
 function publicHeaders(extra?: Record<string, string>): Record<string, string> {
@@ -87,15 +87,26 @@ export async function ask(question: string, opts: AskOptions = {}): Promise<AskR
   });
 }
 
-/** GET /api/translations — available editions + the default id (cached). */
-export async function getTranslations(): Promise<{ default: string; translations: TranslationMeta[] }> {
+/** GET /api/translations — translation + tafsir editions + the default id (cached). */
+export async function getTranslations(): Promise<{ default: string; translations: TranslationMeta[]; tafsirs: TafsirMeta[] }> {
   return cache.get("pub:translations", TTL.editions, async () => {
-    const data = await getJson<{ default: string; translations: TranslationMeta[] }>(
+    const data = await getJson<{ default: string; translations: TranslationMeta[]; tafsirs?: TafsirMeta[] }>(
       `${PUBLIC_API_BASE_URL}/translations`,
       { headers: publicHeaders() },
     );
-    return { default: data.default, translations: data.translations ?? [] };
+    return { default: data.default, translations: data.translations ?? [], tafsirs: data.tafsirs ?? [] };
   });
+}
+
+/** Unique language names that have a tafsir edition — powers the Tafsir picker. */
+export async function getTafsirLanguages(): Promise<string[]> {
+  try {
+    const { tafsirs } = await getTranslations();
+    const langs = [...new Set(tafsirs.map((t) => t.language).filter(Boolean))];
+    return langs.length ? langs : ["English"];
+  } catch {
+    return ["English"];
+  }
 }
 
 /** Resolve a translation edition id for a UI language name ("English"/"Urdu"…). */
