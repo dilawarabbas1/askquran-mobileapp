@@ -111,16 +111,16 @@ export function Settings() {
       <View style={{ alignItems: "center", paddingTop: 24, paddingBottom: 8, paddingHorizontal: 18 }}>
         <Text style={{ fontFamily: FONTS.ar, fontSize: 19, color: tokens.orn, marginBottom: 12 }}>صدق الله العظيم</Text>
         <Text style={{ fontFamily: FONTS.serif.italic, fontStyle: "italic", fontSize: 14, lineHeight: 22, color: tokens.text, textAlign: "center" }}>
-          Built by <Text style={{ fontFamily: FONTS.sans[600], fontStyle: "normal", color: tokens.brand }}>Dilawar Abbas</Text> with the support of <Text style={{ fontFamily: FONTS.sans[600], fontStyle: "normal", color: tokens.text }}>Ghazala Zafar</Text> as Sadaqah Jariyah.
+          {app.t("m.foot.builtBy")}
         </Text>
         <Text style={{ fontSize: 12, lineHeight: 19.2, color: tokens.text2, marginTop: 12, maxWidth: 280, textAlign: "center" }}>
-          <Text style={{ fontFamily: FONTS.sans[700], color: tokens.text }}>AskQuran is free, ad-free, and always will be.</Text> It does not ask for donations. Its answers are based only on the Quran, authentic translations, and tafsir, with no generated religious text.
+          {app.t("m.foot.free")}
         </Text>
         <Text style={{ fontSize: 12, lineHeight: 18, color: tokens.text2, marginTop: 12, maxWidth: 280, textAlign: "center", fontStyle: "italic" }}>
-          May Allah accept this effort, make it beneficial, and forgive any shortcomings.
+          {app.t("m.foot.dua")}
         </Text>
         <Text style={{ fontSize: 10.5, lineHeight: 15, color: tokens.text3, marginTop: 14, maxWidth: 280, textAlign: "center" }}>
-          Source text from Tanzil · Translations & tafsir presented unaltered with full attribution
+          {app.t("m.foot.src")}
         </Text>
       </View>
     </ScrollView>

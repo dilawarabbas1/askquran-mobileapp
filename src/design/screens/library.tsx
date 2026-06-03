@@ -59,40 +59,35 @@ export function Library() {
   );
 }
 
-const ABOUT_POINTS: { title: string; body: string }[] = [
-  { title: "Source-backed, never generated", body: "Every result serves verbatim Quran Arabic (Tanzil), stored translations, and stored tafsir only. The app never writes religious explanation and never alters source text." },
-  { title: "Ask and get references", body: "Search assembles matching ayahs deterministically from the index — you receive referenced source material, not an authored answer." },
-  { title: "Tafsir as stored", body: "Tafsir is shown exactly as stored and is never machine-translated or silently substituted across languages." },
-  { title: "Traceable", body: "Each ayah carries its sources — Arabic, translation, and (when shown) tafsir attribution — so everything can be traced back." },
-];
+const ABOUT_POINTS = ["m.about.p0", "m.about.p1", "m.about.p2", "m.about.p3"];
 
 export function About() {
   const app = useApp();
-  const { tokens } = app;
+  const { tokens, t } = app;
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
-      <SegLabel>About</SegLabel>
+      <SegLabel>{t("m.title.about")}</SegLabel>
       <BlockTitle style={{ marginTop: 8, marginBottom: 6 }}>Ask Quran</BlockTitle>
       <Text style={{ fontSize: 13.5, lineHeight: 21, color: tokens.text2, marginBottom: 16 }}>
-        A source-grounded way to explore the Quran: references, translation, and tafsir — presented unchanged.
+        {t("m.about.lede")}
       </Text>
 
       <View style={{ gap: 12 }}>
-        {ABOUT_POINTS.map((p) => (
-          <View key={p.title} style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 15, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 13 }, tokens.cardShadow]}>
+        {ABOUT_POINTS.map((k) => (
+          <View key={k} style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 15, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 13 }, tokens.cardShadow]}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 7 }}>
               <View style={{ width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: mix(tokens.brand, 12) }}>
                 <Icon name="check" size={15} w={2.3} color={tokens.brand} />
               </View>
-              <Text style={{ flex: 1, fontFamily: FONTS.serif[600], fontSize: 16, color: tokens.text }}>{p.title}</Text>
+              <Text style={{ flex: 1, fontFamily: FONTS.serif[600], fontSize: 16, color: tokens.text }}>{t(`${k}t`)}</Text>
             </View>
-            <Text style={{ fontSize: 13, lineHeight: 20.5, color: tokens.text2 }}>{p.body}</Text>
+            <Text style={{ fontSize: 13, lineHeight: 20.5, color: tokens.text2 }}>{t(`${k}b`)}</Text>
           </View>
         ))}
       </View>
 
       <Text style={{ fontSize: 11.5, lineHeight: 17.5, color: tokens.text3, textAlign: "center", marginTop: 22 }}>
-        Source-backed Quran search · references, translation &amp; tafsir
+        {t("m.about.footer")}
       </Text>
     </ScrollView>
   );

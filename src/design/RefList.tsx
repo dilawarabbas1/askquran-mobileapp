@@ -292,7 +292,7 @@ function Card({ item, title, desc, note, typeLabel, catTitle, translationId, sho
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
           {item.tags.map((tg) => (
             <View key={tg} style={{ backgroundColor: tokens.surface2, borderWidth: 1, borderColor: tokens.lineSoft, borderRadius: 7, paddingHorizontal: 8, paddingVertical: 3 }}>
-              <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[600], color: tokens.text3 }}>{tg}</Text>
+              <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[600], color: tokens.text3 }}>{t(`more.tag.${tg.toLowerCase().replace(/[^a-z0-9]+/g, "")}`)}</Text>
             </View>
           ))}
         </View>

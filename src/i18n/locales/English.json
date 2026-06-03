@@ -1546,5 +1546,20 @@
   "m.onb.s2t": "Nothing is generated",
   "m.onb.s2b": "Every answer is referenced and unaltered. No AI-written religious text, no opinions — only the Quran, authentic translations, and attributed tafsir.",
   "m.onb.s3t": "Choose your languages",
-  "m.onb.s3b": "Set the app, translation, and tafsir languages. You can change any of them anytime in Settings."
+  "m.onb.s3b": "Set the app, translation, and tafsir languages. You can change any of them anytime in Settings.",
+  "m.splash.tagline": "Search the Quran. Read only referenced sources.",
+  "m.about.lede": "A source-grounded way to explore the Quran: references, translation, and tafsir — presented unchanged.",
+  "m.about.p0t": "Source-backed, never generated",
+  "m.about.p0b": "Every result serves verbatim Quran Arabic (Tanzil), stored translations, and stored tafsir only. The app never writes religious explanation and never alters source text.",
+  "m.about.p1t": "Ask and get references",
+  "m.about.p1b": "Search assembles matching ayahs deterministically from the index — you receive referenced source material, not an authored answer.",
+  "m.about.p2t": "Tafsir as stored",
+  "m.about.p2b": "Tafsir is shown exactly as stored and is never machine-translated or silently substituted across languages.",
+  "m.about.p3t": "Traceable",
+  "m.about.p3b": "Each ayah carries its sources — Arabic, translation, and (when shown) tafsir attribution — so everything can be traced back.",
+  "m.about.footer": "Source-backed Quran search · references, translation & tafsir",
+  "m.foot.builtBy": "Built by Dilawar Abbas with the support of Ghazala Zafar as Sadaqah Jariyah.",
+  "m.foot.free": "AskQuran is free, ad-free, and always will be. It does not ask for donations. Its answers are based only on the Quran, authentic translations, and tafsir, with no generated religious text.",
+  "m.foot.dua": "May Allah accept this effort, make it beneficial, and forgive any shortcomings.",
+  "m.foot.src": "Source text from Tanzil · Translations & tafsir presented unaltered with full attribution"
 }

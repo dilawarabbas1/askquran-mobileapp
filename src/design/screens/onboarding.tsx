@@ -16,7 +16,7 @@ import { getTafsirLanguages } from "@/api";
 
 /* ---------- SPLASH ---------- */
 export function Splash() {
-  const { tokens } = useApp();
+  const { tokens, t } = useApp();
   return (
     <View style={{ flex: 1, backgroundColor: tokens.bg, alignItems: "center", justifyContent: "center" }}>
       <Text style={{ position: "absolute", top: 64, fontFamily: FONTS.ar, fontSize: 18, color: tokens.orn }}>
@@ -28,7 +28,7 @@ export function Splash() {
         <Text style={{ fontFamily: FONTS.sans[800] }}>Quran</Text>
       </Text>
       <Text style={{ fontFamily: FONTS.serif.italic, fontStyle: "italic", fontSize: 14, color: tokens.brand2, marginTop: 10 }}>
-        Search the Quran. Read only referenced sources.
+        {t("m.splash.tagline")}
       </Text>
     </View>
   );
