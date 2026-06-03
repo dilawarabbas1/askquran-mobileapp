@@ -164,7 +164,9 @@ export function Recite() {
     setError(null);
     try {
       const trId = await translationIdForLanguage(app.language);
-      const verses = await getVerses([`${num}:1-${num}:${cnt}`], trId || "");
+      // Single-surah range is "surah:start-end" (e.g. "2:1-286") — NOT
+      // "2:1-2:286", which the backend rejects as an invalid reference.
+      const verses = await getVerses([`${num}:1-${cnt}`], trId || "");
       if (my !== loadTokenRef.current) return;
       setAyahs(verses.map((v) => ({ n: v.ayah, ar: v.arabic, tr: v.translation || "" })));
       setLoading(false);
