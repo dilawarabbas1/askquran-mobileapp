@@ -62,8 +62,8 @@ export function SearchHome() {
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 26 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
       {/* hero band */}
-      <View style={{ paddingHorizontal: 26, paddingTop: 14, paddingBottom: 20, alignItems: "center" }}>
-        <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: FONTS.ar, fontSize: 17, lineHeight: 27, color: tokens.text, textAlign: "center", writingDirection: "rtl" }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 28, paddingBottom: 20, alignItems: "center" }}>
+        <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: FONTS.ar, fontSize: 21, lineHeight: 42, color: tokens.text, textAlign: "center", writingDirection: "rtl", paddingTop: 4 }}>
           لَا إِلٰهَ إِلَّا ٱللَّٰهُ مُحَمَّدٌ رَسُولُ ٱللَّٰهِ
         </Text>
         <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: FONTS.serif.italic, fontStyle: "italic", fontSize: 11.5, color: tokens.brand2, marginTop: 6, textAlign: "center" }}>
