@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { ask, getVerses, getTranslations, getSuggestedQuestions } from "../public";
+import { ask, getVerses, getTranslations, getSuggestedQuestions, getTafsir } from "../public";
 import { AqError } from "../errors";
 
 const HOST = "https://api.askquran.co/api"; // PUBLIC_API_BASE_URL (default base)
@@ -122,4 +122,23 @@ test("getSuggestedQuestions() caches after the first successful fetch", async ()
   await getSuggestedQuestions();
   assert.equal(calls.length, 1, "second call served from cache");
   assert.equal(a[0].id, "g1");
+});
+
+/* ---- on-device caching of verses + tafsir (the new cache layer) ---- */
+test("getVerses() caches by refs+translation — a second identical call hits no network", async () => {
+  const calls = installFetch(() => ({ body: { verses: [{ verseKey: "112:1", arabic: "…" }] } }));
+  await getVerses(["112:1-4"], "en.sahih");
+  await getVerses(["112:1-4"], "en.sahih");
+  assert.equal(calls.length, 1, "surah text served from cache on the second call");
+});
+
+test("getTafsir() builds /api/tafsir with refs+language and caches the result", async () => {
+  const calls = installFetch(() => ({ body: { language: "English", editionId: "en.ibnkathir", edition: null, items: [{ verseKey: "2:255", available: true, tafsir: "…", edition: null }] } }));
+  const a = await getTafsir(["2:255"], "English");
+  await getTafsir(["2:255"], "English");
+  assert.equal(calls.length, 1, "tafsir served from cache on the second call");
+  const url = decodeURIComponent(calls[0].url);
+  assert.ok(url.includes("/tafsir?"), url);
+  assert.ok(url.includes("refs=2:255") && url.includes("language=English"));
+  assert.equal(a.items[0].verseKey, "2:255");
 });

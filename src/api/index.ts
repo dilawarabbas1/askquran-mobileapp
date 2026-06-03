@@ -14,6 +14,12 @@ export const aq = createAqClient({
   storage: AsyncStorage,
 });
 
+// Back the public client's read-through cache with real AsyncStorage so cached
+// verses/tafsir/editions/questions survive app restarts (in tests it stays
+// in-memory).
+import { initPublicCache } from "./public";
+initPublicCache(AsyncStorage);
+
 export * from "./types";
 export { AqError } from "./errors";
 export type { AqErrorKind } from "./errors";
