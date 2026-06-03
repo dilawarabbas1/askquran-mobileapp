@@ -8,6 +8,8 @@ import { useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RESULTS, type AyahItem } from "./data";
 import { TOKENS, type Mode, type Tokens } from "./tokens";
+import { isRTL } from "./lib/rtl";
+import { translate } from "@/i18n";
 
 const PREFS_KEY = "aq:prefs:v1";
 
@@ -44,6 +46,10 @@ export interface AQApi {
   hydrated: boolean;
   mode: Mode;
   tokens: Tokens;
+  /** Translate an interface key in the current App language (English fallback). */
+  t: (key: string, vars?: Record<string, string | number>) => string;
+  /** True when the App (interface) language is right-to-left. */
+  uiRTL: boolean;
 
   goOnboarding: () => void;
   finishOnboarding: () => void;
@@ -150,6 +156,8 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
     () => ({
       stage, current, navKey, query, readerItem, factTab, appearance, homeLayout,
       language, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, refCollection, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
+      t: (key, vars) => translate(appLanguage, key, vars),
+      uiRTL: isRTL(appLanguage),
       goOnboarding: () => setStage("onboarding"),
       finishOnboarding: () => { setOnboarded(true); setStage("app"); },
       goTab: (tab) => { setNav([{ screen: ROOT[tab] }]); bump(); },

@@ -43,14 +43,15 @@ function ResultsBar() {
 }
 
 /* ---------- per-screen app bar ---------- */
-const TITLES: Record<string, [string, string | null]> = {
-  reader: ["Reader", null],
-  recite: ["Recite", "Listen & read ayah by ayah"],
-  facts: ["Quran Facts", "Source-backed structural facts"],
-  library: ["Library", "Quran-backed reference collections"],
-  about: ["About", null],
-  saved: ["Saved", null],
-  settings: ["Settings", null],
+// Title key + optional subtitle key per screen, resolved via t() at render.
+const TITLE_KEYS: Record<string, [string, string | null]> = {
+  reader: ["m.title.reader", null],
+  recite: ["m.title.recite", "m.title.reciteSub"],
+  facts: ["m.title.facts", "m.title.factsSub"],
+  library: ["m.title.library", "m.title.librarySub"],
+  about: ["m.title.about", null],
+  saved: ["m.title.saved", null],
+  settings: ["m.title.settings", null],
 };
 
 function AppBar({ screen }: { screen: Screen }) {
@@ -76,10 +77,11 @@ function AppBar({ screen }: { screen: Screen }) {
   }
   if (screen === "results") return <ResultsBar />;
 
-  // refList's title comes from the open collection; everything else from TITLES.
+  // refList's title comes from the open collection; everything else from TITLE_KEYS.
   const refTitle = screen === "refList" && app.refCollection ? COLLECTION_BY_ID[app.refCollection]?.title : undefined;
-  const [titleBase, sub] = TITLES[screen] ?? [screen, null];
-  const title = refTitle ?? titleBase;
+  const [titleKey, subKey] = TITLE_KEYS[screen] ?? [screen, null];
+  const title = refTitle ?? (TITLE_KEYS[screen] ? app.t(titleKey) : screen);
+  const sub = subKey ? app.t(subKey) : null;
   const pushed = screen === "reader" || screen === "refList" || screen === "about";
   const showGlobe = screen === "facts" || screen === "recite" || screen === "refList";
   return (
@@ -130,13 +132,13 @@ function ScreenRouter({ screen }: { screen: Screen }) {
 }
 
 /* ---------- bottom tab bar ---------- */
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "search", label: "Search", icon: "search" },
-  { id: "recite", label: "Recite", icon: "recite" },
-  { id: "facts", label: "Facts", icon: "grid" },
-  { id: "library", label: "Library", icon: "layers" },
-  { id: "saved", label: "Saved", icon: "bookmark" },
-  { id: "settings", label: "Settings", icon: "gear" },
+const TABS: { id: Tab; labelKey: string; icon: string }[] = [
+  { id: "search", labelKey: "m.tab.search", icon: "search" },
+  { id: "recite", labelKey: "m.tab.recite", icon: "recite" },
+  { id: "facts", labelKey: "m.tab.facts", icon: "grid" },
+  { id: "library", labelKey: "m.tab.library", icon: "layers" },
+  { id: "saved", labelKey: "m.tab.saved", icon: "bookmark" },
+  { id: "settings", labelKey: "m.tab.settings", icon: "gear" },
 ];
 
 function TabBar() {
@@ -158,7 +160,7 @@ function TabBar() {
                 </View>
               ) : null}
             </View>
-            <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[600], color: on ? tokens.brand : tokens.text3 }}>{t.label}</Text>
+            <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[600], color: on ? tokens.brand : tokens.text3 }}>{app.t(t.labelKey)}</Text>
           </Pressable>
         );
       })}
