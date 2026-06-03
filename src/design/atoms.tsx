@@ -7,6 +7,7 @@ import { Pressable, Text, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { useApp } from "./AQContext";
 import { Icon } from "./Icon";
+import { AudioBar } from "./AudioBar";
 import type { AyahItem } from "./data";
 import { FONTS, mix, type Tokens } from "./tokens";
 
@@ -185,6 +186,9 @@ export function AyahCard({ item, rank }: { item: AyahItem; rank?: number }) {
       <View style={{ height: 1, backgroundColor: tokens.lineSoft, marginVertical: 12 }} />
 
       <Translation item={item} lang={app.lang} />
+
+      {/* recitation audio (verbatim MP3 from the API result) */}
+      {item.audio?.url ? <AudioBar url={item.audio.url} reciter={item.audio.reciter} /> : null}
 
       {/* surrounding */}
       <Expander label="Surrounding ayahs" open={sur} onToggle={() => setSur((v) => !v)} tokens={tokens} />

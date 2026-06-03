@@ -13,6 +13,7 @@ export interface AyahItem {
   arabic: string; ur: string; en: string; tafseer: string;
   surrounding: Neighbor[];
   sources: { arabic: string; translation: string; tafseer: string };
+  audio?: { reciter: string; source: string; url: string };
 }
 export interface Topic { q: string; ar: string; ic: string }
 export interface Language { name: string; native: string; code: string }

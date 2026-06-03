@@ -9,6 +9,7 @@ import { useApp } from "../AQContext";
 import { AyahCard, BlockTitle, FieldLabel, IconBtn, OrnDivider, PlaceBadge, SegLabel, Translation } from "../atoms";
 import { Icon, RawIcon } from "../Icon";
 import { SearchBar } from "../SearchBar";
+import { AudioBar } from "../AudioBar";
 import { RECENT, TOPICS, type AyahItem } from "../data";
 import { FONTS, mix } from "../tokens";
 import { ask, getSuggestedQuestions, AqError, type AyahResult, type SuggestedGroup } from "@/api";
@@ -33,6 +34,7 @@ function toItem(r: AyahResult): AyahItem {
     tafseer: r.tafseer || "",
     surrounding: (r.context?.verses ?? []).map((v) => ({ ref: v.verse_key, ar: v.arabic, en: v.translation, center: v.isMatch })),
     sources: { arabic: r.sources?.arabic ?? "", translation: r.sources?.translation ?? "", tafseer: r.sources?.tafseer ?? "" },
+    audio: r.audio,
   };
 }
 
@@ -220,6 +222,7 @@ export function Reader() {
           <Text style={{ fontFamily: FONTS.ar, fontSize: 30, lineHeight: 60, color: tokens.arColor, textAlign: "center", writingDirection: "rtl" }}>{item.arabic}</Text>
           <View style={{ height: 1, backgroundColor: tokens.lineSoft, marginVertical: 12 }} />
           <Translation item={item} lang={app.lang} />
+          {item.audio?.url ? <AudioBar url={item.audio.url} reciter={item.audio.reciter} /> : null}
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: tokens.lineSoft }}>
             <PlaceBadge place={item.place} tokens={tokens} madinahLabel="Madinan" />
             <View style={{ flexDirection: "row", gap: 6 }}>
