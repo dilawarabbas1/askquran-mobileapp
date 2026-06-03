@@ -1,11 +1,25 @@
-// Public AskQuran backend client (no API key) — the same endpoints the web app
-// uses. Search posts to /api/ask; suggested questions, translations and verses
-// are plain GETs. All text is returned verbatim by the backend; nothing here is
-// generated.
+// Public AskQuran backend client — the same endpoints the web app uses. Search
+// posts to /api/ask; suggested questions, translations and verses are GETs. All
+// text is returned verbatim by the backend; nothing here is generated.
+//
+// The public /api/* layer is authenticated by default (PUBLIC_API_REQUIRE_KEY).
+// Exactly like the web bundle (which ships VITE_API_KEY), we send `x-api-key` on
+// every request when a key is configured (EXPO_PUBLIC_API_KEY). A portal-issued
+// key works on both /api/* and /api/v1; the first-party Website key works on
+// /api/*. With no key set, loopback dev still works.
 
 import { AqError, mapStatusToError } from "./errors";
-import { PUBLIC_API_BASE_URL } from "./config";
+import { PUBLIC_API_BASE_URL, API_KEY } from "./config";
 import type { AskResponse, AyahResult, SuggestedGroup, TranslationMeta } from "./publicTypes";
+
+/** Headers for public /api calls — adds x-api-key when a key is configured. */
+function publicHeaders(extra?: Record<string, string>): Record<string, string> {
+  return {
+    Accept: "application/json",
+    ...(API_KEY ? { "x-api-key": API_KEY } : {}),
+    ...(extra ?? {}),
+  };
+}
 
 async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
   let res: Response;
@@ -48,7 +62,7 @@ export interface AskOptions {
 export async function ask(question: string, opts: AskOptions = {}): Promise<AskResponse> {
   return getJson<AskResponse>(`${PUBLIC_API_BASE_URL}/ask`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    headers: publicHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({
       question,
       ...(opts.translation ? { translation: opts.translation } : {}),
@@ -66,7 +80,7 @@ export async function getTranslations(): Promise<{ default: string; translations
   if (translationsCache) return translationsCache;
   const data = await getJson<{ default: string; translations: TranslationMeta[] }>(
     `${PUBLIC_API_BASE_URL}/translations`,
-    { headers: { Accept: "application/json" } },
+    { headers: publicHeaders() },
   );
   translationsCache = { default: data.default, translations: data.translations ?? [] };
   return translationsCache;
@@ -94,7 +108,7 @@ export async function getVerses(refs: string[], translationId: string, tafsir?: 
   const qs = new URLSearchParams({ refs: refs.join(","), translation: translationId });
   if (tafsir) qs.set("tafsir", tafsir);
   const data = await getJson<{ verses: AyahResult[] }>(`${PUBLIC_API_BASE_URL}/verses?${qs.toString()}`, {
-    headers: { Accept: "application/json" },
+    headers: publicHeaders(),
   });
   return data.verses ?? [];
 }
@@ -106,7 +120,7 @@ let questionsCache: SuggestedGroup[] | null = null;
 export async function getSuggestedQuestions(): Promise<SuggestedGroup[]> {
   if (questionsCache) return questionsCache;
   const data = await getJson<{ groups: SuggestedGroup[] }>(`${PUBLIC_API_BASE_URL}/suggested-questions`, {
-    headers: { Accept: "application/json" },
+    headers: publicHeaders(),
   });
   questionsCache = data.groups ?? [];
   return questionsCache;

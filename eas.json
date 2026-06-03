@@ -9,18 +9,27 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_KEY": "aq_live_tIhV-UT9fJl5mmL-CkDPRQ4JLKjmN4iDEgYVbbaU"
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_KEY": "aq_live_tIhV-UT9fJl5mmL-CkDPRQ4JLKjmN4iDEgYVbbaU"
       }
     },
     "production": {
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_KEY": "aq_live_tIhV-UT9fJl5mmL-CkDPRQ4JLKjmN4iDEgYVbbaU"
       }
     }
   },
