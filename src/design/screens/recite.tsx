@@ -10,6 +10,7 @@ import { SvgXml } from "react-native-svg";
 import { useApp } from "../AQContext";
 import { Icon } from "../Icon";
 import { SearchBar } from "../SearchBar";
+import { translationStyle } from "../atoms";
 import { SURAHS } from "../data";
 import { BISMILLAH, ayahAudioUrl } from "../reciteData";
 import { FONTS, mix } from "../tokens";
@@ -161,7 +162,7 @@ export function Recite() {
 
   // load the selected surah's ayahs from the API (any of the 114), refetching
   // when the surah or language changes; falls back to bundled short surahs.
-  useEffect(() => { loadSurah(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [num, app.lang]);
+  useEffect(() => { loadSurah(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [num, app.language]);
 
   async function unload() {
     const s = soundRef.current;
@@ -357,9 +358,7 @@ export function Recite() {
                         <Text style={{ fontFamily: FONTS.ar, fontSize: 25, lineHeight: 51, color: tokens.arColor, textAlign: "right", writingDirection: "rtl" }}>{a.ar}</Text>
                       </Pressable>
                       {a.tr ? (
-                        <Text style={app.lang === "ur"
-                          ? { marginTop: 9, fontFamily: FONTS.ur[400], fontSize: 16, lineHeight: 37, color: tokens.text2, textAlign: "right", writingDirection: "rtl" }
-                          : { marginTop: 9, fontFamily: FONTS.serif[400], fontSize: 14, lineHeight: 24, color: tokens.text2 }}>
+                        <Text style={[translationStyle(app.language, tokens), { marginTop: 9, fontSize: 14, lineHeight: 26, color: tokens.text2 }]}>
                           {a.tr}
                         </Text>
                       ) : null}

@@ -8,8 +8,20 @@ import { SvgXml } from "react-native-svg";
 import { useApp } from "./AQContext";
 import { Icon } from "./Icon";
 import { AudioBar } from "./AudioBar";
+import { scriptKind } from "./lib/rtl";
 import type { AyahItem } from "./data";
 import { FONTS, mix, type Tokens } from "./tokens";
+
+/* ---------- translation text style by language (RTL-aware) ----------
+ * Urdu → Nastaliq RTL; other RTL languages (Arabic, Persian, Pashto, Sindhi,
+ * Divehi, Uyghur, Kurdish) → Amiri RTL; everything else → LTR serif. Callers can
+ * override size/colour by appending a style object. */
+export function translationStyle(language: string, tokens: Tokens) {
+  const k = scriptKind(language);
+  if (k === "ur") return { fontSize: 17, lineHeight: 41, color: tokens.text, fontFamily: FONTS.ur[400], textAlign: "right" as const, writingDirection: "rtl" as const };
+  if (k === "rtl") return { fontSize: 18, lineHeight: 38, color: tokens.text, fontFamily: FONTS.ar, textAlign: "right" as const, writingDirection: "rtl" as const };
+  return { fontSize: 14.5, lineHeight: 26, color: tokens.text, fontFamily: FONTS.serif[400] };
+}
 
 /* ---------- logo mark (lens + open book) ---------- */
 export function Mark({ size = 26 }: { size?: number }) {
@@ -62,34 +74,19 @@ export function OrnDivider() {
   );
 }
 
-/* ---------- translation block ---------- */
-export function Translation({ item, lang }: { item: AyahItem; lang: "en" | "ur" | "both" }) {
-  const { tokens } = useApp();
-  const label = (text: string, mt = 0) => (
-    <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 1.4, textTransform: "uppercase", color: tokens.text3, marginBottom: 7, marginTop: mt }}>
-      {text}
-    </Text>
-  );
-  const en = (
-    <Text style={{ fontSize: 14.5, lineHeight: 26, color: tokens.text, fontFamily: FONTS.serif[400] }}>{item.en}</Text>
-  );
-  const ur = (
-    <Text style={{ fontSize: 17, lineHeight: 41, color: tokens.text, fontFamily: FONTS.ur[400], textAlign: "right", writingDirection: "rtl" }}>{item.ur}</Text>
-  );
-  if (lang === "both") {
-    return (
-      <View>
-        {label("Translation · English")}
-        {en}
-        {label("Translation · Urdu", 14)}
-        {ur}
-      </View>
-    );
-  }
+/* ---------- translation block (styled by the current translation language) ---------- */
+export function Translation({ item }: { item: AyahItem }) {
+  const { tokens, language } = useApp();
+  // For API items both en/ur hold the fetched translation; the style (font +
+  // direction) follows the chosen translation language, so every RTL language
+  // (not just Urdu) renders right-aligned in an Arabic-capable font.
+  const txt = item.en || item.ur;
   return (
     <View>
-      {label("Translation")}
-      {lang === "ur" ? ur : en}
+      <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 1.4, textTransform: "uppercase", color: tokens.text3, marginBottom: 7 }}>
+        Translation
+      </Text>
+      <Text style={translationStyle(language, tokens)}>{txt}</Text>
     </View>
   );
 }
@@ -185,7 +182,7 @@ export function AyahCard({ item, rank }: { item: AyahItem; rank?: number }) {
       </Pressable>
       <View style={{ height: 1, backgroundColor: tokens.lineSoft, marginVertical: 12 }} />
 
-      <Translation item={item} lang={app.lang} />
+      <Translation item={item} />
 
       {/* recitation audio (verbatim MP3 from the API result) */}
       {item.audio?.url ? <AudioBar url={item.audio.url} reciter={item.audio.reciter} /> : null}

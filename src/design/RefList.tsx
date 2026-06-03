@@ -8,7 +8,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { useApp } from "./AQContext";
-import { BlockTitle, SegLabel } from "./atoms";
+import { BlockTitle, SegLabel, translationStyle } from "./atoms";
 import { Icon } from "./Icon";
 import { SearchBar } from "./SearchBar";
 import { FONTS, mix, type Tokens } from "./tokens";
@@ -74,6 +74,7 @@ function AyahBlocks({
   mainBadge?: boolean;
   tokens: Tokens;
 }) {
+  const { language } = useApp();
   const keys = useMemo(() => expandRefs(refs), [refs]);
   const mainSet = useMemo(() => new Set(expandRefs(mainRefs ?? [])), [mainRefs]);
   const [open, setOpen] = useState(false);
@@ -160,7 +161,7 @@ function AyahBlocks({
                       ) : null}
                     </View>
                     <Text style={{ fontFamily: FONTS.ar, fontSize: 21, lineHeight: 40, color: tokens.arColor, textAlign: "right", writingDirection: "rtl" }}>{v.arabic}</Text>
-                    {v.translation ? <Text style={{ fontFamily: FONTS.serif[400], fontSize: 13.5, lineHeight: 21, color: tokens.text2, marginTop: 4 }}>{v.translation}</Text> : null}
+                    {v.translation ? <Text style={[translationStyle(language, tokens), { fontSize: 13.5, lineHeight: 21, color: tokens.text2, marginTop: 4 }]}>{v.translation}</Text> : null}
                   </View>
                 ))}
               </View>

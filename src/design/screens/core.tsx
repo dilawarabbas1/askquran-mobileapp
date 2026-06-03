@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { useApp } from "../AQContext";
-import { AyahCard, BlockTitle, FieldLabel, IconBtn, OrnDivider, PlaceBadge, SegLabel, Translation } from "../atoms";
+import { AyahCard, BlockTitle, FieldLabel, IconBtn, OrnDivider, PlaceBadge, SegLabel, Translation, translationStyle } from "../atoms";
 import { Icon, RawIcon } from "../Icon";
 import { SearchBar } from "../SearchBar";
 import { AudioBar } from "../AudioBar";
@@ -221,7 +221,7 @@ export function Reader() {
         <View style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 18, paddingHorizontal: 18, paddingTop: 18, paddingBottom: 15 }, tokens.cardShadow]}>
           <Text style={{ fontFamily: FONTS.ar, fontSize: 30, lineHeight: 60, color: tokens.arColor, textAlign: "center", writingDirection: "rtl" }}>{item.arabic}</Text>
           <View style={{ height: 1, backgroundColor: tokens.lineSoft, marginVertical: 12 }} />
-          <Translation item={item} lang={app.lang} />
+          <Translation item={item} />
           {item.audio?.url ? <AudioBar url={item.audio.url} reciter={item.audio.reciter} /> : null}
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: tokens.lineSoft }}>
             <PlaceBadge place={item.place} tokens={tokens} madinahLabel="Madinan" />
@@ -240,7 +240,7 @@ export function Reader() {
                 <View key={i} style={{ paddingHorizontal: 13, paddingVertical: 11, borderRadius: 11, borderWidth: 1, borderColor: n.center ? mix(tokens.brand, 35) : tokens.lineSoft, backgroundColor: n.center ? mix(tokens.brand, 5, tokens.surface2) : tokens.surface2 }}>
                   <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 0.4, color: tokens.text3, marginBottom: 5 }}>{n.ref}{n.center ? " · matched" : ""}</Text>
                   <Text style={{ fontFamily: FONTS.ar, fontSize: 18, lineHeight: 33, color: tokens.arColor, textAlign: "right", writingDirection: "rtl" }}>{n.ar}</Text>
-                  <Text style={{ fontFamily: FONTS.serif[400], fontSize: 12.5, color: tokens.text2, marginTop: 4 }}>{n.en}</Text>
+                  <Text style={[translationStyle(app.language, tokens), { fontSize: 12.5, lineHeight: 20, color: tokens.text2, marginTop: 4 }]}>{n.en}</Text>
                 </View>
               ))}
             </View>
