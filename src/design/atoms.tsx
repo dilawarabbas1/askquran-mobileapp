@@ -76,7 +76,7 @@ export function OrnDivider() {
 
 /* ---------- translation block (styled by the current translation language) ---------- */
 export function Translation({ item }: { item: AyahItem }) {
-  const { tokens, language } = useApp();
+  const { tokens, language, t } = useApp();
   // For API items both en/ur hold the fetched translation; the style (font +
   // direction) follows the chosen translation language, so every RTL language
   // (not just Urdu) renders right-aligned in an Arabic-capable font.
@@ -84,7 +84,7 @@ export function Translation({ item }: { item: AyahItem }) {
   return (
     <View>
       <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 1.4, textTransform: "uppercase", color: tokens.text3, marginBottom: 7 }}>
-        Translation
+        {t("results.translation")}
       </Text>
       <Text style={translationStyle(language, tokens)}>{txt}</Text>
     </View>
@@ -188,14 +188,14 @@ export function AyahCard({ item, rank }: { item: AyahItem; rank?: number }) {
       {item.audio?.url ? <AudioBar url={item.audio.url} reciter={item.audio.reciter} /> : null}
 
       {/* surrounding */}
-      <Expander label="Surrounding ayahs" open={sur} onToggle={() => setSur((v) => !v)} tokens={tokens} />
+      <Expander label={app.t("m.surrounding")} open={sur} onToggle={() => setSur((v) => !v)} tokens={tokens} />
       {sur ? <Surrounding item={item} tokens={tokens} /> : null}
 
       {/* tafseer */}
-      <Expander label="Tafseer" open={taf} onToggle={() => setTaf((v) => !v)} tokens={tokens} />
+      <Expander label={app.t("results.tafseer")} open={taf} onToggle={() => setTaf((v) => !v)} tokens={tokens} />
       {taf ? (
         <View style={{ marginTop: 6, marginBottom: 4, paddingHorizontal: 15, paddingVertical: 14, backgroundColor: mix(tokens.gold, 7, tokens.surface2), borderWidth: 1, borderColor: tokens.lineSoft, borderRadius: 12 }}>
-          <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 0.5, textTransform: "uppercase", color: tokens.orn, marginBottom: 6 }}>Tafsir</Text>
+          <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 0.5, textTransform: "uppercase", color: tokens.orn, marginBottom: 6 }}>{app.t("m.tafsir")}</Text>
           <Text style={{ fontFamily: FONTS.serif[400], fontSize: 14, lineHeight: 24.5, color: tokens.text }}>{item.tafseer}</Text>
         </View>
       ) : null}
@@ -203,7 +203,7 @@ export function AyahCard({ item, rank }: { item: AyahItem; rank?: number }) {
       {/* foot */}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: tokens.lineSoft }}>
         <Pressable onPress={() => app.openReader(item)} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-          <Text style={{ fontSize: 12, fontFamily: FONTS.sans[700], color: tokens.brand2 }}>Read in context </Text>
+          <Text style={{ fontSize: 12, fontFamily: FONTS.sans[700], color: tokens.brand2 }}>{app.t("m.readInContext")} </Text>
           <Text style={{ fontSize: 13, color: tokens.brand2 }}>→</Text>
         </Pressable>
         <View style={{ flexDirection: "row", gap: 6 }}>

@@ -67,16 +67,16 @@ export function SearchHome() {
           لَا إِلٰهَ إِلَّا ٱللَّٰهُ مُحَمَّدٌ رَسُولُ ٱللَّٰهِ
         </Text>
         <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: FONTS.serif.italic, fontStyle: "italic", fontSize: 11.5, color: tokens.brand2, marginTop: 6, textAlign: "center" }}>
-          There is no god but Allah; Muhammad is the Messenger of Allah
+          {app.t("hero.shahadaEn")}
         </Text>
         <Text style={{ maxWidth: 300, marginTop: 8, fontSize: 13.5, lineHeight: 21.6, color: tokens.text2, textAlign: "center", fontFamily: FONTS.sans[400] }}>
-          Ask a question and get only referenced source material — nothing generated.
+          {app.t("hero.lede")}
         </Text>
         <OrnDivider />
       </View>
 
       <View style={{ paddingHorizontal: 16, paddingTop: 6 }}>
-        <SearchBar value={q} onChangeText={setQ} placeholder="Ask about a topic or theme…" onSubmit={submit} showGo />
+        <SearchBar value={q} onChangeText={setQ} placeholder={app.t("search.placeholder")} onSubmit={submit} showGo />
 
         {hasApiQuestions ? (
           /* API-loaded suggested questions, grouped by topic */
@@ -97,7 +97,7 @@ export function SearchHome() {
           ))
         ) : (
           <>
-            <FieldLabel>{qLoading ? "Loading suggestions…" : "Suggested topics"}</FieldLabel>
+            <FieldLabel>{qLoading ? app.t("m.loadingSuggestions") : app.t("m.suggestedTopics")}</FieldLabel>
             {qLoading ? (
               <ActivityIndicator color={tokens.brand} style={{ alignSelf: "flex-start", marginLeft: 2 }} />
             ) : (
@@ -117,7 +117,7 @@ export function SearchHome() {
           </>
         )}
 
-        <FieldLabel>Recent searches</FieldLabel>
+        <FieldLabel>{app.t("m.recent")}</FieldLabel>
         <View>
           {RECENT.map((r, i) => (
             <Pressable key={i} onPress={() => app.runSearch(r)} style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, paddingHorizontal: 4, borderBottomWidth: i === RECENT.length - 1 ? 0 : 1, borderBottomColor: tokens.lineSoft }}>
@@ -168,22 +168,22 @@ export function Results() {
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 18, paddingBottom: 26 }} showsVerticalScrollIndicator={false}>
       <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 10, marginBottom: 14, marginHorizontal: 2 }}>
         <Text style={{ fontSize: 14, fontFamily: FONTS.sans[700], color: tokens.text }}>
-          Results for <Text style={{ color: tokens.brand }}>“{q}”</Text>
+          {app.t("results.resultsFor")} <Text style={{ color: tokens.brand }}>“{q}”</Text>
         </Text>
-        {!loading && !error ? <Text style={{ fontSize: 12, color: tokens.text3 }}>{items.length} {items.length === 1 ? "source" : "sources"}</Text> : null}
+        {!loading && !error ? <Text style={{ fontSize: 12, color: tokens.text3 }}>{items.length} {app.t(items.length === 1 ? "m.sourceOne" : "m.sourceMany")}</Text> : null}
       </View>
 
       {loading ? (
         <View style={{ alignItems: "center", paddingVertical: 56 }}>
           <ActivityIndicator color={tokens.brand} />
-          <Text style={{ marginTop: 12, fontSize: 13, color: tokens.text3 }}>Searching the Quran…</Text>
+          <Text style={{ marginTop: 12, fontSize: 13, color: tokens.text3 }}>{app.t("m.searching")}</Text>
         </View>
       ) : error ? (
         <View style={{ alignItems: "center", paddingVertical: 48, paddingHorizontal: 20 }}>
           <Icon name="search" size={38} w={1.6} color={tokens.text3} />
           <Text style={{ marginTop: 12, fontSize: 14, lineHeight: 22, color: tokens.text3, textAlign: "center" }}>{error}</Text>
           <Pressable onPress={run} style={{ marginTop: 18, backgroundColor: tokens.brand, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 20 }}>
-            <Text style={{ fontSize: 14, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>Retry</Text>
+            <Text style={{ fontSize: 14, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>{app.t("m.retry")}</Text>
           </Pressable>
         </View>
       ) : items.length ? (
@@ -209,7 +209,7 @@ export function Reader() {
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 26 }} showsVerticalScrollIndicator={false}>
       <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8, alignItems: "center" }}>
-        <SegLabel>Reader</SegLabel>
+        <SegLabel>{app.t("m.title.reader")}</SegLabel>
         <BlockTitle style={{ marginTop: 9, fontSize: 22 }}>{item.surah}</BlockTitle>
         <Text style={{ fontSize: 12.5, color: tokens.text3, marginTop: 4 }}>
           <Text style={{ fontFamily: FONTS.ar, fontSize: 17, color: tokens.orn }}>{item.arName}</Text>
@@ -234,7 +234,7 @@ export function Reader() {
 
         {item.surrounding?.length ? (
           <>
-            <FieldLabel>In context</FieldLabel>
+            <FieldLabel>{app.t("m.inContext")}</FieldLabel>
             <View style={{ gap: 9 }}>
               {item.surrounding.map((n, i) => (
                 <View key={i} style={{ paddingHorizontal: 13, paddingVertical: 11, borderRadius: 11, borderWidth: 1, borderColor: n.center ? mix(tokens.brand, 35) : tokens.lineSoft, backgroundColor: n.center ? mix(tokens.brand, 5, tokens.surface2) : tokens.surface2 }}>
@@ -249,7 +249,7 @@ export function Reader() {
 
         {item.tafseer ? (
           <>
-            <FieldLabel>Tafsir</FieldLabel>
+            <FieldLabel>{app.t("m.tafsir")}</FieldLabel>
             <View style={{ paddingHorizontal: 15, paddingVertical: 14, backgroundColor: mix(tokens.gold, 7, tokens.surface2), borderWidth: 1, borderColor: tokens.lineSoft, borderRadius: 12 }}>
               <Text style={{ fontFamily: FONTS.serif[400], fontSize: 14, lineHeight: 24.5, color: tokens.text }}>{item.tafseer}</Text>
             </View>

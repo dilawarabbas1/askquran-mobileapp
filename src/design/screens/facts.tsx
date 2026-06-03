@@ -229,7 +229,7 @@ function FactsSurahs({ tokens }: { tokens: Tokens }) {
   return (
     <View>
       <View style={{ marginBottom: 13 }}>
-        <SearchBar value={q} onChangeText={setQ} placeholder="Search surahs…" small />
+        <SearchBar value={q} onChangeText={setQ} placeholder={app.t("recite.searchSurahs")} small />
       </View>
       <View style={{ flexDirection: "row", backgroundColor: tokens.surface2, borderWidth: 1, borderColor: tokens.line, borderRadius: 12, padding: 3, gap: 2, marginBottom: 13 }}>
         {([["all", "All"], ["Meccan", "Meccan"], ["Medinan", "Medinan"]] as const).map(([v, l]) => {

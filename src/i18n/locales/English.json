@@ -1484,5 +1484,21 @@
   "m.title.librarySub": "Quran-backed reference collections",
   "m.title.about": "About",
   "m.title.saved": "Saved",
-  "m.title.settings": "Settings"
+  "m.title.settings": "Settings",
+  "m.suggestedTopics": "Suggested topics",
+  "m.loadingSuggestions": "Loading suggestions…",
+  "m.recent": "Recent searches",
+  "m.searching": "Searching the Quran…",
+  "m.retry": "Retry",
+  "m.sourceOne": "source",
+  "m.sourceMany": "sources",
+  "m.inContext": "In context",
+  "m.tafsir": "Tafsir",
+  "m.readInContext": "Read in context",
+  "m.surrounding": "Surrounding ayahs",
+  "m.showPassage": "Show passage",
+  "m.hidePassage": "Hide passage",
+  "m.selectSurah": "Select Surah",
+  "m.chaptersCount": "{n} chapters",
+  "m.loadingSurah": "Loading {name}…"
 }

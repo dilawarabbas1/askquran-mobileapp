@@ -16,7 +16,7 @@ let active: { stop: () => void } | null = null;
 type State = "idle" | "loading" | "playing" | "paused";
 
 export function AudioBar({ url, reciter }: { url: string; reciter?: string }) {
-  const { tokens } = useApp();
+  const { tokens, t } = useApp();
   const soundRef = useRef<Audio.Sound | null>(null);
   const [state, setState] = useState<State>("idle");
 
@@ -92,9 +92,9 @@ export function AudioBar({ url, reciter }: { url: string; reciter?: string }) {
         )}
       </Pressable>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 11, fontFamily: FONTS.sans[700], letterSpacing: 0.3, textTransform: "uppercase", color: tokens.text3 }}>Recitation</Text>
+        <Text style={{ fontSize: 11, fontFamily: FONTS.sans[700], letterSpacing: 0.3, textTransform: "uppercase", color: tokens.text3 }}>{t("recite.recitation")}</Text>
         <Text numberOfLines={1} style={{ fontSize: 12.5, fontFamily: FONTS.sans[600], color: tokens.text2, marginTop: 1 }}>
-          {reciter || "Quran recitation"}
+          {reciter || t("recite.recitation")}
         </Text>
       </View>
       <Icon name="recite" size={17} color={tokens.text3} />

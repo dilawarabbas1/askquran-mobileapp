@@ -73,13 +73,13 @@ export function SurahSheet() {
           <Icon name="back" size={18} w={2.1} color={tokens.text2} />
         </Pressable>
         <View>
-          <Text style={{ fontFamily: FONTS.serif[500], fontSize: 19, color: tokens.text }}>Select Surah</Text>
-          <Text style={{ fontSize: 11.5, color: tokens.text2, marginTop: 1 }}>114 chapters</Text>
+          <Text style={{ fontFamily: FONTS.serif[500], fontSize: 19, color: tokens.text }}>{app.t("m.selectSurah")}</Text>
+          <Text style={{ fontSize: 11.5, color: tokens.text2, marginTop: 1 }}>{app.t("m.chaptersCount", { n: 114 })}</Text>
         </View>
       </View>
       <View style={{ flex: 1, paddingHorizontal: 18, paddingTop: 4 }}>
         <View style={{ marginVertical: 12 }}>
-          <SearchBar value={q} onChangeText={setQ} placeholder="Search surahs…" small />
+          <SearchBar value={q} onChangeText={setQ} placeholder={app.t("recite.searchSurahs")} small />
         </View>
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 8, gap: 8 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           {list.map((s) => {
@@ -90,9 +90,9 @@ export function SurahSheet() {
                   <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[600], color: on ? tokens.onBrand : tokens.brand }}>{s.num}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 14.5, fontFamily: FONTS.sans[700], color: tokens.text }}>{s.name}</Text>
+                  <Text style={{ fontSize: 14.5, fontFamily: FONTS.sans[700], color: tokens.text }}>{app.t(`facts.s.${s.num}`)}</Text>
                   <Text style={{ fontSize: 11, color: tokens.text3, marginTop: 1 }}>
-                    <Text style={{ fontFamily: FONTS.sans[700], color: s.place === "Meccan" ? tokens.mecca : tokens.medina }}>{s.place}</Text> · {s.cnt} ayahs
+                    <Text style={{ fontFamily: FONTS.sans[700], color: s.place === "Meccan" ? tokens.mecca : tokens.medina }}>{app.t(s.place === "Meccan" ? "recite.meccan" : "recite.medinan")}</Text> · {app.t("recite.ayahs", { n: s.cnt })}
                   </Text>
                 </View>
                 <Text style={{ fontFamily: FONTS.ar, fontSize: 20, color: tokens.arColor }}>{s.ar}</Text>
@@ -290,9 +290,9 @@ export function Recite() {
             <Text style={{ fontFamily: FONTS.serif[600], fontSize: 17, color: tokens.brand }}>{num}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: FONTS.serif[600], fontSize: 19, color: tokens.text }}>{name}</Text>
+            <Text style={{ fontFamily: FONTS.serif[600], fontSize: 19, color: tokens.text }}>{app.t(`facts.s.${num}`)}</Text>
             <Text style={{ fontSize: 11.5, color: tokens.text3, marginTop: 2 }}>
-              <Text style={{ fontFamily: FONTS.sans[700], color: place === "Meccan" ? tokens.mecca : tokens.medina }}>{place}</Text> · {cnt} ayahs
+              <Text style={{ fontFamily: FONTS.sans[700], color: place === "Meccan" ? tokens.mecca : tokens.medina }}>{app.t(place === "Meccan" ? "recite.meccan" : "recite.medinan")}</Text> · {app.t("recite.ayahs", { n: cnt })}
             </Text>
           </View>
           <Text style={{ fontFamily: FONTS.ar, fontSize: 24, color: tokens.orn }}>{arName}</Text>
@@ -318,7 +318,7 @@ export function Recite() {
         {loading ? (
           <View style={{ alignItems: "center", paddingTop: 64 }}>
             <ActivityIndicator color={tokens.brand} />
-            <Text style={{ marginTop: 12, fontSize: 13, color: tokens.text3 }}>Loading {name}…</Text>
+            <Text style={{ marginTop: 12, fontSize: 13, color: tokens.text3 }}>{app.t("m.loadingSurah", { name: app.t(`facts.s.${num}`) })}</Text>
           </View>
         ) : ayahs ? (
           <>
@@ -367,16 +367,16 @@ export function Recite() {
                       {/* per-ayah tafsir (lazy, stored sources, chosen language) */}
                       <Pressable onPress={() => toggleTafsir(a.n)} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 12, alignSelf: "flex-start" }}>
                         <Icon name="info" size={14} color={tokens.brand2} />
-                        <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[700], color: tokens.brand2 }}>{tOpen ? "Hide tafsir" : "View tafsir"}</Text>
+                        <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[700], color: tokens.brand2 }}>{app.t(tOpen ? "recite.hideTafsir" : "recite.viewTafsir")}</Text>
                       </Pressable>
                       {tOpen ? (
                         <View style={{ marginTop: 10, paddingHorizontal: 13, paddingVertical: 12, backgroundColor: mix(tokens.gold, 7, tokens.surface2), borderWidth: 1, borderColor: tokens.lineSoft, borderRadius: 12 }}>
                           {!td || td.loading ? (
-                            <Text style={{ fontSize: 12.5, color: tokens.text3 }}>Loading tafsir…</Text>
+                            <Text style={{ fontSize: 12.5, color: tokens.text3 }}>{app.t("recite.tafsirLoading")}</Text>
                           ) : td.error ? (
-                            <Text style={{ fontSize: 12.5, color: tokens.text3 }}>Couldn’t load tafsir.</Text>
+                            <Text style={{ fontSize: 12.5, color: tokens.text3 }}>{app.t("recite.tafsirError")}</Text>
                           ) : !td.available ? (
-                            <Text style={{ fontSize: 12.5, color: tokens.text3, fontStyle: "italic" }}>No stored tafsir for this ayah in {app.tafsirLanguage}.</Text>
+                            <Text style={{ fontSize: 12.5, color: tokens.text3, fontStyle: "italic" }}>{app.t("recite.tafsirUnavailable", { language: app.tafsirLanguage })}</Text>
                           ) : (
                             <>
                               <Text style={{ fontFamily: FONTS.serif[400], fontSize: 13.5, lineHeight: 23, color: tokens.text }}>{td.text}</Text>
@@ -390,16 +390,16 @@ export function Recite() {
                 );
               })}
             </View>
-            <Text style={{ textAlign: "center", fontFamily: FONTS.ar, color: tokens.orn, fontSize: 16, paddingTop: 22, paddingBottom: 6, opacity: 0.8 }}>۞ End of Surah {name} ۞</Text>
+            <Text style={{ textAlign: "center", fontFamily: FONTS.ar, color: tokens.orn, fontSize: 16, paddingTop: 22, paddingBottom: 6, opacity: 0.8 }}>۞ {app.t("recite.endOfSurah", { name: app.t(`facts.s.${num}`) })} ۞</Text>
           </>
         ) : (
           <View style={{ alignItems: "center", paddingTop: 60, paddingHorizontal: 20 }}>
             <RIcon name="wave" size={40} color={tokens.brand} />
             <Text style={{ marginTop: 12, fontSize: 14, lineHeight: 24, color: tokens.text3, textAlign: "center" }}>
-              {error || `Couldn’t load ${name}.`}
+              {error || app.t("recite.error")}
             </Text>
             <Pressable onPress={loadSurah} style={{ marginTop: 18, backgroundColor: tokens.brand, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 20 }}>
-              <Text style={{ fontSize: 14, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>Retry</Text>
+              <Text style={{ fontSize: 14, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>{app.t("m.retry")}</Text>
             </Pressable>
           </View>
         )}
@@ -415,7 +415,7 @@ export function Recite() {
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 11, fontFamily: FONTS.sans[700], letterSpacing: 0.6, textTransform: "uppercase", color: tokens.orn }}>Mishary Alafasy</Text>
               <Text numberOfLines={1} style={{ fontSize: 13, fontFamily: FONTS.sans[600], color: tokens.text, marginTop: 2 }}>
-                {activeAyah ? `${name} · Ayah ${activeAyah}` : `Surah ${name} · ${cnt} ayahs`}
+                {activeAyah ? app.t("recite.ayahLabel", { name: app.t(`facts.s.${num}`), n: activeAyah }) : app.t("recite.surahCount", { name: app.t(`facts.s.${num}`), n: cnt })}
               </Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
