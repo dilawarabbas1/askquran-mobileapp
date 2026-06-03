@@ -74,7 +74,7 @@ function AyahBlocks({
   mainBadge?: boolean;
   tokens: Tokens;
 }) {
-  const { language } = useApp();
+  const { language, t } = useApp();
   const keys = useMemo(() => expandRefs(refs), [refs]);
   const mainSet = useMemo(() => new Set(expandRefs(mainRefs ?? [])), [mainRefs]);
   const [open, setOpen] = useState(false);
@@ -124,7 +124,7 @@ function AyahBlocks({
         <View style={{ flex: 1 }}>
           <RefChips refs={refs} tokens={tokens} />
         </View>
-        <Text style={{ fontSize: 11, color: tokens.text3, fontFamily: FONTS.sans[600] }}>{keys.length} {keys.length === 1 ? "ayah" : "ayahs"}</Text>
+        <Text style={{ fontSize: 11, color: tokens.text3, fontFamily: FONTS.sans[600] }}>{t("more.ayahCount", { n: keys.length })}</Text>
       </View>
 
       <Pressable
@@ -132,18 +132,18 @@ function AyahBlocks({
         style={{ flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", marginTop: 10 }}
       >
         <Text style={{ fontSize: 13, fontFamily: FONTS.sans[700], color: tokens.brand2 }}>
-          {open ? "Hide passage" : "Show passage"}
+          {t(open ? "m.hidePassage" : "m.showPassage")}
         </Text>
         <Icon name={open ? "chevDown" : "chevR"} size={14} w={2.2} color={tokens.brand2} />
       </Pressable>
 
       {open ? (
         error ? (
-          <Text style={{ marginTop: 10, fontSize: 12.5, color: tokens.text3 }}>Couldn’t load this passage. Pull to retry or check your connection.</Text>
+          <Text style={{ marginTop: 10, fontSize: 12.5, color: tokens.text3 }}>{t("more.loadError")}</Text>
         ) : !verses && loading ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12 }}>
             <ActivityIndicator color={tokens.brand} />
-            <Text style={{ fontSize: 12.5, color: tokens.text3 }}>Loading verbatim text…</Text>
+            <Text style={{ fontSize: 12.5, color: tokens.text3 }}>{t("m.loadingText")}</Text>
           </View>
         ) : (
           <View>
@@ -156,7 +156,7 @@ function AyahBlocks({
                       <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 0.4, color: tokens.text3 }}>{v.verseKey}</Text>
                       {mainBadge && mainSet.has(v.verseKey) ? (
                         <View style={{ backgroundColor: mix(tokens.gold, 18, tokens.surface2), borderRadius: 6, paddingHorizontal: 6, paddingVertical: 1 }}>
-                          <Text style={{ fontSize: 9, fontFamily: FONTS.sans[700], color: tokens.mode === "dark" ? tokens.goldSoft : tokens.goldDeep }}>MAIN</Text>
+                          <Text style={{ fontSize: 9, fontFamily: FONTS.sans[700], color: tokens.mode === "dark" ? tokens.goldSoft : tokens.goldDeep }}>{t("more.mainAyah")}</Text>
                         </View>
                       ) : null}
                     </View>
@@ -170,14 +170,14 @@ function AyahBlocks({
             {showTafsir ? (
               <View style={{ marginTop: 12 }}>
                 <Pressable onPress={() => setShowTaf((s) => !s)} style={{ flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start" }}>
-                  <Text style={{ fontSize: 13, fontFamily: FONTS.sans[700], color: tokens.brand2 }}>{showTaf ? "Hide tafsir" : "Show tafsir"}</Text>
+                  <Text style={{ fontSize: 13, fontFamily: FONTS.sans[700], color: tokens.brand2 }}>{t(showTaf ? "more.hideTafsir" : "more.showTafsir")}</Text>
                   <Icon name="chevDown" size={14} w={2.2} color={tokens.brand2} />
                 </Pressable>
                 {showTaf ? (
                   tafLoading && !tafOrdered ? (
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 }}>
                       <ActivityIndicator color={tokens.brand} />
-                      <Text style={{ fontSize: 12.5, color: tokens.text3 }}>Loading tafsir…</Text>
+                      <Text style={{ fontSize: 12.5, color: tokens.text3 }}>{t("more.loading")}</Text>
                     </View>
                   ) : (
                     <View style={{ marginTop: 10, gap: 10 }}>
@@ -190,7 +190,7 @@ function AyahBlocks({
                               <Text style={{ fontFamily: FONTS.serif[400], fontSize: 13.5, lineHeight: 23, color: tokens.text }}>{v.tafseer}</Text>
                             </>
                           ) : (
-                            <Text style={{ fontSize: 12.5, color: tokens.text3, fontStyle: "italic" }}>No stored tafsir for this ayah.</Text>
+                            <Text style={{ fontSize: 12.5, color: tokens.text3, fontStyle: "italic" }}>{t("more.tafsirUnavailable", { language: "English" })}</Text>
                           )}
                         </View>
                       ))}
@@ -247,41 +247,46 @@ const TYPE_LABEL: Record<string, string> = {
   command: "Command", prohibition: "Prohibition", cultivate: "Cultivate", avoid: "Avoid",
 };
 
-function Card({ item, translationId, showTafsir, mainBadge, typeBadge, catTitle, tokens }: {
+function Card({ item, title, desc, note, typeLabel, catTitle, translationId, showTafsir, mainBadge, typeBadge, tokens }: {
   item: RefCardItem;
+  title: string;
+  desc: string;
+  note?: string;
+  typeLabel?: string;
+  catTitle: string;
   translationId: string;
   showTafsir: boolean;
   mainBadge: boolean;
   typeBadge: boolean;
-  catTitle: string;
   tokens: Tokens;
 }) {
+  const { t } = useApp();
   return (
     <View style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 16, paddingHorizontal: 16, paddingTop: 15, paddingBottom: 14 }, tokens.cardShadow]}>
       <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 11 }}>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 7 }}>
-            <Text style={{ fontFamily: FONTS.serif[600], fontSize: 17, color: tokens.text }}>{item.title}</Text>
+            <Text style={{ fontFamily: FONTS.serif[600], fontSize: 17, color: tokens.text }}>{title}</Text>
             {item.arName ? <Text style={{ fontFamily: FONTS.ar, fontSize: 16, color: tokens.text3 }}>{item.arName}</Text> : null}
-            {typeBadge && item.type ? (
+            {typeBadge && item.type && typeLabel ? (
               <View style={{ backgroundColor: mix(tokens.brand, 12), borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 }}>
-                <Text style={{ fontSize: 9.5, fontFamily: FONTS.sans[700], letterSpacing: 0.3, color: tokens.brand }}>{(TYPE_LABEL[item.type] ?? item.type).toUpperCase()}</Text>
+                <Text style={{ fontSize: 9.5, fontFamily: FONTS.sans[700], letterSpacing: 0.3, color: tokens.brand }}>{typeLabel.toUpperCase()}</Text>
               </View>
             ) : null}
             {item.severity === "major" ? (
               <View style={{ backgroundColor: mix(tokens.mecca, 16, tokens.surface2), borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 }}>
-                <Text style={{ fontSize: 9.5, fontFamily: FONTS.sans[700], letterSpacing: 0.3, color: tokens.mecca }}>MAJOR</Text>
+                <Text style={{ fontSize: 9.5, fontFamily: FONTS.sans[700], letterSpacing: 0.3, color: tokens.mecca }}>{t("more.major")}</Text>
               </View>
             ) : null}
           </View>
           <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[600], letterSpacing: 0.4, textTransform: "uppercase", color: tokens.text3, marginTop: 3 }}>
-            {countAyahs(item.refs)} ayahs · {catTitle}
+            {t("more.ayahCount", { n: countAyahs(item.refs) })} · {catTitle}
           </Text>
         </View>
       </View>
 
-      <Text style={{ marginTop: 10, fontSize: 13, lineHeight: 20, color: tokens.text2 }}>{item.desc}</Text>
-      {item.note ? <Text style={{ marginTop: 6, fontSize: 12, fontStyle: "italic", color: tokens.text3 }}>{item.note}</Text> : null}
+      <Text style={{ marginTop: 10, fontSize: 13, lineHeight: 20, color: tokens.text2 }}>{desc}</Text>
+      {note ? <Text style={{ marginTop: 6, fontSize: 12, fontStyle: "italic", color: tokens.text3 }}>{note}</Text> : null}
 
       {item.tags && item.tags.length ? (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
@@ -354,26 +359,38 @@ export function RefList() {
     );
   }
 
-  const catOptions = [{ value: "all", label: "All" }, ...collection.categories.map((c) => ({ value: c.id, label: c.title }))];
+  // Per-collection catalog key shapes (duas/prophet use bespoke keys; the rest
+  // share the ns.i.<id>.title/.label "ref" shape).
+  const ns = collection.ns;
+  const kind = collection.kind;
+  const itemTitleKey = (id: string) => (kind === "duas" ? `duas.d.${id}.t` : kind === "prophet" ? `prophet.p.${id}.name` : `${ns}.i.${id}.title`);
+  const itemDescKey = (id: string) => (kind === "duas" ? `duas.d.${id}.c` : kind === "prophet" ? `prophet.p.${id}.summary` : `${ns}.i.${id}.label`);
+  const headSub = app.t(kind === "ref" ? `${ns}.subtitle` : `${ns}.sub`);
+  const headSource = app.t(kind === "ref" ? `${ns}.sourceNote` : `${ns}.disclaimer`);
+  const headEyebrow = kind === "ref" ? app.t("nav.more") : app.t(`${ns}.eyebrow`);
+  const trustText = kind === "ref" ? app.t("more.trust") : app.t(`${ns}.trust`);
+  const catLabel = (id: string) => app.t(`${ns}.cat.${id}`);
+
+  const catOptions = [{ value: "all", label: app.t("more.all") }, ...collection.categories.map((c) => ({ value: c.id, label: catLabel(c.id) }))];
   const typeOptions = collection.typeFilter
-    ? [{ value: "all", label: "All" }, ...collection.typeFilter.map((o) => ({ value: o.value as string, label: o.label }))]
+    ? [{ value: "all", label: app.t("more.all") }, ...collection.typeFilter.map((o) => ({ value: o.value as string, label: app.t(`more.${o.value}`) }))]
     : null;
 
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 28 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-      <SegLabel>{collection.eyebrow}</SegLabel>
-      <BlockTitle style={{ marginTop: 8, marginBottom: 6 }}>{collection.title}</BlockTitle>
-      <Text style={{ fontSize: 13.5, lineHeight: 21, color: tokens.text2, marginBottom: 12 }}>{collection.subtitle}</Text>
+      <SegLabel>{headEyebrow}</SegLabel>
+      <BlockTitle style={{ marginTop: 8, marginBottom: 6 }}>{app.t(`${ns}.title`)}</BlockTitle>
+      <Text style={{ fontSize: 13.5, lineHeight: 21, color: tokens.text2, marginBottom: 12 }}>{headSub}</Text>
 
       <View style={{ flexDirection: "row", gap: 9, alignItems: "flex-start", marginBottom: 14 }}>
         <Icon name="info" size={15} color={tokens.brand2} />
-        <Text style={{ flex: 1, fontSize: 11.5, lineHeight: 17.5, color: tokens.text3 }}>{collection.sourceNote}</Text>
+        <Text style={{ flex: 1, fontSize: 11.5, lineHeight: 17.5, color: tokens.text3 }}>{headSource}</Text>
       </View>
 
-      <TrustNote tokens={tokens}>{REF_TRUST}</TrustNote>
+      <TrustNote tokens={tokens}>{trustText}</TrustNote>
 
       <View style={{ marginBottom: 12 }}>
-        <SearchBar value={q} onChangeText={setQ} placeholder={`Search ${collection.title.toLowerCase()}…`} small />
+        <SearchBar value={q} onChangeText={setQ} placeholder={app.t("more.searchPlaceholder")} small />
       </View>
 
       {typeOptions ? <FilterChips options={typeOptions} value={type} onChange={setType} tokens={tokens} /> : null}
@@ -384,18 +401,22 @@ export function RefList() {
           <ActivityIndicator color={tokens.brand} />
         </View>
       ) : shown.length === 0 ? (
-        <Text style={{ fontSize: 13.5, color: tokens.text3, paddingVertical: 18 }}>No matching references.</Text>
+        <Text style={{ fontSize: 13.5, color: tokens.text3, paddingVertical: 18 }}>{app.t("more.noResults")}</Text>
       ) : (
         <View style={{ gap: 14 }}>
           {shown.map((it) => (
             <Card
               key={it.id}
               item={it}
+              title={app.t(itemTitleKey(it.id))}
+              desc={app.t(itemDescKey(it.id))}
+              note={it.note ? (kind === "prophet" ? app.t(`prophet.p.${it.id}.note`) : it.note) : undefined}
+              typeLabel={it.type ? app.t(`more.${it.type}`) : undefined}
               translationId={translationId}
               showTafsir={collection.showTafsir}
               mainBadge={!!collection.mainBadge}
               typeBadge={!!collection.typeBadge}
-              catTitle={catTitle(it.category)}
+              catTitle={catLabel(it.category)}
               tokens={tokens}
             />
           ))}

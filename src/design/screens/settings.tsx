@@ -57,24 +57,24 @@ export function Settings() {
 
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: 26 }} showsVerticalScrollIndicator={false}>
-      <Group label="Reading" tokens={tokens}>
-        <Row tokens={tokens} icon="globe" title="App language" sub="Interface language" onPress={() => app.openLangSheet("app")} right={val(app.appLanguage)} />
-        <Row tokens={tokens} icon="type" title="Translation language" sub="Language of the Quran translation" onPress={() => app.openLangSheet("translation")} right={val(app.translationLanguage)} />
-        <Row tokens={tokens} icon="info" title="Tafsir language" sub="Language for tafsir · English fallback" onPress={() => app.openLangSheet("tafsir")} right={val(app.tafsirLanguage)} />
-        <Row tokens={tokens} icon="type" title="Show Arabic text" sub="Uthmani script" right={<Switch on={arOn} onPress={() => setArOn((v) => !v)} />} />
-        <Row tokens={tokens} icon="type" title="Tajweed colouring" sub="Highlight recitation rules" last right={<Switch on={tajweed} onPress={() => setTajweed((v) => !v)} />} />
+      <Group label={app.t("m.set.reading")} tokens={tokens}>
+        <Row tokens={tokens} icon="globe" title={app.t("m.set.appLang")} sub={app.t("m.set.appLangSub")} onPress={() => app.openLangSheet("app")} right={val(app.appLanguage)} />
+        <Row tokens={tokens} icon="type" title={app.t("m.set.transLang")} sub={app.t("m.set.transLangSub")} onPress={() => app.openLangSheet("translation")} right={val(app.translationLanguage)} />
+        <Row tokens={tokens} icon="info" title={app.t("m.set.tafLang")} sub={app.t("m.set.tafLangSub")} onPress={() => app.openLangSheet("tafsir")} right={val(app.tafsirLanguage)} />
+        <Row tokens={tokens} icon="type" title={app.t("m.set.arabic")} sub={app.t("m.set.arabicSub")} right={<Switch on={arOn} onPress={() => setArOn((v) => !v)} />} />
+        <Row tokens={tokens} icon="type" title={app.t("m.set.tajweed")} sub={app.t("m.set.tajweedSub")} last right={<Switch on={tajweed} onPress={() => setTajweed((v) => !v)} />} />
       </Group>
 
-      <Group label="Appearance" tokens={tokens}>
+      <Group label={app.t("m.set.appearance")} tokens={tokens}>
         <Row
-          tokens={tokens} icon={app.mode === "dark" ? "moon" : "sun"} title="Theme" sub="Light, dark, or follow system" last
+          tokens={tokens} icon={app.mode === "dark" ? "moon" : "sun"} title={app.t("m.set.theme")} sub={app.t("m.set.themeSub")} last
           right={
             <View style={{ flexDirection: "row", backgroundColor: tokens.surface2, borderWidth: 1, borderColor: tokens.line, borderRadius: 9, padding: 2, gap: 2 }}>
-              {([["light", "Light"], ["dark", "Dark"], ["system", "Auto"]] as [Appearance, string][]).map(([v, l]) => {
+              {([["light", "m.set.light"], ["dark", "m.set.dark"], ["system", "m.set.auto"]] as [Appearance, string][]).map(([v, l]) => {
                 const on = app.appearance === v;
                 return (
                   <Pressable key={v} onPress={() => app.setAppearance(v)} style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 7, backgroundColor: on ? (tokens.mode === "dark" ? tokens.bg : tokens.surface) : "transparent" }}>
-                    <Text style={{ fontSize: 11.5, fontFamily: FONTS.sans[600], color: on ? tokens.brand : tokens.text2 }}>{l}</Text>
+                    <Text style={{ fontSize: 11.5, fontFamily: FONTS.sans[600], color: on ? tokens.brand : tokens.text2 }}>{app.t(l)}</Text>
                   </Pressable>
                 );
               })}
@@ -83,16 +83,16 @@ export function Settings() {
         />
       </Group>
 
-      <Group label="Home screen" tokens={tokens}>
+      <Group label={app.t("m.set.home")} tokens={tokens}>
         <Row
-          tokens={tokens} icon="grid" title="Topics layout" sub="How suggested topics appear on Search" last
+          tokens={tokens} icon="grid" title={app.t("m.set.topicsLayout")} sub={app.t("m.set.topicsLayoutSub")} last
           right={
             <View style={{ flexDirection: "row", backgroundColor: tokens.surface2, borderWidth: 1, borderColor: tokens.line, borderRadius: 9, padding: 2, gap: 2 }}>
               {(["Chips", "Grid"] as const).map((v) => {
                 const on = app.homeLayout === v;
                 return (
                   <Pressable key={v} onPress={() => app.setHomeLayout(v)} style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 7, backgroundColor: on ? (tokens.mode === "dark" ? tokens.bg : tokens.surface) : "transparent" }}>
-                    <Text style={{ fontSize: 11.5, fontFamily: FONTS.sans[600], color: on ? tokens.brand : tokens.text2 }}>{v}</Text>
+                    <Text style={{ fontSize: 11.5, fontFamily: FONTS.sans[600], color: on ? tokens.brand : tokens.text2 }}>{app.t(v === "Chips" ? "m.set.chips" : "m.set.grid")}</Text>
                   </Pressable>
                 );
               })}
@@ -101,10 +101,10 @@ export function Settings() {
         />
       </Group>
 
-      <Group label="About" tokens={tokens}>
-        <Row tokens={tokens} icon="shield" title="Sources & integrity" sub="The Quran Facts sources tab" onPress={() => { app.setFactTab("sources"); app.goTab("facts"); }} right={chev} />
-        <Row tokens={tokens} icon="info" title="About AskQuran" sub="How the app works" onPress={app.openAbout} right={chev} />
-        <Row tokens={tokens} icon="share" title="Share the app" onPress={shareApp} last right={chev} />
+      <Group label={app.t("m.set.aboutGroup")} tokens={tokens}>
+        <Row tokens={tokens} icon="shield" title={app.t("m.set.sources")} sub={app.t("m.set.sourcesSub")} onPress={() => { app.setFactTab("sources"); app.goTab("facts"); }} right={chev} />
+        <Row tokens={tokens} icon="info" title={app.t("m.set.about")} sub={app.t("m.set.aboutSub")} onPress={app.openAbout} right={chev} />
+        <Row tokens={tokens} icon="share" title={app.t("m.set.share")} onPress={shareApp} last right={chev} />
       </Group>
 
       {/* Footer — matches the web app's Footer verbatim. */}

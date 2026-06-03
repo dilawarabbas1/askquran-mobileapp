@@ -16,10 +16,10 @@ export function Library() {
   const { tokens } = app;
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
-      <SegLabel>From the Quran</SegLabel>
-      <BlockTitle style={{ marginTop: 8, marginBottom: 6 }}>Library</BlockTitle>
+      <SegLabel>{app.t("m.lib.eyebrow")}</SegLabel>
+      <BlockTitle style={{ marginTop: 8, marginBottom: 6 }}>{app.t("m.lib.title")}</BlockTitle>
       <Text style={{ fontSize: 13.5, lineHeight: 21, color: tokens.text2, marginBottom: 16 }}>
-        Curated, Quran-backed reference collections. Every passage loads its verbatim Arabic and a stored translation from the source — nothing here is generated.
+        {app.t("m.lib.sub")}
       </Text>
 
       <View style={{ gap: 11 }}>
@@ -33,9 +33,9 @@ export function Library() {
               <RawIcon inner={c.icon} size={22} color={tokens.brand} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: FONTS.serif[600], fontSize: 17, color: tokens.text }}>{c.title}</Text>
-              <Text style={{ fontSize: 12, lineHeight: 17, color: tokens.text2, marginTop: 2 }}>{c.subtitle}</Text>
-              <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[600], letterSpacing: 0.3, textTransform: "uppercase", color: tokens.text3, marginTop: 4 }}>{c.items.length} entries</Text>
+              <Text style={{ fontFamily: FONTS.serif[600], fontSize: 17, color: tokens.text }}>{app.t(`${c.ns}.title`)}</Text>
+              <Text style={{ fontSize: 12, lineHeight: 17, color: tokens.text2, marginTop: 2 }}>{app.t(c.kind === "ref" ? `${c.ns}.subtitle` : `${c.ns}.sub`)}</Text>
+              <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[600], letterSpacing: 0.3, textTransform: "uppercase", color: tokens.text3, marginTop: 4 }}>{app.t("m.lib.entries", { n: c.items.length })}</Text>
             </View>
             <Icon name="chevR" size={17} color={tokens.text3} />
           </Pressable>
@@ -49,8 +49,8 @@ export function Library() {
             <Icon name="info" size={22} color={tokens.brand} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: FONTS.serif[600], fontSize: 17, color: tokens.text }}>About AskQuran</Text>
-            <Text style={{ fontSize: 12, lineHeight: 17, color: tokens.text2, marginTop: 2 }}>How the app works and our source-integrity guarantee.</Text>
+            <Text style={{ fontFamily: FONTS.serif[600], fontSize: 17, color: tokens.text }}>{app.t("m.lib.aboutTitle")}</Text>
+            <Text style={{ fontSize: 12, lineHeight: 17, color: tokens.text2, marginTop: 2 }}>{app.t("m.lib.aboutSub")}</Text>
           </View>
           <Icon name="chevR" size={17} color={tokens.text3} />
         </Pressable>

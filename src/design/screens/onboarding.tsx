@@ -36,19 +36,9 @@ export function Splash() {
 
 /* ---------- ONBOARDING ---------- */
 const ONB = [
-  {
-    art: '<circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/>',
-    title: "Ask a question, get the source",
-    body: "Type any topic, theme, or question. AskQuran returns the relevant ayahs — Arabic, translation, and tafsir — quoted directly from indexed sources.",
-    lang: false,
-  },
-  {
-    art: '<path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/>',
-    title: "Nothing is generated",
-    body: "Every answer is referenced and unaltered. No AI-written religious text, no opinions — only the Quran, authentic translations, and attributed tafsir.",
-    lang: false,
-  },
-  { art: null, lang: true, title: "Choose your languages", body: "Set the app, translation, and tafsir languages. You can change any of them anytime in Settings." },
+  { art: '<circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/>', titleKey: "m.onb.s1t", bodyKey: "m.onb.s1b", lang: false },
+  { art: '<path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/>', titleKey: "m.onb.s2t", bodyKey: "m.onb.s2b", lang: false },
+  { art: null, lang: true, titleKey: "m.onb.s3t", bodyKey: "m.onb.s3b" },
 ];
 
 type Target = "app" | "translation" | "tafsir";
@@ -95,7 +85,7 @@ export function Onboarding() {
           <Wordmark size={17} />
         </View>
         <Pressable onPress={app.finishOnboarding}>
-          <Text style={{ fontSize: 13, fontFamily: FONTS.sans[600], color: tokens.text2 }}>Skip</Text>
+          <Text style={{ fontSize: 13, fontFamily: FONTS.sans[600], color: tokens.text2 }}>{app.t("m.onb.skip")}</Text>
         </Pressable>
       </View>
 
@@ -107,7 +97,7 @@ export function Onboarding() {
               <Pressable onPress={() => { setPicking(null); setQ(""); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8 }}>
                 <Icon name="back" size={18} w={2.1} color={tokens.text2} />
                 <Text style={{ fontSize: 14, fontFamily: FONTS.sans[600], color: tokens.text2 }}>
-                  {picking === "app" ? "App language" : picking === "tafsir" ? "Tafsir language" : "Translation language"}
+                  {app.t(picking === "app" ? "m.set.appLang" : picking === "tafsir" ? "m.set.tafLang" : "m.set.transLang")}
                 </Text>
               </Pressable>
               <LangList
@@ -120,12 +110,12 @@ export function Onboarding() {
             </>
           ) : (
             <>
-              <Text style={{ fontFamily: FONTS.serif[600], fontSize: 22, lineHeight: 26.4, color: tokens.text, marginTop: 6 }}>{slide.title}</Text>
-              <Text style={{ fontSize: 13, lineHeight: 19.5, color: tokens.text2, marginTop: 8 }}>{slide.body}</Text>
+              <Text style={{ fontFamily: FONTS.serif[600], fontSize: 22, lineHeight: 26.4, color: tokens.text, marginTop: 6 }}>{app.t(slide.titleKey)}</Text>
+              <Text style={{ fontSize: 13, lineHeight: 19.5, color: tokens.text2, marginTop: 8 }}>{app.t(slide.bodyKey)}</Text>
               <View style={{ gap: 11, marginTop: 18 }}>
-                <LangRow label="App language" value={app.appLanguage} onPress={() => setPicking("app")} tokens={tokens} />
-                <LangRow label="Translation language" value={app.translationLanguage} onPress={() => setPicking("translation")} tokens={tokens} />
-                <LangRow label="Tafsir language" value={app.tafsirLanguage} onPress={() => setPicking("tafsir")} tokens={tokens} />
+                <LangRow label={app.t("m.set.appLang")} value={app.appLanguage} onPress={() => setPicking("app")} tokens={tokens} />
+                <LangRow label={app.t("m.set.transLang")} value={app.translationLanguage} onPress={() => setPicking("translation")} tokens={tokens} />
+                <LangRow label={app.t("m.set.tafLang")} value={app.tafsirLanguage} onPress={() => setPicking("tafsir")} tokens={tokens} />
               </View>
             </>
           )}
@@ -135,8 +125,8 @@ export function Onboarding() {
           <View style={{ width: 184, height: 184, borderRadius: 34, alignItems: "center", justifyContent: "center", marginBottom: 30, overflow: "hidden", backgroundColor: mix(tokens.brand, 9, tokens.surface), borderWidth: 1, borderColor: tokens.line }}>
             <RawIcon inner={slide.art as string} size={78} w={1.5} color={tokens.brand} />
           </View>
-          <Text style={{ fontFamily: FONTS.serif[600], fontSize: 25, color: tokens.text, textAlign: "center" }}>{slide.title}</Text>
-          <Text style={{ fontSize: 14.5, lineHeight: 24, color: tokens.text2, marginTop: 12, maxWidth: 280, textAlign: "center" }}>{slide.body}</Text>
+          <Text style={{ fontFamily: FONTS.serif[600], fontSize: 25, color: tokens.text, textAlign: "center" }}>{app.t(slide.titleKey)}</Text>
+          <Text style={{ fontSize: 14.5, lineHeight: 24, color: tokens.text2, marginTop: 12, maxWidth: 280, textAlign: "center" }}>{app.t(slide.bodyKey)}</Text>
         </View>
       )}
 
@@ -149,12 +139,12 @@ export function Onboarding() {
             ))}
           </View>
           <Pressable onPress={next} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9, backgroundColor: tokens.brand, borderRadius: 14, paddingVertical: 15 }}>
-            <Text style={{ fontSize: 15.5, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>{last ? "Enter AskQuran" : "Continue"}</Text>
+            <Text style={{ fontSize: 15.5, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>{app.t(last ? "m.onb.enter" : "m.onb.continue")}</Text>
             <Icon name="chevR" size={17} w={2.4} color={tokens.onBrand} />
           </Pressable>
           {step > 0 ? (
             <Pressable onPress={() => setStep(step - 1)} style={{ alignItems: "center", paddingVertical: 4 }}>
-              <Text style={{ fontSize: 14, fontFamily: FONTS.sans[600], color: tokens.text2 }}>Back</Text>
+              <Text style={{ fontSize: 14, fontFamily: FONTS.sans[600], color: tokens.text2 }}>{app.t("m.onb.back")}</Text>
             </Pressable>
           ) : null}
         </View>

@@ -32,6 +32,8 @@ export interface Category {
 
 export interface Collection {
   id: string; // route id
+  ns: string; // i18n namespace (duas, prophet, parables, …)
+  kind: "duas" | "prophet" | "ref"; // catalog key shape for items/headers
   eyebrow: string;
   title: string;
   subtitle: string;
@@ -352,7 +354,7 @@ const LEGAL_REFERENCES: RefCardItem[] = [
 /* ===================================================================== */
 export const COLLECTIONS: Collection[] = [
   {
-    id: "duas",
+    id: "duas", ns: "duas", kind: "duas",
     eyebrow: "From the Quran",
     title: "Quranic Duas",
     subtitle: "Supplications found directly in the Quran, each anchored to its ayah.",
@@ -363,7 +365,7 @@ export const COLLECTIONS: Collection[] = [
     showTafsir: true,
   },
   {
-    id: "prophet-stories",
+    id: "prophet-stories", ns: "prophet", kind: "prophet",
     eyebrow: "From the Quran",
     title: "Prophet Stories",
     subtitle: "Where the Quran tells of the prophets — the passages themselves.",
@@ -374,7 +376,7 @@ export const COLLECTIONS: Collection[] = [
     showTafsir: true,
   },
   {
-    id: "quranic-parables",
+    id: "quranic-parables", ns: "parables", kind: "ref",
     eyebrow: "From the Quran",
     title: "Quranic Parables",
     subtitle: "The similitudes and examples the Quran presents.",
@@ -386,7 +388,7 @@ export const COLLECTIONS: Collection[] = [
     mainBadge: true,
   },
   {
-    id: "commands-prohibitions",
+    id: "commands-prohibitions", ns: "commands", kind: "ref",
     eyebrow: "From the Quran",
     title: "Commands & Prohibitions",
     subtitle: "What the Quran enjoins and what it forbids — references only.",
@@ -402,7 +404,7 @@ export const COLLECTIONS: Collection[] = [
     ],
   },
   {
-    id: "quranic-warnings",
+    id: "quranic-warnings", ns: "warnings", kind: "ref",
     eyebrow: "From the Quran",
     title: "Quranic Warnings",
     subtitle: "Cautions the Quran raises, anchored to ayah references.",
@@ -413,7 +415,7 @@ export const COLLECTIONS: Collection[] = [
     showTafsir: true,
   },
   {
-    id: "ethical-character-map",
+    id: "ethical-character-map", ns: "character", kind: "ref",
     eyebrow: "From the Quran",
     title: "Ethical Character Map",
     subtitle: "Traits to cultivate and to avoid, by ayah reference.",
@@ -429,7 +431,7 @@ export const COLLECTIONS: Collection[] = [
     ],
   },
   {
-    id: "legal-ruling-references",
+    id: "legal-ruling-references", ns: "legal", kind: "ref",
     eyebrow: "From the Quran",
     title: "Legal & Ruling References",
     subtitle: "A Quran-backed index of practical, ruling-related passages.",
