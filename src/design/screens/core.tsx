@@ -10,7 +10,7 @@ import { AyahCard, BlockTitle, FieldLabel, IconBtn, OrnDivider, PlaceBadge, SegL
 import { Icon, RawIcon } from "../Icon";
 import { SearchBar } from "../SearchBar";
 import { AudioBar } from "../AudioBar";
-import { RECENT, TOPICS, type AyahItem } from "../data";
+import { TOPICS, type AyahItem } from "../data";
 import { FONTS, mix } from "../tokens";
 import { ask, getSuggestedQuestions, AqError, type AyahResult, type SuggestedGroup } from "@/api";
 
@@ -79,22 +79,25 @@ export function SearchHome() {
         <SearchBar value={q} onChangeText={setQ} placeholder={app.t("search.placeholder")} onSubmit={submit} showGo />
 
         {hasApiQuestions ? (
-          /* API-loaded suggested questions, grouped by topic */
-          groups!.map((g) => (
-            <View key={g.id}>
-              <FieldLabel>{g.title}</FieldLabel>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
-                {g.questions.map((qq) => {
-                  const label = (qq.translations && qq.translations[app.language]) || qq.text;
-                  return (
-                    <Pressable key={qq.id} onPress={() => app.runSearch(label)} style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 999, paddingVertical: 9, paddingHorizontal: 15 }, tokens.cardShadow]}>
-                      <Text style={{ fontSize: 13.5, fontFamily: FONTS.sans[600], color: tokens.text }}>{label}</Text>
-                    </Pressable>
-                  );
-                })}
+          /* API-loaded suggested questions, grouped by topic ("Try asking") */
+          <>
+            <FieldLabel>{app.t("suggest.tryAsking")}</FieldLabel>
+            {groups!.map((g) => (
+              <View key={g.id}>
+                <FieldLabel>{g.title}</FieldLabel>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
+                  {g.questions.map((qq) => {
+                    const label = (qq.translations && qq.translations[app.language]) || qq.text;
+                    return (
+                      <Pressable key={qq.id} onPress={() => app.runSearch(label)} style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 999, paddingVertical: 9, paddingHorizontal: 15 }, tokens.cardShadow]}>
+                        <Text style={{ fontSize: 13.5, fontFamily: FONTS.sans[600], color: tokens.text }}>{label}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
               </View>
-            </View>
-          ))
+            ))}
+          </>
         ) : (
           <>
             <FieldLabel>{qLoading ? app.t("m.loadingSuggestions") : app.t("m.suggestedTopics")}</FieldLabel>
@@ -117,16 +120,6 @@ export function SearchHome() {
           </>
         )}
 
-        <FieldLabel>{app.t("m.recent")}</FieldLabel>
-        <View>
-          {RECENT.map((r, i) => (
-            <Pressable key={i} onPress={() => app.runSearch(r)} style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, paddingHorizontal: 4, borderBottomWidth: i === RECENT.length - 1 ? 0 : 1, borderBottomColor: tokens.lineSoft }}>
-              <Icon name="clock" size={16} color={tokens.text3} />
-              <Text style={{ flex: 1, fontSize: 14.5, color: tokens.text, fontFamily: FONTS.sans[600] }}>{r}</Text>
-              <Icon name="chevR" size={15} color={tokens.text3} />
-            </Pressable>
-          ))}
-        </View>
       </View>
     </ScrollView>
   );
