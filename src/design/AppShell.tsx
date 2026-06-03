@@ -13,8 +13,11 @@ import { Splash, Onboarding, LangSheet } from "./screens/onboarding";
 import { SearchHome, Results, Reader } from "./screens/core";
 import { Recite, SurahSheet } from "./screens/recite";
 import { Facts } from "./screens/facts";
+import { Library, About } from "./screens/library";
+import { RefList } from "./RefList";
 import { Saved } from "./screens/saved";
 import { Settings } from "./screens/settings";
+import { COLLECTION_BY_ID } from "./refData";
 import { FONTS, mix } from "./tokens";
 
 /* ---------- results app bar (editable, pinned search) ---------- */
@@ -44,6 +47,8 @@ const TITLES: Record<string, [string, string | null]> = {
   reader: ["Reader", null],
   recite: ["Recite", "Listen & read ayah by ayah"],
   facts: ["Quran Facts", "Source-backed structural facts"],
+  library: ["Library", "Quran-backed reference collections"],
+  about: ["About", null],
   saved: ["Saved", null],
   settings: ["Settings", null],
 };
@@ -71,8 +76,12 @@ function AppBar({ screen }: { screen: Screen }) {
   }
   if (screen === "results") return <ResultsBar />;
 
-  const [title, sub] = TITLES[screen] ?? [screen, null];
-  const pushed = screen === "reader";
+  // refList's title comes from the open collection; everything else from TITLES.
+  const refTitle = screen === "refList" && app.refCollection ? COLLECTION_BY_ID[app.refCollection]?.title : undefined;
+  const [titleBase, sub] = TITLES[screen] ?? [screen, null];
+  const title = refTitle ?? titleBase;
+  const pushed = screen === "reader" || screen === "refList" || screen === "about";
+  const showGlobe = screen === "facts" || screen === "recite" || screen === "refList";
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 12, backgroundColor: tokens.bg, borderBottomWidth: pushed ? 1 : 0, borderBottomColor: tokens.lineSoft }}>
       {pushed ? (
@@ -80,12 +89,12 @@ function AppBar({ screen }: { screen: Screen }) {
           <Icon name="back" size={18} w={2.1} color={tokens.text2} />
         </Pressable>
       ) : null}
-      <View>
-        <Text style={{ fontFamily: FONTS.serif[500], fontSize: 21, color: tokens.text }}>{title}</Text>
+      <View style={{ flexShrink: 1 }}>
+        <Text numberOfLines={1} style={{ fontFamily: FONTS.serif[500], fontSize: 21, color: tokens.text }}>{title}</Text>
         {sub ? <Text style={{ fontSize: 11.5, color: tokens.text2, marginTop: 1 }}>{sub}</Text> : null}
       </View>
       <View style={{ flex: 1 }} />
-      {screen === "facts" || screen === "recite" ? (
+      {showGlobe ? (
         <Pressable onPress={app.openLangSheet} style={chip(tokens)}>
           <Icon name="globe" size={18} color={tokens.text2} />
         </Pressable>
@@ -111,6 +120,9 @@ function ScreenRouter({ screen }: { screen: Screen }) {
     case "reader": return <Reader />;
     case "recite": return <Recite />;
     case "facts": return <Facts />;
+    case "library": return <Library />;
+    case "refList": return <RefList />;
+    case "about": return <About />;
     case "saved": return <Saved />;
     case "settings": return <Settings />;
     default: return <SearchHome />;
@@ -122,6 +134,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "search", label: "Search", icon: "search" },
   { id: "recite", label: "Recite", icon: "recite" },
   { id: "facts", label: "Facts", icon: "grid" },
+  { id: "library", label: "Library", icon: "layers" },
   { id: "saved", label: "Saved", icon: "bookmark" },
   { id: "settings", label: "Settings", icon: "gear" },
 ];

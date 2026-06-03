@@ -12,12 +12,12 @@ import { TOKENS, type Mode, type Tokens } from "./tokens";
 const PREFS_KEY = "aq:prefs:v1";
 
 export type Stage = "splash" | "onboarding" | "app";
-export type Screen = "searchHome" | "results" | "reader" | "recite" | "facts" | "saved" | "settings";
-export type Tab = "search" | "recite" | "facts" | "saved" | "settings";
+export type Screen = "searchHome" | "results" | "reader" | "recite" | "facts" | "library" | "refList" | "about" | "saved" | "settings";
+export type Tab = "search" | "recite" | "facts" | "library" | "saved" | "settings";
 export type Appearance = "light" | "dark" | "system";
 export type HomeLayout = "Chips" | "Grid";
 
-const ROOT: Record<Tab, Screen> = { search: "searchHome", recite: "recite", facts: "facts", saved: "saved", settings: "settings" };
+const ROOT: Record<Tab, Screen> = { search: "searchHome", recite: "recite", facts: "facts", library: "library", saved: "saved", settings: "settings" };
 
 export interface AQApi {
   stage: Stage;
@@ -33,6 +33,7 @@ export interface AQApi {
   langSheetOpen: boolean;
   surahSheetOpen: boolean;
   reciteSurah: number;
+  refCollection: string | null;
   activeTab: Tab;
   canBack: boolean;
   hydrated: boolean;
@@ -44,6 +45,8 @@ export interface AQApi {
   goTab: (tab: Tab) => void;
   runSearch: (q: string) => void;
   openReader: (item: AyahItem) => void;
+  openRef: (collectionId: string) => void;
+  openAbout: () => void;
   back: () => void;
   setFactTab: (id: string) => void;
   setLanguage: (name: string) => void;
@@ -79,6 +82,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const [langSheetOpen, setLangSheetOpen] = useState(false);
   const [surahSheetOpen, setSurahSheetOpen] = useState(false);
   const [reciteSurah, setReciteSurah] = useState(1);
+  const [refCollection, setRefCollection] = useState<string | null>(null);
   const [language, setLanguageState] = useState("English");
   const [homeLayout, setHomeLayout] = useState<HomeLayout>("Chips");
   const [hydrated, setHydrated] = useState(false);
@@ -126,12 +130,14 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const api: AQApi = useMemo(
     () => ({
       stage, current, navKey, query, readerItem, factTab, appearance, homeLayout,
-      language, lang, langSheetOpen, surahSheetOpen, reciteSurah, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
+      language, lang, langSheetOpen, surahSheetOpen, reciteSurah, refCollection, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
       goOnboarding: () => setStage("onboarding"),
       finishOnboarding: () => { setOnboarded(true); setStage("app"); },
       goTab: (tab) => { setNav([{ screen: ROOT[tab] }]); bump(); },
       runSearch: (q) => { setQuery(q); setNav([{ screen: "searchHome" }, { screen: "results" }]); bump(); },
       openReader: (item) => { setReaderItem(item); setNav((n) => [...n, { screen: "reader" }]); bump(); },
+      openRef: (collectionId) => { setRefCollection(collectionId); setNav((n) => [...n, { screen: "refList" }]); bump(); },
+      openAbout: () => { setNav((n) => [...n, { screen: "about" }]); bump(); },
       back: () => { setNav((n) => (n.length > 1 ? n.slice(0, -1) : n)); bump(); },
       setFactTab,
       setLanguage: (name) => setLanguageState(name),
@@ -147,7 +153,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
         setSavedList((list) => (list.some((s) => s.ref === item.ref) ? list.filter((s) => s.ref !== item.ref) : [item, ...list])),
       savedItems: savedList,
     }),
-    [stage, query, readerItem, factTab, appearance, homeLayout, language, lang, langSheetOpen, surahSheetOpen, reciteSurah, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
+    [stage, query, readerItem, factTab, appearance, homeLayout, language, lang, langSheetOpen, surahSheetOpen, reciteSurah, refCollection, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
   );
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;

@@ -36,6 +36,7 @@ export interface AyahResult {
   translation: string;
   tafseer: string;
   tafseerAvailable: boolean;
+  tafseerEdition?: { id: string; name: string; language: string; complete?: boolean; coverage?: number };
   relevanceScore: number;
   sources: ResultSources;
   context?: ResultContext;

@@ -85,11 +85,14 @@ export async function translationIdForLanguage(language: string): Promise<string
 }
 
 /**
- * GET /api/verses?refs=…&translation=… — verbatim Arabic + chosen translation
- * for single keys or single-surah ranges (e.g. "2:1-2:286"), in Quran order.
+ * GET /api/verses?refs=…&translation=…[&tafsir=…] — verbatim Arabic + chosen
+ * translation for single keys or single-surah ranges (e.g. "2:1-2:286"), in
+ * Quran order. Pass `tafsir` ("1" = default Ibn Kathir, or an edition id) to
+ * include stored tafsir per ayah — used by the reference pages' "Show tafsir".
  */
-export async function getVerses(refs: string[], translationId: string): Promise<AyahResult[]> {
+export async function getVerses(refs: string[], translationId: string, tafsir?: string): Promise<AyahResult[]> {
   const qs = new URLSearchParams({ refs: refs.join(","), translation: translationId });
+  if (tafsir) qs.set("tafsir", tafsir);
   const data = await getJson<{ verses: AyahResult[] }>(`${PUBLIC_API_BASE_URL}/verses?${qs.toString()}`, {
     headers: { Accept: "application/json" },
   });
