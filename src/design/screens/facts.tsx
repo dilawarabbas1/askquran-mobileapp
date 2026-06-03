@@ -207,11 +207,11 @@ function MuqChip({ num, ar, tr, tokens }: { num: number; ar: string; tr: string;
   const app = useApp();
   return (
     <Pressable onPress={() => app.runSearch(`${num}:1`)} style={[{ width: "47.5%", flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 }, tokens.cardShadow]}>
-      <Text style={{ fontFamily: FONTS.ar, fontSize: 20, color: tokens.orn }}>{ar}</Text>
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[700], color: tokens.text }}>{app.t(`facts.s.${num}`)}</Text>
         <Text style={{ fontSize: 10.5, color: tokens.text3 }}>{tr}</Text>
       </View>
+      <Text style={{ fontFamily: FONTS.ar, fontSize: 20, color: tokens.orn }}>{ar}</Text>
     </Pressable>
   );
 }
