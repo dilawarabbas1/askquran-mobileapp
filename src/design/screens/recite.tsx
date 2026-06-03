@@ -11,9 +11,9 @@ import { useApp } from "../AQContext";
 import { Icon } from "../Icon";
 import { SearchBar } from "../SearchBar";
 import { SURAHS } from "../data";
-import { BISMILLAH, RECITE, ayahAudioUrl, hasRecitation } from "../reciteData";
+import { BISMILLAH, ayahAudioUrl } from "../reciteData";
 import { FONTS, mix } from "../tokens";
-import { getVerses, translationIdForLanguage, AqError } from "@/api";
+import { getVerses, getTafsir, translationIdForLanguage, AqError } from "@/api";
 
 /** A recite ayah: number, Arabic, and translation in the current language. */
 type RAyah = { n: number; ar: string; tr: string };
@@ -89,10 +89,7 @@ export function SurahSheet() {
                   <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[600], color: on ? tokens.onBrand : tokens.brand }}>{s.num}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-                    <Text style={{ fontSize: 14.5, fontFamily: FONTS.sans[700], color: tokens.text }}>{s.name}</Text>
-                    {hasRecitation(s.num) ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: tokens.brand }} /> : null}
-                  </View>
+                  <Text style={{ fontSize: 14.5, fontFamily: FONTS.sans[700], color: tokens.text }}>{s.name}</Text>
                   <Text style={{ fontSize: 11, color: tokens.text3, marginTop: 1 }}>
                     <Text style={{ fontFamily: FONTS.sans[700], color: s.place === "Meccan" ? tokens.mecca : tokens.medina }}>{s.place}</Text> · {s.cnt} ayahs
                   </Text>
@@ -127,6 +124,28 @@ export function Recite() {
   const [mode, setMode] = useState<"surah" | "single">("surah");
   const [repeat, setRepeat] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  // Per-ayah tafsir, loaded lazily on "View tafsir" (stored sources, in the
+  // chosen language) — keeps the surah payload light.
+  type TafState = { loading: boolean; available: boolean; text: string; edition?: string; error?: boolean };
+  const [tafOpen, setTafOpen] = useState<Set<number>>(new Set());
+  const [tafData, setTafData] = useState<Record<number, TafState>>({});
+
+  async function toggleTafsir(n: number) {
+    const willOpen = !tafOpen.has(n);
+    setTafOpen((prev) => { const next = new Set(prev); if (willOpen) next.add(n); else next.delete(n); return next; });
+    if (!willOpen) return;
+    const existing = tafData[n];
+    if (existing && !existing.error) return; // cached
+    setTafData((p) => ({ ...p, [n]: { loading: true, available: false, text: "" } }));
+    try {
+      const d = await getTafsir([`${num}:${n}`], app.language);
+      const it = d.items[0];
+      setTafData((p) => ({ ...p, [n]: { loading: false, available: !!it?.available, text: it?.tafsir ?? "", edition: it?.edition?.name } }));
+    } catch {
+      setTafData((p) => ({ ...p, [n]: { loading: false, available: false, text: "", error: true } }));
+    }
+  }
 
   const soundRef = useRef<Audio.Sound | null>(null);
   const tokenRef = useRef(0);
@@ -163,26 +182,24 @@ export function Recite() {
     setLoading(true);
     setError(null);
     try {
-      const trId = await translationIdForLanguage(app.language);
-      // Single-surah range is "surah:start-end" (e.g. "2:1-286") — NOT
-      // "2:1-2:286", which the backend rejects as an invalid reference.
-      const verses = await getVerses([`${num}:1-${cnt}`], trId || "");
+      // Resolve the edition for the current language; default to en.sahih so a
+      // failed translations lookup never sends an empty `translation` (which the
+      // backend rejects — the bug that made every surah but Fatiha fail).
+      const trId = (await translationIdForLanguage(app.language)) || "en.sahih";
+      // Single-surah range is "surah:start-end" (e.g. "2:1-286").
+      const verses = await getVerses([`${num}:1-${cnt}`], trId);
       if (my !== loadTokenRef.current) return;
       setAyahs(verses.map((v) => ({ n: v.ayah, ar: v.arabic, tr: v.translation || "" })));
+      setTafOpen(new Set());
+      setTafData({});
       setLoading(false);
     } catch (e) {
       if (my !== loadTokenRef.current) return;
-      // offline / no-backend fallback: bundled short surahs
-      const bundled = RECITE[num];
-      if (bundled) {
-        setAyahs(bundled.ayahs.map((a) => ({ n: a.n, ar: a.ar, tr: app.lang === "ur" ? a.ur : a.en })));
-        setLoading(false);
-        setError(null);
-      } else {
-        setAyahs(null);
-        setLoading(false);
-        setError(e instanceof AqError ? e.message : "Couldn’t load this surah.");
-      }
+      // Surface the real error (don't silently substitute bundled Fatiha, which
+      // hid backend/key failures behind a single working surah).
+      setAyahs(null);
+      setLoading(false);
+      setError(e instanceof AqError ? e.message : "Couldn’t load this surah. Check your connection and try again.");
     }
   }
 
@@ -280,6 +297,19 @@ export function Recite() {
           <Text style={{ fontFamily: FONTS.ar, fontSize: 24, color: tokens.orn }}>{arName}</Text>
           <Icon name="chevDown" size={16} w={2.1} color={tokens.text3} />
         </Pressable>
+
+        {/* reciter + translation-language control (matches the web's surah controls) */}
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 11 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
+            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: tokens.brand }} />
+            <Text style={{ fontSize: 12, fontFamily: FONTS.sans[600], color: tokens.text2 }}>Mishary Alafasy</Text>
+          </View>
+          <Pressable onPress={app.openLangSheet} style={{ flexDirection: "row", alignItems: "center", gap: 7, borderWidth: 1, borderColor: tokens.line, backgroundColor: tokens.surface2, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 12 }}>
+            <Icon name="globe" size={15} color={tokens.text2} />
+            <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[600], color: tokens.text }}>{app.language}</Text>
+            <Icon name="chevDown" size={13} w={2.1} color={tokens.text3} />
+          </Pressable>
+        </View>
       </View>
 
       {/* body */}
@@ -295,18 +325,21 @@ export function Recite() {
               <Text style={{ fontFamily: FONTS.ar, fontSize: 24, lineHeight: 43, color: tokens.text, textAlign: "center", writingDirection: "rtl", paddingTop: 8, paddingBottom: 18 }}>{BISMILLAH.ar}</Text>
             ) : null}
             <View>
-              {ayahs.map((a, i) => {
+              {ayahs.map((a) => {
                 const on = activeAyah === a.n;
+                const tOpen = tafOpen.has(a.n);
+                const td = tafData[a.n];
                 return (
-                  <Pressable
+                  <View
                     key={a.n}
-                    onPress={() => toggleAyah(a.n)}
-                    style={{
-                      flexDirection: "row", gap: 13, padding: on ? 16 : 16, borderRadius: on ? 14 : 0,
-                      borderWidth: 1, borderColor: on ? mix(tokens.brand, 30, tokens.line) : "transparent",
-                      backgroundColor: on ? mix(tokens.brand, 7, tokens.surface) : "transparent",
-                      borderBottomWidth: 1, borderBottomColor: on ? mix(tokens.brand, 30, tokens.line) : i === ayahs.length - 1 ? "transparent" : tokens.lineSoft,
-                    }}
+                    style={[
+                      {
+                        flexDirection: "row", gap: 13, padding: 14, marginBottom: 12, borderRadius: 16, borderWidth: 1,
+                        borderColor: on ? mix(tokens.brand, 34, tokens.line) : tokens.line,
+                        backgroundColor: on ? mix(tokens.brand, 6, tokens.surface) : tokens.surface,
+                      },
+                      tokens.cardShadow,
+                    ]}
                   >
                     <View style={{ alignItems: "center", gap: 10, paddingTop: 2 }}>
                       <View style={{ width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center", backgroundColor: on ? tokens.brand : mix(tokens.brand, 9), borderWidth: 1, borderColor: on ? tokens.brand : mix(tokens.brand, 22, tokens.line) }}>
@@ -320,7 +353,9 @@ export function Recite() {
                       </Pressable>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontFamily: FONTS.ar, fontSize: 25, lineHeight: 51, color: tokens.arColor, textAlign: "right", writingDirection: "rtl" }}>{a.ar}</Text>
+                      <Pressable onPress={() => toggleAyah(a.n)}>
+                        <Text style={{ fontFamily: FONTS.ar, fontSize: 25, lineHeight: 51, color: tokens.arColor, textAlign: "right", writingDirection: "rtl" }}>{a.ar}</Text>
+                      </Pressable>
                       {a.tr ? (
                         <Text style={app.lang === "ur"
                           ? { marginTop: 9, fontFamily: FONTS.ur[400], fontSize: 16, lineHeight: 37, color: tokens.text2, textAlign: "right", writingDirection: "rtl" }
@@ -329,8 +364,30 @@ export function Recite() {
                         </Text>
                       ) : null}
                       {on && playing ? <Equalizer color={tokens.brand} /> : null}
+
+                      {/* per-ayah tafsir (lazy, stored sources, chosen language) */}
+                      <Pressable onPress={() => toggleTafsir(a.n)} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 12, alignSelf: "flex-start" }}>
+                        <Icon name="info" size={14} color={tokens.brand2} />
+                        <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[700], color: tokens.brand2 }}>{tOpen ? "Hide tafsir" : "View tafsir"}</Text>
+                      </Pressable>
+                      {tOpen ? (
+                        <View style={{ marginTop: 10, paddingHorizontal: 13, paddingVertical: 12, backgroundColor: mix(tokens.gold, 7, tokens.surface2), borderWidth: 1, borderColor: tokens.lineSoft, borderRadius: 12 }}>
+                          {!td || td.loading ? (
+                            <Text style={{ fontSize: 12.5, color: tokens.text3 }}>Loading tafsir…</Text>
+                          ) : td.error ? (
+                            <Text style={{ fontSize: 12.5, color: tokens.text3 }}>Couldn’t load tafsir.</Text>
+                          ) : !td.available ? (
+                            <Text style={{ fontSize: 12.5, color: tokens.text3, fontStyle: "italic" }}>No stored tafsir for this ayah in {app.language}.</Text>
+                          ) : (
+                            <>
+                              <Text style={{ fontFamily: FONTS.serif[400], fontSize: 13.5, lineHeight: 23, color: tokens.text }}>{td.text}</Text>
+                              {td.edition ? <Text style={{ fontSize: 11, fontFamily: FONTS.sans[600], color: tokens.text3, marginTop: 6 }}>{td.edition}</Text> : null}
+                            </>
+                          )}
+                        </View>
+                      ) : null}
                     </View>
-                  </Pressable>
+                  </View>
                 );
               })}
             </View>

@@ -20,6 +20,6 @@ export type { AqErrorKind } from "./errors";
 export { isValidVerseKey } from "./client";
 export { HAS_API_KEY } from "./config";
 
-// Public (no-key) backend client — search + suggested questions, like the web.
-export { ask, getSuggestedQuestions, getTranslations, getVerses, translationIdForLanguage, type AskOptions } from "./public";
+// Public backend client — search, suggested questions, verses, tafsir (like the web).
+export { ask, getSuggestedQuestions, getTranslations, getVerses, getTafsir, translationIdForLanguage, type AskOptions, type TafsirItem } from "./public";
 export type { AskResponse, AyahResult, SuggestedGroup, SuggestedQuestion, TranslationMeta } from "./publicTypes";

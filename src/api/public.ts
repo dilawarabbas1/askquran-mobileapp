@@ -113,6 +113,30 @@ export async function getVerses(refs: string[], translationId: string, tafsir?: 
   return data.verses ?? [];
 }
 
+export interface TafsirItem {
+  verseKey: string;
+  available: boolean;
+  tafsir: string;
+  edition: { id: string; name: string; language: string } | null;
+}
+
+/**
+ * GET /api/tafsir?refs=…&language=… — lean, on-demand tafsir (text + edition
+ * attribution only) for one or more ayahs, in the chosen language. Verbatim
+ * from stored sources; never machine-translated or generated. Used by Recite's
+ * per-ayah "View tafsir".
+ */
+export async function getTafsir(
+  refs: string[],
+  language?: string,
+  tafsir?: string,
+): Promise<{ language: string; editionId: string; edition: { id: string; name: string; language: string } | null; items: TafsirItem[] }> {
+  const qs = new URLSearchParams({ refs: refs.join(",") });
+  if (language) qs.set("language", language);
+  if (tafsir) qs.set("tafsir", tafsir);
+  return getJson(`${PUBLIC_API_BASE_URL}/tafsir?${qs.toString()}`, { headers: publicHeaders() });
+}
+
 // Suggested questions are static-ish; cache the first successful fetch in memory.
 let questionsCache: SuggestedGroup[] | null = null;
 
