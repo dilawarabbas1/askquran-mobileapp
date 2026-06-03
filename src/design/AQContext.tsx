@@ -4,7 +4,7 @@
 // is driven through this context.
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { useColorScheme } from "react-native";
+import { I18nManager, useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RESULTS, type AyahItem } from "./data";
 import { TOKENS, type Mode, type Tokens } from "./tokens";
@@ -20,6 +20,17 @@ export type Appearance = "light" | "dark" | "system";
 export type HomeLayout = "Chips" | "Grid";
 
 const ROOT: Record<Tab, Screen> = { search: "searchHome", recite: "recite", facts: "facts", library: "library", saved: "saved", settings: "settings" };
+
+/** Align the native layout direction with the App (interface) language. The flag
+ *  applies on the next app launch (RN mirrors the whole layout on reload), so an
+ *  RTL interface language (Arabic, Urdu, …) flips the chrome; LTR stays LTR.
+ *  Content direction (Arabic/translation/tafsir) is handled per-element already. */
+function applyUiDirection(appLanguage: string): void {
+  const rtl = isRTL(appLanguage);
+  if (I18nManager.isRTL !== rtl) {
+    try { I18nManager.allowRTL(true); I18nManager.forceRTL(rtl); } catch { /* no-op on web */ }
+  }
+}
 
 export interface AQApi {
   stage: Stage;
@@ -121,7 +132,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
           // Migrate the old single `language` pref → translation language.
           const tr = p.translationLanguage ?? p.language;
           if (tr) setTranslationLanguageState(tr);
-          if (p.appLanguage) setAppLanguageState(p.appLanguage);
+          if (p.appLanguage) { setAppLanguageState(p.appLanguage); applyUiDirection(p.appLanguage); }
           if (p.tafsirLanguage) setTafsirLanguageState(p.tafsirLanguage);
           else if (tr) setTafsirLanguageState(tr); // default tafsir → translation lang
           if (p.appearance) setAppearance(p.appearance);
@@ -168,7 +179,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       back: () => { setNav((n) => (n.length > 1 ? n.slice(0, -1) : n)); bump(); },
       setFactTab,
       setLanguage: (name) => setTranslationLanguageState(name),
-      setAppLanguage: (name) => setAppLanguageState(name),
+      setAppLanguage: (name) => { setAppLanguageState(name); applyUiDirection(name); },
       setTranslationLanguage: (name) => setTranslationLanguageState(name),
       setTafsirLanguage: (name) => setTafsirLanguageState(name),
       openLangSheet: (target = "translation") => { setLangSheetTarget(target); setLangSheetOpen(true); },
