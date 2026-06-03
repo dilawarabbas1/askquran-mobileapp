@@ -1,8 +1,8 @@
 // Settings screen ported from aq-facts.jsx (Settings): Reading (language sheet,
-// Arabic + tajweed toggles), Appearance (theme), Notifications, About + footer.
+// Arabic + tajweed toggles), Appearance (theme), Home screen, About + footer.
 
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Share, Text, View } from "react-native";
 import { useApp } from "../AQContext";
 import { Switch } from "../atoms";
 import { Icon } from "../Icon";
@@ -40,8 +40,12 @@ export function Settings() {
   const app = useApp();
   const { tokens } = app;
   const [arOn, setArOn] = useState(true);
-  const [notif, setNotif] = useState(true);
   const [tajweed, setTajweed] = useState(false);
+
+  const shareApp = () =>
+    Share.share({
+      message: "Ask Quran — source-backed Quran search: references, translation & tafsir, with no generated religious text.",
+    }).catch(() => {});
 
   const chev = <Icon name="chevR" size={16} color={tokens.text3} />;
 
@@ -80,10 +84,6 @@ export function Settings() {
         />
       </Group>
 
-      <Group label="Notifications" tokens={tokens}>
-        <Row tokens={tokens} icon="bell" title="Daily verse" sub="A verse of the day each morning" last right={<Switch on={notif} onPress={() => setNotif((v) => !v)} />} />
-      </Group>
-
       <Group label="Home screen" tokens={tokens}>
         <Row
           tokens={tokens} icon="grid" title="Topics layout" sub="How suggested topics appear on Search" last
@@ -103,9 +103,9 @@ export function Settings() {
       </Group>
 
       <Group label="About" tokens={tokens}>
-        <Row tokens={tokens} icon="shield" title="Sources & integrity" onPress={() => {}} right={chev} />
-        <Row tokens={tokens} icon="info" title="About AskQuran" onPress={() => {}} right={chev} />
-        <Row tokens={tokens} icon="share" title="Share the app" onPress={() => {}} last right={chev} />
+        <Row tokens={tokens} icon="shield" title="Sources & integrity" sub="The Quran Facts sources tab" onPress={() => { app.setFactTab("sources"); app.goTab("facts"); }} right={chev} />
+        <Row tokens={tokens} icon="info" title="About AskQuran" sub="How the app works" onPress={app.openAbout} right={chev} />
+        <Row tokens={tokens} icon="share" title="Share the app" onPress={shareApp} last right={chev} />
       </Group>
 
       {/* Footer — matches the web app's Footer verbatim. */}
