@@ -280,7 +280,7 @@ function Card({ item, title, desc, note, typeLabel, catTitle, translationId, sho
             ) : null}
           </View>
           <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[600], letterSpacing: 0.4, textTransform: "uppercase", color: tokens.text3, marginTop: 3 }}>
-            {t("more.ayahCount", { n: countAyahs(item.refs) })} · {catTitle}
+            {t("more.ayahCount", { n: countAyahs(item.refs) })}{catTitle ? ` · ${catTitle}` : ""}
           </Text>
         </View>
       </View>
@@ -363,12 +363,16 @@ export function RefList() {
   // share the ns.i.<id>.title/.label "ref" shape).
   const ns = collection.ns;
   const kind = collection.kind;
+  // "names" (Asma al-Husna) carries no i18n keys — its strings are the English
+  // source-of-truth stored on each item, mirroring the web NamesOfAllah grid.
+  const names = kind === "names";
   const itemTitleKey = (id: string) => (kind === "duas" ? `duas.d.${id}.t` : kind === "prophet" ? `prophet.p.${id}.name` : `${ns}.i.${id}.title`);
   const itemDescKey = (id: string) => (kind === "duas" ? `duas.d.${id}.c` : kind === "prophet" ? `prophet.p.${id}.summary` : `${ns}.i.${id}.label`);
-  const headSub = app.t(kind === "ref" ? `${ns}.subtitle` : `${ns}.sub`);
-  const headSource = app.t(kind === "ref" ? `${ns}.sourceNote` : `${ns}.disclaimer`);
-  const headEyebrow = kind === "ref" ? app.t("nav.more") : app.t(`${ns}.eyebrow`);
-  const trustText = kind === "ref" ? app.t("more.trust") : app.t(`${ns}.trust`);
+  const headTitle = names ? collection.title : app.t(`${ns}.title`);
+  const headSub = names ? collection.subtitle : app.t(kind === "ref" ? `${ns}.subtitle` : `${ns}.sub`);
+  const headSource = names ? collection.sourceNote : app.t(kind === "ref" ? `${ns}.sourceNote` : `${ns}.disclaimer`);
+  const headEyebrow = names ? collection.eyebrow : kind === "ref" ? app.t("nav.more") : app.t(`${ns}.eyebrow`);
+  const trustText = kind === "ref" || names ? app.t("more.trust") : app.t(`${ns}.trust`);
   const catLabel = (id: string) => app.t(`${ns}.cat.${id}`);
 
   const catOptions = [{ value: "all", label: app.t("more.all") }, ...collection.categories.map((c) => ({ value: c.id, label: catLabel(c.id) }))];
@@ -379,7 +383,7 @@ export function RefList() {
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 28 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
       <SegLabel>{headEyebrow}</SegLabel>
-      <BlockTitle style={{ marginTop: 8, marginBottom: 6 }}>{app.t(`${ns}.title`)}</BlockTitle>
+      <BlockTitle style={{ marginTop: 8, marginBottom: 6 }}>{headTitle}</BlockTitle>
       <Text style={{ fontSize: 13.5, lineHeight: 21, color: tokens.text2, marginBottom: 12 }}>{headSub}</Text>
 
       <View style={{ flexDirection: "row", gap: 9, alignItems: "flex-start", marginBottom: 14 }}>
@@ -394,7 +398,7 @@ export function RefList() {
       </View>
 
       {typeOptions ? <FilterChips options={typeOptions} value={type} onChange={setType} tokens={tokens} /> : null}
-      <FilterChips options={catOptions} value={cat} onChange={setCat} tokens={tokens} />
+      {collection.categories.length ? <FilterChips options={catOptions} value={cat} onChange={setCat} tokens={tokens} /> : null}
 
       {!translationId ? (
         <View style={{ alignItems: "center", paddingVertical: 40 }}>
@@ -408,8 +412,8 @@ export function RefList() {
             <Card
               key={it.id}
               item={it}
-              title={app.t(itemTitleKey(it.id))}
-              desc={app.t(itemDescKey(it.id))}
+              title={names ? it.title : app.t(itemTitleKey(it.id))}
+              desc={names ? it.desc : app.t(itemDescKey(it.id))}
               note={it.note ? (kind === "prophet" ? app.t(`prophet.p.${it.id}.note`) : it.note) : undefined}
               typeLabel={it.type ? app.t(`more.${it.type}`) : undefined}
               translationId={translationId}
