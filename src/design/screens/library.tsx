@@ -4,7 +4,8 @@
 // portal's "More" navigation; each entry opens a source-backed reference page.
 
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
+import { Text } from "../AppText";
 import { useApp } from "../AQContext";
 import { BlockTitle, SegLabel } from "../atoms";
 import { Icon, RawIcon } from "../Icon";
@@ -14,18 +15,25 @@ import { COLLECTION_BY_ID, type Collection } from "../refData";
 // Two grouped menus, mirroring the web header's "Allah & Faith" / "Life Guidance"
 // dropdowns (NavMore.tsx). Order matches the web FAITH_ITEMS / LIFE_ITEMS exactly.
 const FAITH_IDS = [
-  "names-of-allah", "allah-attributes", "worship-ibadah", "shirk", "duas",
-  "quranic-parables", "prophet-stories", "repentance", "hypocrisy",
+  "names-of-allah", "allah-attributes", "worship-ibadah", "shirk",
+  "tawakkul", "women-quran", "faith-not-lineage", "repentance", "hypocrisy",
   "day-of-judgment", "people-of-paradise", "people-of-hellfire",
+  "signs-of-allah", "jinn-shaytan", "angels-quran", "heart-quran", "death-barzakh",
+  "duas", "quranic-parables", "prophet-stories",
+  "story-yusuf", "story-musa", "story-ibrahim", "people-cave",
 ];
 const LIFE_IDS = [
   "commands-prohibitions", "marriage-family", "parents-relatives", "inheritance-wills",
   "riba-wealth", "charity-zakat", "crime-justice", "justice-testimony", "food-drink",
   "social-conduct", "relations-non-muslims", "brotherhood-community", "oaths-expiation",
-  "ethical-character-map",
+  "ethical-character-map", "sabr-shukr", "knowledge-wisdom",
+  "modesty-hijab", "arrogance-pride", "backbiting-slander",
 ];
+// Book of Allah is a top-level destination on the web (a standalone header pill,
+// not part of the Faith/Life dropdowns), so it gets its own Library tab too.
+const BOOK_IDS = ["book-of-allah"];
 
-type Group = "faith" | "life";
+type Group = "faith" | "life" | "book";
 
 /** Title/subtitle resolution: keyed collections use i18n; names-of-allah carries
  *  its English source-of-truth strings on the collection itself. */
@@ -63,11 +71,12 @@ export function Library() {
   const { tokens } = app;
   const [group, setGroup] = useState<Group>("faith");
 
-  const ids = group === "faith" ? FAITH_IDS : LIFE_IDS;
+  const ids = group === "faith" ? FAITH_IDS : group === "life" ? LIFE_IDS : BOOK_IDS;
   const items = ids.map((id) => COLLECTION_BY_ID[id]).filter(Boolean) as Collection[];
   const tabs: { id: Group; label: string }[] = [
     { id: "faith", label: app.t("nav.faithMenu") },
     { id: "life", label: app.t("nav.lifeMenu") },
+    { id: "book", label: app.t("nav.bookMenu") },
   ];
 
   return (
@@ -75,7 +84,7 @@ export function Library() {
       <SegLabel>{app.t("m.lib.eyebrow")}</SegLabel>
       <BlockTitle style={{ marginTop: 8, marginBottom: 6 }}>{app.t("m.lib.title")}</BlockTitle>
       <Text style={{ fontSize: 13.5, lineHeight: 21, color: tokens.text2, marginBottom: 14 }}>
-        {app.t(group === "faith" ? "m.lib.faithSub" : "m.lib.lifeSub")}
+        {app.t(group === "faith" ? "m.lib.faithSub" : group === "life" ? "m.lib.lifeSub" : "m.lib.bookSub")}
       </Text>
 
       {/* segmented control: Allah & Faith / Life Guidance */}

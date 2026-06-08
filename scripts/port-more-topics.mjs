@@ -38,6 +38,26 @@ const STD = [
   ["relations-non-muslims", "relationsNonMuslims", "RELATIONS_CATEGORIES", "RELATIONS_ITEMS", "relations", "person", "life"],
   ["brotherhood-community", "brotherhoodCommunity", "BROTHERHOOD_CATEGORIES", "BROTHERHOOD_ITEMS", "brotherhood", "person", "life"],
   ["oaths-expiation", "oathsExpiation", "OATHS_CATEGORIES", "OATHS_ITEMS", "oaths", "scroll", "life"],
+  // New pages added on the web after the first port pass (2026-06-05).
+  ["signs-of-allah", "signsOfAllah", "SIGNS_CATEGORIES", "SIGNS_ITEMS", "signs", "star", "faith"],
+  ["women-quran", "womenQuran", "WOMEN_CATEGORIES", "WOMEN_ITEMS", "women", "person", "faith"],
+  ["faith-not-lineage", "faithNotLineage", "LINEAGE_CATEGORIES", "LINEAGE_ITEMS", "lineage", "person", "faith"],
+  ["book-of-allah", "bookOfAllah", "BOOK_CATEGORIES", "BOOK_ITEMS", "book", "book", "faith"],
+  ["sabr-shukr", "sabrShukr", "SABR_CATEGORIES", "SABR_ITEMS", "sabr", "heart", "life"],
+  ["knowledge-wisdom", "knowledgeWisdom", "KNOWLEDGE_CATEGORIES", "KNOWLEDGE_ITEMS", "knowledge", "book", "life"],
+  ["tawakkul", "tawakkul", "TAWAKKUL_CATEGORIES", "TAWAKKUL_ITEMS", "tawakkul", "heart", "faith"],
+  // New pages added 2026-06-08 — faith topics and prophet stories.
+  ["jinn-shaytan", "jinnShaytan", "JINN_CATEGORIES", "JINN_ITEMS", "jinn", "alert", "faith"],
+  ["angels-quran", "angelsQuran", "ANGELS_CATEGORIES", "ANGELS_ITEMS", "angels", "star", "faith"],
+  ["heart-quran", "heartQuran", "HEART_CATEGORIES", "HEART_ITEMS", "heart", "heart", "faith"],
+  ["death-barzakh", "deathBarzakh", "DEATH_CATEGORIES", "DEATH_ITEMS", "death", "scroll", "faith"],
+  ["story-yusuf", "storyYusuf", "YUSUF_CATEGORIES", "YUSUF_ITEMS", "yusuf", "scroll", "faith"],
+  ["story-musa", "storyMusa", "MUSA_CATEGORIES", "MUSA_ITEMS", "musa", "scroll", "faith"],
+  ["story-ibrahim", "storyIbrahim", "IBRAHIM_CATEGORIES", "IBRAHIM_ITEMS", "ibrahim", "scroll", "faith"],
+  ["people-cave", "peopleCave", "CAVE_CATEGORIES", "CAVE_ITEMS", "cave", "book", "faith"],
+  ["modesty-hijab", "modestyHijab", "MODESTY_CATEGORIES", "MODESTY_ITEMS", "modesty", "person", "life"],
+  ["arrogance-pride", "arrogancePride", "ARROGANCE_CATEGORIES", "ARROGANCE_ITEMS", "arrogance", "alert", "life"],
+  ["backbiting-slander", "backbitingSlander", "BACKBITING_CATEGORIES", "BACKBITING_ITEMS", "backbiting", "alert", "life"],
 ];
 
 /** Pull a balanced `[ ... ]` array literal that follows `export const <VAR>` and return its JS value. */
