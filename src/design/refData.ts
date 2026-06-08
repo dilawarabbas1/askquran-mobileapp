@@ -33,7 +33,8 @@ export interface Category {
 export interface Collection {
   id: string; // route id
   ns: string; // i18n namespace (duas, prophet, parables, …)
-  kind: "duas" | "prophet" | "ref"; // catalog key shape for items/headers
+  kind: "duas" | "prophet" | "ref" | "names"; // catalog key shape for items/headers
+  namesGrid?: boolean; // names-of-allah: render Asma al-Husna directly (English source-of-truth)
   eyebrow: string;
   title: string;
   subtitle: string;
@@ -443,8 +444,15 @@ export const COLLECTIONS: Collection[] = [
   },
 ];
 
+// Topics ported from the web "More from the Quran" menus (Allah & Faith / Life
+// Guidance). Generated verbatim by scripts/port-more-topics.mjs.
+import { MORE_COLLECTIONS } from "./refDataMore.gen";
+
+/** All reference collections — the original mobile set plus the ported web topics. */
+export const ALL_COLLECTIONS: Collection[] = [...COLLECTIONS, ...MORE_COLLECTIONS];
+
 export const COLLECTION_BY_ID: Record<string, Collection> = Object.fromEntries(
-  COLLECTIONS.map((c) => [c.id, c]),
+  ALL_COLLECTIONS.map((c) => [c.id, c]),
 );
 
 /** Surah number → { name, ar } for per-surah group headers (from facts SURAHS). */

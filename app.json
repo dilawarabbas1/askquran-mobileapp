@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ask Quran",
     "slug": "askquran-mobileapp",
-    "version": "1.0.0",
+    "version": "1.0.4",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "scheme": "askquran",
@@ -16,10 +16,11 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "net.eocean.askquran"
+      "bundleIdentifier": "co.askquran.app"
     },
     "android": {
-      "package": "net.eocean.askquran",
+      "package": "co.askquran.app",
+      "versionCode": 5,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0F5D45"
