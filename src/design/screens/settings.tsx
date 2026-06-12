@@ -2,7 +2,8 @@
 // Arabic + tajweed toggles), Appearance (theme), Home screen, About + footer.
 
 import React, { useState } from "react";
-import { Pressable, ScrollView, Share, Text, View } from "react-native";
+import { Pressable, ScrollView, Share, View } from "react-native";
+import { Text } from "../AppText";
 import { useApp } from "../AQContext";
 import { Switch } from "../atoms";
 import { Icon } from "../Icon";
@@ -105,6 +106,11 @@ export function Settings() {
         <Row tokens={tokens} icon="shield" title={app.t("m.set.sources")} sub={app.t("m.set.sourcesSub")} onPress={() => { app.setFactTab("sources"); app.goTab("facts"); }} right={chev} />
         <Row tokens={tokens} icon="info" title={app.t("m.set.about")} sub={app.t("m.set.aboutSub")} onPress={app.openAbout} right={chev} />
         <Row tokens={tokens} icon="share" title={app.t("m.set.share")} onPress={shareApp} last right={chev} />
+      </Group>
+
+      <Group label={app.t("m.set.legalGroup")} tokens={tokens}>
+        <Row tokens={tokens} icon="shield" title={app.t("m.set.privacy")} sub={app.t("m.set.privacySub")} onPress={app.openPrivacy} right={chev} />
+        <Row tokens={tokens} icon="check" title={app.t("m.set.dataSafety")} sub={app.t("m.set.dataSafetySub")} onPress={app.openDataSafety} last right={chev} />
       </Group>
 
       {/* Footer — matches the web app's Footer verbatim. */}

@@ -1,11 +1,12 @@
-// Quran Facts — full parity with the web's 9-tab nav: Structure, Surahs,
-// Topics, Mentions (Prophets · Nations · Angels · Scriptures · Places),
-// Divine Punishment, Plants, Animals, Natural Signs, Sources. All content is
+// Quran Facts — 8-tab nav: Structure, Surahs, Mentions (Prophets · Nations ·
+// Angels · Scriptures · Places), Divine Punishment, Plants, Animals, Natural
+// Signs, Sources. (The "Quran-Guided Topics" tab was removed.) All content is
 // source-backed reference data; ayah chips run a search (verbatim text loads
 // from the backend). Ported from the web QuranFacts component + quranFacts data.
 
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
+import { Text } from "../AppText";
 import { useApp } from "../AQContext";
 import { BlockTitle } from "../atoms";
 import { Icon, RawIcon } from "../Icon";
@@ -13,9 +14,9 @@ import { SearchBar } from "../SearchBar";
 import { SURAHS } from "../data";
 import {
   METRICS, HIER, SOURCES, INTEGRITY, SAJDAH, MUQATTAAT,
-  TOPICS, TOPIC_CATEGORIES, MENTIONS, MENTION_CATS, PROPHETS,
+  MENTIONS, MENTION_CATS, PROPHETS,
   PUNISHMENT, PUNISHMENT_FILTERS, PLANTS, PLANT_GROUPS, ANIMALS, ANIMAL_GROUPS,
-  NATURAL_SIGNS, SIGN_GROUPS, refAyahCount, type QuranTermMention,
+  NATURAL_SIGNS, SIGN_GROUPS, type QuranTermMention,
 } from "../factsData";
 import { FONTS, mix, type Tokens } from "../tokens";
 
@@ -38,14 +39,19 @@ const IC: Record<string, string> = {
 const FACT_TABS: { id: string; icon: string; badge?: string }[] = [
   { id: "structure", icon: IC.structure },
   { id: "surahs", icon: IC.list, badge: "114" },
-  { id: "topics", icon: IC.topics },
   { id: "mentions", icon: IC.mentions },
   { id: "punishment", icon: IC.punishment },
-  { id: "plants", icon: IC.leaf },
-  { id: "animals", icon: IC.animals },
-  { id: "naturalSigns", icon: IC.signs },
   { id: "sources", icon: IC.shield },
 ];
+
+// Fruits & Trees, Animals & Insects and Natural Signs live as sub-categories
+// under the "Quran Mentions" tab (they're all "things the Quran mentions"),
+// each rendering the shared TermTab below their own pill.
+const NATURE_CATS: Record<string, { groupNs: string; itemNs: string; groups: { id: string; title: string }[]; items: QuranTermMention[]; icon: string; tabKey: string }> = {
+  plants: { groupNs: "plants", itemNs: "plant", groups: PLANT_GROUPS, items: PLANTS, icon: IC.leaf, tabKey: "facts.tab.plants" },
+  animals: { groupNs: "animals", itemNs: "animal", groups: ANIMAL_GROUPS, items: ANIMALS, icon: IC.animals, tabKey: "facts.tab.animals" },
+  naturalSigns: { groupNs: "signs", itemNs: "sign", groups: SIGN_GROUPS, items: NATURAL_SIGNS, icon: IC.signs, tabKey: "facts.tab.naturalSigns" },
+};
 const METRIC_KEYS = ["surahs", "ayahs", "juz", "hizb", "rub", "sajdah", "meccan", "medinan"];
 const HIER_KEYS = ["quran", "surah", "ayah", "juz", "hizb", "rub"];
 const SOURCE_KEYS = ["tanzilMeta", "tanzilOrder", "corpus", "qf"];
@@ -76,17 +82,6 @@ function Pills({ options, value, onChange, tokens }: { options: { id: string; ti
         );
       })}
     </ScrollView>
-  );
-}
-
-function TrustNote({ tokens, children }: { tokens: Tokens; children: React.ReactNode }) {
-  return (
-    <View style={{ flexDirection: "row", gap: 11, alignItems: "flex-start", backgroundColor: mix(tokens.brand, 6, tokens.surface), borderWidth: 1, borderColor: mix(tokens.brand, 22, tokens.line), borderRadius: 14, padding: 13, marginBottom: 14 }}>
-      <View style={{ width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: mix(tokens.brand, 12) }}>
-        <Icon name="shield" size={15} color={tokens.brand} />
-      </View>
-      <Text style={{ flex: 1, fontSize: 12, lineHeight: 18.6, color: tokens.text2 }}>{children}</Text>
-    </View>
   );
 }
 
@@ -184,7 +179,7 @@ function FactsStructure({ tokens }: { tokens: Tokens }) {
             <Text style={{ fontSize: 14, fontFamily: FONTS.sans[700], color: tokens.text }}>
               {app.t(`facts.hier.${HIER_KEYS[i]}`)} <Text style={{ fontFamily: FONTS.ar, fontSize: 15, color: tokens.text2 }}>{h.ar}</Text>
             </Text>
-            <Text style={{ marginLeft: "auto", fontSize: 12, color: tokens.text2, textAlign: "right" }}>{app.t(`facts.hier.${HIER_KEYS[i]}D`)}</Text>
+            <Text style={{ marginStart: "auto", fontSize: 12, color: tokens.text2, textAlign: "right" }}>{app.t(`facts.hier.${HIER_KEYS[i]}D`)}</Text>
           </View>
         ))}
       </View>
@@ -282,7 +277,7 @@ function TermCard({ title, count, chip, terms, note, refs, icon, tokens }: {
           <RawIcon inner={icon} size={20} color={tokens.brand} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: FONTS.serif[600], fontSize: 16.5, color: tokens.text }}>{title}</Text>
+          <Text style={{ fontFamily: FONTS.serif[600], fontSize: 16.5, lineHeight: 30, paddingTop: 3, color: tokens.text }}>{title}</Text>
           <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[600], letterSpacing: 0.4, textTransform: "uppercase", color: tokens.text3, marginTop: 2 }}>{count}</Text>
         </View>
         {chip ? (
@@ -292,37 +287,11 @@ function TermCard({ title, count, chip, terms, note, refs, icon, tokens }: {
         ) : null}
       </View>
       {terms && terms.length ? (
-        <Text style={{ fontFamily: FONTS.ar, fontSize: 18, color: tokens.arColor, textAlign: "right", writingDirection: "rtl", marginTop: 10 }}>{terms.join("، ")}</Text>
+        <Text style={{ fontFamily: FONTS.ar, fontSize: 18, color: tokens.arColor, direction: "ltr", textAlign: "left", writingDirection: "rtl", marginTop: 10 }}>{terms.join("، ")}</Text>
       ) : null}
       {note ? <Text style={{ marginTop: 8, fontSize: 12, lineHeight: 18, color: tokens.text2 }}>{note}</Text> : null}
       <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 0.5, textTransform: "uppercase", color: tokens.text3, marginTop: 12, marginBottom: 7 }}>{t("facts.topics.evidence")}</Text>
       <Chips refs={refs} tokens={tokens} />
-    </View>
-  );
-}
-
-/* ---------- TOPICS ---------- */
-function FactsTopics({ tokens }: { tokens: Tokens }) {
-  const { t } = useApp();
-  const [q, setQ] = useState("");
-  const [cat, setCat] = useState("all");
-  const catTitle = (id: string) => TOPIC_CATEGORIES.find((c) => c.id === id)?.title ?? "";
-  const s = q.trim().toLowerCase();
-  const shown = TOPICS.filter((tp) => cat === "all" || tp.cat === cat).filter(
-    (tp) => !s || tp.title.toLowerCase().includes(s) || tp.desc.toLowerCase().includes(s) || catTitle(tp.cat).toLowerCase().includes(s) || tp.refs.some((r) => r.includes(s)),
-  );
-  const catOpts = [{ id: "all", title: t("facts.topics.all") }, ...TOPIC_CATEGORIES.map((c) => ({ id: c.id, title: t(`facts.topicCat.${c.id}`) }))];
-  return (
-    <View>
-      <BlockHead title={t("facts.topics.title")} sub={t("facts.topics.sub")} tokens={tokens} />
-      <TrustNote tokens={tokens}>{t("facts.topics.trust")}</TrustNote>
-      <View style={{ marginBottom: 12 }}><SearchBar value={q} onChangeText={setQ} placeholder={t("facts.topics.search")} small /></View>
-      <Pills options={catOpts} value={cat} onChange={setCat} tokens={tokens} />
-      <View style={{ gap: 12 }}>
-        {shown.map((tp) => (
-          <TermCard key={tp.id} title={t(`facts.topic.${tp.id}`)} count={t("facts.topics.refs", { ayahs: refAyahCount(tp.refs), n: tp.refs.length })} chip={t(`facts.topicCat.${tp.cat}`)} note={t(`facts.topic.${tp.id}D`)} refs={tp.refs} icon={IC.topics} tokens={tokens} />
-        ))}
-      </View>
     </View>
   );
 }
@@ -333,12 +302,20 @@ function FactsMentions({ tokens }: { tokens: Tokens }) {
   const [cat, setCat] = useState("prophets");
   const [q, setQ] = useState("");
   const mq = q.trim().toLowerCase();
-  const catOpts = MENTION_CATS.map((c) => ({ id: c.id, title: t(`facts.cat.${c.id}`) }));
+  const catOpts = [
+    ...MENTION_CATS.map((c) => ({ id: c.id, title: t(`facts.cat.${c.id}`) })),
+    ...Object.entries(NATURE_CATS).map(([id, n]) => ({ id, title: t(n.tabKey) })),
+  ];
+  const nature = NATURE_CATS[cat];
 
   return (
     <View>
       <BlockHead title={t("facts.mentions.title")} sub={t("facts.mentions.intro")} tokens={tokens} />
       <Pills options={catOpts} value={cat} onChange={(v) => { setCat(v); setQ(""); }} tokens={tokens} />
+      {nature ? (
+        <TermTab groupNs={nature.groupNs} itemNs={nature.itemNs} groups={nature.groups} items={nature.items} icon={nature.icon} tokens={tokens} />
+      ) : (
+      <>
       <View style={{ marginBottom: 14 }}><SearchBar value={q} onChangeText={setQ} placeholder={t("facts.mentions.searchCat")} small /></View>
 
       {cat === "prophets" ? (
@@ -352,10 +329,11 @@ function FactsMentions({ tokens }: { tokens: Tokens }) {
                     <RawIcon inner={IC.person} size={20} color={tokens.brand} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontFamily: FONTS.serif[600], fontSize: 17, color: tokens.text }}>
-                      {t(`facts.p.${pi}`)} <Text style={{ fontFamily: FONTS.ar, fontSize: 16, color: tokens.orn }}>{p.ar}</Text>
-                    </Text>
-                    <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[600], textTransform: "uppercase", letterSpacing: 0.4, color: tokens.text3, marginTop: 1 }}>{t("facts.mentions.prophetTag")} · {p.total}</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 9 }}>
+                      <Text style={{ fontFamily: FONTS.serif[600], fontSize: 17, color: tokens.text }}>{t(`facts.p.${pi}`)}</Text>
+                      <Text style={{ fontFamily: FONTS.ar, fontSize: 16, color: tokens.orn }}>{p.ar}{p.n === "Muhammad" ? <Text style={{ fontSize: 14 }}> ﷺ</Text> : null}</Text>
+                    </View>
+                    <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[600], textTransform: "uppercase", letterSpacing: 0.4, color: tokens.text3, marginTop: 2 }}>{t("facts.mentions.prophetTag")} · {p.total}</Text>
                   </View>
                 </View>
                 {refs.length ? (
@@ -416,6 +394,8 @@ function FactsMentions({ tokens }: { tokens: Tokens }) {
             </View>
           ))}
         </View>
+      )}
+      </>
       )}
     </View>
   );
@@ -557,7 +537,7 @@ export function Facts() {
   const tab = app.factTab;
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 28 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-      {/* All 9 tabs wrap onto multiple rows so none are hidden off-screen. */}
+      {/* All 8 tabs wrap onto multiple rows so none are hidden off-screen. */}
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7, marginBottom: 16 }}>
         {FACT_TABS.map((t) => {
           const on = tab === t.id;
@@ -577,18 +557,8 @@ export function Facts() {
 
       {tab === "structure" ? <FactsStructure tokens={tokens} /> : null}
       {tab === "surahs" ? <FactsSurahs tokens={tokens} /> : null}
-      {tab === "topics" ? <FactsTopics tokens={tokens} /> : null}
       {tab === "mentions" ? <FactsMentions tokens={tokens} /> : null}
       {tab === "punishment" ? <FactsPunishment tokens={tokens} /> : null}
-      {tab === "plants" ? (
-        <TermTab groupNs="plants" itemNs="plant" groups={PLANT_GROUPS} items={PLANTS} icon={IC.leaf} tokens={tokens} />
-      ) : null}
-      {tab === "animals" ? (
-        <TermTab groupNs="animals" itemNs="animal" groups={ANIMAL_GROUPS} items={ANIMALS} icon={IC.animals} tokens={tokens} />
-      ) : null}
-      {tab === "naturalSigns" ? (
-        <TermTab groupNs="signs" itemNs="sign" groups={SIGN_GROUPS} items={NATURAL_SIGNS} icon={IC.signs} tokens={tokens} />
-      ) : null}
       {tab === "sources" ? <FactsSources tokens={tokens} /> : null}
     </ScrollView>
   );

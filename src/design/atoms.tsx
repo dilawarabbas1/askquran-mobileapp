@@ -3,24 +3,42 @@
 // mirrors aq-app.css using the live theme tokens.
 
 import React, { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Text } from "./AppText";
 import { SvgXml } from "react-native-svg";
 import { useApp } from "./AQContext";
 import { Icon } from "./Icon";
 import { AudioBar } from "./AudioBar";
 import { scriptKind } from "./lib/rtl";
+import { copyAyah, shareAyah } from "./lib/ayahActions";
+import { withHonorifics } from "./lib/honorifics";
 import type { AyahItem } from "./data";
 import { FONTS, mix, type Tokens } from "./tokens";
+import { track } from "@/analytics";
+import { surahName, surahNoFromRef } from "@/analytics/events";
 
 /* ---------- translation text style by language (RTL-aware) ----------
  * Urdu → Nastaliq RTL; other RTL languages (Arabic, Persian, Pashto, Sindhi,
- * Divehi, Uyghur, Kurdish) → Amiri RTL; everything else → LTR serif. Callers can
- * override size/colour by appending a style object. */
-export function translationStyle(language: string, tokens: Tokens) {
+ * Divehi, Uyghur) → Amiri RTL; everything else (incl. Kurmanji Kurdish) → LTR
+ * serif. The RTL set lives in lib/rtl.ts — keep this list in sync with it.
+ *
+ * This function is the single source of truth for translation font size: sizes
+ * are tuned per script so every language reads comfortably (Nastaliq/Arabic
+ * scripts need a larger glyph + line height than Latin). Callers must NOT
+ * override fontSize/lineHeight — to render a smaller compact variant (e.g. an
+ * "in context" list) pass `scale` (e.g. 0.9) so the per-language ratio is kept.
+ * Callers may still append colour / margin overrides. */
+export function translationStyle(language: string, tokens: Tokens, scale = 1) {
   const k = scriptKind(language);
-  if (k === "ur") return { fontSize: 17, lineHeight: 41, color: tokens.text, fontFamily: FONTS.ur[400], textAlign: "right" as const, writingDirection: "rtl" as const };
-  if (k === "rtl") return { fontSize: 18, lineHeight: 38, color: tokens.text, fontFamily: FONTS.ar, textAlign: "right" as const, writingDirection: "rtl" as const };
-  return { fontSize: 14.5, lineHeight: 26, color: tokens.text, fontFamily: FONTS.serif[400] };
+  const r = (n: number) => Math.round(n * scale * 10) / 10;
+  // Urdu translation is right-aligned to match the RTL reading direction, so the
+  // Nastaliq lines start at the right margin like the rest of the RTL languages.
+  if (k === "ur") return { fontSize: r(18), lineHeight: r(48), color: tokens.text, fontFamily: FONTS.ur[400], textAlign: "right" as const, writingDirection: "rtl" as const };
+  if (k === "rtl") return { fontSize: r(19), lineHeight: r(40), color: tokens.text, fontFamily: FONTS.ar, textAlign: "right" as const, writingDirection: "rtl" as const };
+  // Pin LTR explicitly: without it, an English translation inherits the global
+  // layout direction and renders right-aligned whenever the interface language is
+  // RTL (I18nManager.forceRTL stays true process-wide after an Urdu relaunch).
+  return { fontSize: r(15.5), lineHeight: r(27), color: tokens.text, fontFamily: FONTS.serif[400], textAlign: "left" as const, writingDirection: "ltr" as const };
 }
 
 /* ---------- logo mark (lens + open book) ---------- */
@@ -81,12 +99,13 @@ export function Translation({ item }: { item: AyahItem }) {
   // direction) follows the chosen translation language, so every RTL language
   // (not just Urdu) renders right-aligned in an Arabic-capable font.
   const txt = item.en || item.ur;
+  const tStyle = translationStyle(language, tokens);
   return (
     <View>
       <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 1.4, textTransform: "uppercase", color: tokens.text3, marginBottom: 7 }}>
         {t("results.translation")}
       </Text>
-      <Text style={translationStyle(language, tokens)}>{txt}</Text>
+      <Text style={tStyle}>{withHonorifics(txt, tStyle.fontSize)}</Text>
     </View>
   );
 }
@@ -119,6 +138,7 @@ function Expander({ label, open, onToggle, tokens }: { label: string; open: bool
 }
 
 function Surrounding({ item, tokens }: { item: AyahItem; tokens: Tokens }) {
+  const { language } = useApp();
   return (
     <View style={{ marginTop: 6, marginBottom: 2, gap: 9 }}>
       {item.surrounding.map((n, i) => (
@@ -134,7 +154,7 @@ function Surrounding({ item, tokens }: { item: AyahItem; tokens: Tokens }) {
             {n.ref}{n.center ? " · matched" : ""}
           </Text>
           <Text style={{ fontFamily: FONTS.ar, fontSize: 18, lineHeight: 33, color: tokens.arColor, textAlign: "right", writingDirection: "rtl" }}>{n.ar}</Text>
-          <Text style={{ fontFamily: FONTS.serif[400], fontSize: 12.5, color: tokens.text2, marginTop: 4 }}>{n.en}</Text>
+          <Text style={[translationStyle(language, tokens, 0.9), { color: tokens.text2, marginTop: 4 }]}>{n.en}</Text>
         </View>
       ))}
     </View>
@@ -180,19 +200,42 @@ export function AyahCard({ item, rank }: { item: AyahItem; rank?: number }) {
       <Pressable onPress={() => app.openReader(item)}>
         <Text style={{ fontFamily: FONTS.ar, fontSize: 27, lineHeight: 54, color: tokens.arColor, textAlign: "center", writingDirection: "rtl", paddingVertical: 4 }}>{item.arabic}</Text>
       </Pressable>
+      {/* transliteration — Arabic in Latin script, computed server-side; helps
+          readers who can't read the Arabic script. Only shown when present. */}
+      {item.transliteration ? (
+        <Text style={{ fontFamily: FONTS.serif[400], fontStyle: "italic", fontSize: 13.5, lineHeight: 22, color: tokens.text3, textAlign: "center", marginTop: 6 }}>
+          {item.transliteration}
+        </Text>
+      ) : null}
       <View style={{ height: 1, backgroundColor: tokens.lineSoft, marginVertical: 12 }} />
 
       <Translation item={item} />
 
       {/* recitation audio (verbatim MP3 from the API result) */}
-      {item.audio?.url ? <AudioBar url={item.audio.url} reciter={item.audio.reciter} /> : null}
+      {item.audio?.url ? <AudioBar url={item.audio.url} reciter={item.audio.reciter} surahName={surahName(item.surah)} surahNo={surahNoFromRef(item.ref)} ayahKey={item.ref} /> : null}
 
       {/* surrounding */}
       <Expander label={app.t("m.surrounding")} open={sur} onToggle={() => setSur((v) => !v)} tokens={tokens} />
       {sur ? <Surrounding item={item} tokens={tokens} /> : null}
 
       {/* tafseer */}
-      <Expander label={app.t("results.tafseer")} open={taf} onToggle={() => setTaf((v) => !v)} tokens={tokens} />
+      <Expander
+        label={app.t("results.tafseer")}
+        open={taf}
+        onToggle={() => {
+          const willOpen = !taf;
+          setTaf(willOpen);
+          // The result card carries its tafseer inline (no fetch), so status is
+          // known immediately. rank + search_query give the analytics context.
+          if (willOpen)
+            track("view_tafsir", {
+              surah_name: surahName(item.surah), ayah_no: item.ref,
+              tafsir_source: item.sources?.tafseer ?? "", tafsir_language: app.tafsirLanguage,
+              status: item.tafseer ? "presented" : "missing", rank: rank ?? 0, search_query: app.query,
+            });
+        }}
+        tokens={tokens}
+      />
       {taf ? (
         <View style={{ marginTop: 6, marginBottom: 4, paddingHorizontal: 15, paddingVertical: 14, backgroundColor: mix(tokens.gold, 7, tokens.surface2), borderWidth: 1, borderColor: tokens.lineSoft, borderRadius: 12 }}>
           <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 0.5, textTransform: "uppercase", color: tokens.orn, marginBottom: 6 }}>{app.t("m.tafsir")}</Text>
@@ -208,7 +251,8 @@ export function AyahCard({ item, rank }: { item: AyahItem; rank?: number }) {
         </Pressable>
         <View style={{ flexDirection: "row", gap: 6 }}>
           <IconBtn name={saved ? "bookmarkFill" : "bookmark"} active={saved} onPress={() => app.toggleSave(item)} />
-          <IconBtn name="share" onPress={() => {}} />
+          <IconBtn name="copy" onPress={() => { void copyAyah(item, app.lang); }} />
+          <IconBtn name="share" onPress={() => { void shareAyah(item, app.lang); }} />
         </View>
       </View>
     </View>
@@ -276,5 +320,7 @@ export function SegLabel({ children }: { children: React.ReactNode }) {
 /* ---------- block title (serif) ---------- */
 export function BlockTitle({ children, style }: { children: React.ReactNode; style?: object }) {
   const { tokens } = useApp();
-  return <Text style={[{ fontFamily: FONTS.serif[500], fontSize: 20, color: tokens.text }, style]}>{children}</Text>;
+  // paddingTop reserves headroom so tall Nastaliq/Arabic top marks (e.g. the dot
+  // on پودے) never clip against the line box top — negligible for Latin headings.
+  return <Text style={[{ fontFamily: FONTS.serif[500], fontSize: 20, color: tokens.text, paddingTop: 4 }, style]}>{children}</Text>;
 }

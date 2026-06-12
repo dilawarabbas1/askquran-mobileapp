@@ -4,7 +4,8 @@
 // Settings page. Required by Google Play for apps that send data to a backend.
 
 import React from "react";
-import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { Linking, Pressable, ScrollView, View } from "react-native";
+import { Text } from "../AppText";
 import { useApp } from "../AQContext";
 import { BlockTitle, SegLabel } from "../atoms";
 import { Icon } from "../Icon";

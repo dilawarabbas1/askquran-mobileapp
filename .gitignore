@@ -25,3 +25,21 @@ yarn-error.*
 
 # test build output
 .test-build/
+
+# Apple signing credentials — never commit
+*.p8
+AuthKey_*.p8
+ios/ExportOptions.plist
+
+# signing keys / certs — never commit
+*.keystore
+*.jks
+*.pem
+.signing-backup/
+
+# build artifacts & store assets (large binaries, generated)
+build/
+StoreAssets/
+AllAssets/
+play-screenshots/
+google-services.json

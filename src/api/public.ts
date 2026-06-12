@@ -13,10 +13,17 @@ import { PUBLIC_API_BASE_URL, API_KEY } from "./config";
 import { TtlCache, createMemoryStorage, type Storage } from "./cache";
 import type { AskResponse, AyahResult, SuggestedGroup, TranslationMeta, TafsirMeta } from "./publicTypes";
 
-/** Headers for public /api calls — adds x-api-key when a key is configured. */
+/**
+ * Headers for public /api calls — adds x-api-key when a key is configured and
+ * always tags the request surface with `X-App-Source: mobile`. The backend's
+ * /api/ask route reads this header (web → "web", mobile → "mobile", anything
+ * else → "api") to attribute search logs to the right client. Mirrors the web
+ * frontend's apiHeaders(), which sends "X-App-Source": "web".
+ */
 function publicHeaders(extra?: Record<string, string>): Record<string, string> {
   return {
     Accept: "application/json",
+    "X-App-Source": "mobile",
     ...(API_KEY ? { "x-api-key": API_KEY } : {}),
     ...(extra ?? {}),
   };

@@ -5,7 +5,8 @@
 // verbatim; the App language only affects the interface.
 
 import React, { useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
+import { Text } from "../AppText";
 import { useApp } from "../AQContext";
 import { Mark, Wordmark } from "../atoms";
 import { Icon, RawIcon } from "../Icon";
@@ -155,7 +156,7 @@ export function Onboarding() {
 
 /* ---------- shared language list (optionally filtered to a subset) ---------- */
 export function LangList({ selected, onSelect, q, setQ, filterLangs }: { selected: string; onSelect: (n: string) => void; q: string; setQ: (s: string) => void; filterLangs?: string[] }) {
-  const { tokens } = useApp();
+  const { tokens, t: tr } = useApp();
   const base = filterLangs ? LANGUAGES.filter((l) => filterLangs.includes(l.name)) : LANGUAGES;
   const t = (q || "").trim().toLowerCase();
   const list = base.filter((l) => !t || l.name.toLowerCase().includes(t) || l.native.toLowerCase().includes(t) || l.code.includes(t));
@@ -164,7 +165,7 @@ export function LangList({ selected, onSelect, q, setQ, filterLangs }: { selecte
   return (
     <View style={{ flex: 1, marginTop: 0 }}>
       <View style={{ marginVertical: 12 }}>
-        <SearchBar value={q} onChangeText={setQ} placeholder={`Search ${base.length} languages…`} small />
+        <SearchBar value={q} onChangeText={setQ} placeholder={tr("m.lang.searchPlaceholder", { n: base.length })} small />
       </View>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 8, gap: 8 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         {ordered.map((l) => {
@@ -180,7 +181,7 @@ export function LangList({ selected, onSelect, q, setQ, filterLangs }: { selecte
           );
         })}
         {list.length === 0 ? (
-          <Text style={{ textAlign: "center", color: tokens.text3, fontSize: 13, padding: 24 }}>No language matches “{q}”.</Text>
+          <Text style={{ textAlign: "center", color: tokens.text3, fontSize: 13, padding: 24 }}>{tr("m.lang.noMatch", { q })}</Text>
         ) : null}
       </ScrollView>
     </View>
@@ -209,8 +210,8 @@ export function LangSheet() {
     else app.setTranslationLanguage(n);
     app.closeLangSheet();
   };
-  const title = target === "app" ? "App language" : target === "tafsir" ? "Tafsir language" : "Translation language";
-  const sub = target === "app" ? "Interface language" : target === "tafsir" ? "Language for tafsir" : "Language for the Quran translation";
+  const title = target === "app" ? app.t("m.set.appLang") : target === "tafsir" ? app.t("m.set.tafLang") : app.t("m.set.transLang");
+  const sub = target === "app" ? app.t("m.set.appLangSub") : target === "tafsir" ? app.t("m.set.tafLangSub") : app.t("m.set.transLangSub");
 
   return (
     <View style={{ flex: 1, backgroundColor: tokens.bg }}>

@@ -1,6 +1,7 @@
 // Recite data ported from the AskQuran mobile design handoff (aq-recite-data.js).
 // Complete short surahs with verbatim Uthmani Arabic + English & Urdu per ayah.
-// Per-ayah recitation audio (Mishary Rashid Alafasy, 64kbps) from a public CDN.
+// Per-ayah recitation audio (Mishary Rashid Alafasy) from AskQuran's own CDN
+// (audio.askquran.co) — see AUDIO_BASE / ayahAudioUrl below.
 
 export interface ReciteAyah { n: number; ar: string; en: string; ur: string }
 export interface ReciteSurah { bismillah: boolean; ayahs: ReciteAyah[] }
@@ -423,14 +424,23 @@ export const BISMILLAH = {
   ur: "اللہ کے نام سے جو نہایت مہربان رحم والا ہے۔",
 };
 
-export const AUDIO_BASE = "https://everyayah.com/data/Alafasy_64kbps/";
+// Per-ayah recitation now streams from AskQuran's own CDN (audio.askquran.co),
+// the same origin the backend hands back in each result's `audio.url`. Files are
+// laid out as `alafasy/SSS/SSSAAA.mp3` (surah-padded subfolder + 6-digit key).
+export const AUDIO_BASE = "https://audio.askquran.co/alafasy/";
 
-/** Per-ayah recitation MP3 URL. */
+/** Per-ayah recitation MP3 URL on audio.askquran.co (alafasy/SSS/SSSAAA.mp3). */
 export function ayahAudioUrl(surah: number, ayah: number): string {
   const s = String(surah).padStart(3, "0");
   const a = String(ayah).padStart(3, "0");
-  return AUDIO_BASE + s + a + ".mp3";
+  return `${AUDIO_BASE}${s}/${s}${a}.mp3`;
 }
+
+// Standalone Bismillah recitation — Al-Fatiha 1:1 is the basmala on its own
+// (other surahs' ayah-1 files don't include it), so we reuse it as the prelude
+// played before whole-surah playback for every surah except Al-Fatiha (its ayah
+// 1 already is the basmala) and At-Tawbah (9, which has no basmala).
+export const BISMILLAH_AUDIO_URL = ayahAudioUrl(1, 1);
 
 /** True when bundled recitation exists for this surah. */
 export function hasRecitation(surah: number): boolean {

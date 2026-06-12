@@ -3,8 +3,14 @@
 // SvgXml so the exact path data from the design is reused unchanged.
 
 import React from "react";
+import { I18nManager } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { IC } from "./data";
+
+// Direction-bearing icons must mirror under an RTL layout — RN does not auto-flip
+// raw SVG path content the way it flips flex layout, so a left chevron stays
+// pointing left even though "back" now means the opposite edge.
+const MIRROR_RTL = new Set(["back", "chevR"]);
 
 const ICONS: Record<string, string> = {
   search: '<circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/>',
@@ -31,6 +37,7 @@ const ICONS: Record<string, string> = {
   external: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"/>',
   prostrate: '<path d="M6 3h12a1 1 0 0 1 1 1v16l-7-4-7 4V4a1 1 0 0 1 1-1z"/>',
   recite: '<path d="M12 6.8C10.4 5.3 7.6 4.8 5 5.5v12.2c2.6-.7 5.4-.2 7 1.3 1.6-1.5 4.4-2 7-1.3V5.5c-2.6-.7-5.4-.2-7 1.3z"/><path d="M12 6.8V19.3"/>',
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
   play: '<path d="M7 5l12 7-12 7z" fill="currentColor" stroke="none"/>',
   pause: '<rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/>',
 };
@@ -52,7 +59,8 @@ export function Icon({
 }) {
   const inner = iconMarkup(name);
   const xml = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
-  return <SvgXml xml={xml} width={size} height={size} color={color} />;
+  const mirror = I18nManager.isRTL && MIRROR_RTL.has(name);
+  return <SvgXml xml={xml} width={size} height={size} color={color} style={mirror ? { transform: [{ scaleX: -1 }] } : undefined} />;
 }
 
 /** Render an arbitrary inner-SVG string (used for the data-driven icon fields). */

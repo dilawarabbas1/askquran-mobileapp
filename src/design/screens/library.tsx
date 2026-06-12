@@ -12,15 +12,15 @@ import { Icon, RawIcon } from "../Icon";
 import { FONTS, mix } from "../tokens";
 import { COLLECTION_BY_ID, type Collection } from "../refData";
 
-// Two grouped menus, mirroring the web header's "Allah & Faith" / "Life Guidance"
-// dropdowns (NavMore.tsx). Order matches the web FAITH_ITEMS / LIFE_ITEMS exactly.
+// Grouped menus, mirroring the web header's "Allah & Faith" / "Life Guidance" /
+// "Stories & Wisdom" dropdowns (NavMore.tsx). Order matches the web
+// FAITH_ITEMS / LIFE_ITEMS / STORIES_ITEMS exactly.
 const FAITH_IDS = [
   "names-of-allah", "allah-attributes", "worship-ibadah", "shirk",
-  "tawakkul", "women-quran", "faith-not-lineage", "repentance", "hypocrisy",
+  "tawakkul", "duas", "repentance", "hypocrisy",
   "day-of-judgment", "people-of-paradise", "people-of-hellfire",
   "signs-of-allah", "jinn-shaytan", "angels-quran", "heart-quran", "death-barzakh",
-  "duas", "quranic-parables", "prophet-stories",
-  "story-yusuf", "story-musa", "story-ibrahim", "people-cave",
+  "faith-not-lineage", "women-quran",
 ];
 const LIFE_IDS = [
   "commands-prohibitions", "marriage-family", "parents-relatives", "inheritance-wills",
@@ -29,19 +29,24 @@ const LIFE_IDS = [
   "ethical-character-map", "sabr-shukr", "knowledge-wisdom",
   "modesty-hijab", "arrogance-pride", "backbiting-slander",
 ];
+// "Stories & Wisdom" — the web's third dropdown (STORIES_ITEMS), added in #62.
+const STORIES_IDS = [
+  "quranic-parables", "prophet-stories",
+  "story-yusuf", "story-musa", "story-ibrahim", "people-cave",
+];
 // Book of Allah is a top-level destination on the web (a standalone header pill,
-// not part of the Faith/Life dropdowns), so it gets its own Library tab too.
+// not part of the dropdowns), so it gets its own Library tab too.
 const BOOK_IDS = ["book-of-allah"];
 
-type Group = "faith" | "life" | "book";
+type Group = "faith" | "life" | "stories" | "book";
 
-/** Title/subtitle resolution: keyed collections use i18n; names-of-allah carries
- *  its English source-of-truth strings on the collection itself. */
+/** Title/subtitle resolution: every collection (incl. names-of-allah) reads its
+ *  chrome from i18n — names uses the dedicated names.title/names.sub keys. */
 function collTitle(app: ReturnType<typeof useApp>, c: Collection): string {
-  return c.kind === "names" ? c.title : app.t(`${c.ns}.title`);
+  return c.kind === "names" ? app.t("names.title") : app.t(`${c.ns}.title`);
 }
 function collSub(app: ReturnType<typeof useApp>, c: Collection): string {
-  if (c.kind === "names") return c.subtitle;
+  if (c.kind === "names") return app.t("names.sub");
   return app.t(c.kind === "ref" ? `${c.ns}.subtitle` : `${c.ns}.sub`);
 }
 
@@ -71,11 +76,12 @@ export function Library() {
   const { tokens } = app;
   const [group, setGroup] = useState<Group>("faith");
 
-  const ids = group === "faith" ? FAITH_IDS : group === "life" ? LIFE_IDS : BOOK_IDS;
+  const ids = group === "faith" ? FAITH_IDS : group === "life" ? LIFE_IDS : group === "stories" ? STORIES_IDS : BOOK_IDS;
   const items = ids.map((id) => COLLECTION_BY_ID[id]).filter(Boolean) as Collection[];
   const tabs: { id: Group; label: string }[] = [
     { id: "faith", label: app.t("nav.faithMenu") },
     { id: "life", label: app.t("nav.lifeMenu") },
+    { id: "stories", label: app.t("nav.storiesMenu") },
     { id: "book", label: app.t("nav.bookMenu") },
   ];
 
@@ -84,24 +90,31 @@ export function Library() {
       <SegLabel>{app.t("m.lib.eyebrow")}</SegLabel>
       <BlockTitle style={{ marginTop: 8, marginBottom: 6 }}>{app.t("m.lib.title")}</BlockTitle>
       <Text style={{ fontSize: 13.5, lineHeight: 21, color: tokens.text2, marginBottom: 14 }}>
-        {app.t(group === "faith" ? "m.lib.faithSub" : group === "life" ? "m.lib.lifeSub" : "m.lib.bookSub")}
+        {app.t(group === "faith" ? "m.lib.faithSub" : group === "life" ? "m.lib.lifeSub" : group === "stories" ? "m.lib.storiesSub" : "m.lib.bookSub")}
       </Text>
 
-      {/* segmented control: Allah & Faith / Life Guidance */}
-      <View style={{ flexDirection: "row", gap: 8, backgroundColor: tokens.surface2, borderWidth: 1, borderColor: tokens.line, borderRadius: 13, padding: 4, marginBottom: 16 }}>
+      {/* segmented control: Allah & Faith / Life Guidance / Stories & Wisdom / Book.
+          Four tabs exceed the screen width, so the strip scrolls horizontally and
+          every label keeps the same font size (no per-tab shrinking). */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ flexGrow: 0, marginBottom: 16 }}
+        contentContainerStyle={{ gap: 6, backgroundColor: tokens.surface2, borderWidth: 1, borderColor: tokens.line, borderRadius: 13, padding: 4 }}
+      >
         {tabs.map((tb) => {
           const on = group === tb.id;
           return (
             <Pressable
               key={tb.id}
               onPress={() => setGroup(tb.id)}
-              style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 9, borderRadius: 10, backgroundColor: on ? tokens.brand : "transparent" }}
+              style={{ alignItems: "center", justifyContent: "center", paddingVertical: 9, paddingHorizontal: 16, borderRadius: 10, backgroundColor: on ? tokens.brand : "transparent" }}
             >
-              <Text style={{ fontSize: 13, fontFamily: FONTS.sans[on ? 700 : 600], color: on ? tokens.onBrand : tokens.text2 }}>{tb.label}</Text>
+              <Text numberOfLines={1} style={{ fontSize: 13, fontFamily: FONTS.sans[on ? 700 : 600], color: on ? tokens.onBrand : tokens.text2 }}>{tb.label}</Text>
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
 
       <View style={{ gap: 11 }}>
         {items.map((c) => <CollectionCard key={c.id} c={c} />)}
