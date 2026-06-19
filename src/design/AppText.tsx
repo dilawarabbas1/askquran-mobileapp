@@ -38,5 +38,15 @@ export const Text = React.forwardRef<RNText, TextProps>(function AppText(props, 
     // resolved; cast back to RN's style prop (UiTextStyle is intentionally loose).
     if (patched) style = patched as unknown as TextProps["style"];
   }
+  // Default chrome to the leading edge. RN's implicit default is physical "left",
+  // which leaves headings/labels stuck left under RTL; an explicit "left" instead
+  // gets mirrored to "right" by swapLeftAndRightInRTL, so every label that doesn't
+  // pin its own alignment follows the reading direction. Content that sets its own
+  // textAlign (centered Arabic, translations) keeps it — this only fills the gap.
+  if (flat.textAlign == null) {
+    style = [style, styles.lead];
+  }
   return <RNText ref={ref} {...props} style={style} />;
 });
+
+const styles = StyleSheet.create({ lead: { textAlign: "left" } });

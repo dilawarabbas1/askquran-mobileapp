@@ -3,8 +3,13 @@
 // onboarding → bottom-tab app (Search · Facts · Saved · Settings) with the
 // search → results → reader flow and the 44-language picker.
 
-import React, { useEffect } from "react";
-import { View } from "react-native";
+import React from "react";
+import { LogBox, View } from "react-native";
+
+// Suppress the known expo-av deprecation warning (we use it only for audio playback;
+// migration to expo-audio/expo-video is tracked separately). Dev-only — keeps the
+// LogBox notification from covering the bottom tab bar.
+LogBox.ignoreLogs(["Expo AV has been deprecated"]);
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
@@ -28,7 +33,6 @@ import { NotoNastaliqUrdu_400Regular, NotoNastaliqUrdu_500Medium } from "@expo-g
 
 import { AQProvider, useApp } from "@/design/AQContext";
 import { AppShell } from "@/design/AppShell";
-import { initPush } from "@/push";
 
 /** Drives the OS status-bar colour from the resolved theme. */
 function ThemedStatusBar() {
@@ -67,12 +71,6 @@ export default function App() {
     JuzName: require("./assets/fonts/JuzName.ttf"),
     QuranSymbols: require("./assets/fonts/QuranSymbols.ttf"),
   });
-
-  // Register this install for xNotify push once, after the app is interactive.
-  // No-op when the SDK isn't linked or no Push Key is configured.
-  useEffect(() => {
-    initPush();
-  }, []);
 
   if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: "#F4EEE0" }} />;
 

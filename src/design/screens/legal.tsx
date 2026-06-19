@@ -119,7 +119,6 @@ export function Privacy() {
           <DataRow cells={["Request source (web/mobile/api)", "Distinguish traffic for capacity planning", "Yes — logs"]} />
           <DataRow cells={["Timestamp", "Record when the query was made", "Yes — logs"]} />
           <DataRow cells={["Anonymous device ID (app only)", "Associate analytics events without identifying you personally", "Yes — xNotify analytics"]} />
-          <DataRow cells={["FCM push token (Android only)", "Deliver push notifications to your device", "Yes — Firebase/xNotify push"]} />
         </LegalCard>
         <P>
           <Bold>We do not collect:</Bold> names, email addresses, passwords, phone numbers, advertising
@@ -134,7 +133,6 @@ export function Privacy() {
         <Bullet>To understand which topics, languages, and editions are most useful to users</Bullet>
         <Bullet>To monitor for abuse and protect the service</Bullet>
         <Bullet>To track geographic reach for the purpose of expanding language support</Bullet>
-        <Bullet>To deliver push notifications about new features or Quran-related content (Android; you can disable in device Settings)</Bullet>
         <Bullet>To analyse anonymous in-app usage patterns via xNotify so we can improve the app experience</Bullet>
         <P>We do not use this information for advertising, profiling, or any commercial purpose.</P>
       </Section>
@@ -160,44 +158,29 @@ export function Privacy() {
       </Section>
 
       <Section>
-        <H2>5. Push Notifications (Firebase Cloud Messaging)</H2>
-        <P>
-          The Android version of AskQuran supports push notifications powered by{" "}
-          <Bold>Firebase Cloud Messaging (FCM)</Bold>, a service by Google, and xNotify's push delivery
-          layer. To enable delivery, the app registers an anonymous subscriber ID and your device's FCM
-          push token. No account, phone number, or personal identifier is used. Push notifications are
-          not yet active on iOS.
-        </P>
-        <P>
-          You may disable push notifications at any time from device Settings → Notifications → AskQuran.
-        </P>
-      </Section>
-
-      <Section>
-        <H2>6. Data Sharing</H2>
+        <H2>5. Data Sharing</H2>
         <P>
           We do not sell, rent, trade, or share your data with third parties for commercial purposes.
           The services below process data on our behalf as service providers:
         </P>
-        <Bullet>xNotify — anonymous in-app analytics and push notification delivery (mobile app)</Bullet>
-        <Bullet>Google Firebase Cloud Messaging — push token management and notification delivery (Android app)</Bullet>
+        <Bullet>xNotify — anonymous in-app analytics (mobile app)</Bullet>
         <P>
           We may disclose information if required by law or to protect the security of the service.
         </P>
       </Section>
 
       <Section>
-        <H2>7. Data Retention</H2>
+        <H2>6. Data Retention</H2>
         <P>
           Server-side analytics logs (search queries, IP addresses, timestamps) are retained for up
           to <Bold>12 months</Bold> for operational analysis and are then deleted or anonymised.
           Anonymous analytics events stored with xNotify are subject to xNotify's own retention
-          policy. FCM push tokens are retained only as long as necessary to deliver notifications.
+          policy.
         </P>
       </Section>
 
       <Section>
-        <H2>8. Cookies</H2>
+        <H2>7. Cookies</H2>
         <P>
           AskQuran itself does not use cookies for tracking or authentication. The website uses Google
           Analytics which may set cookies as described in section 3. Your preferences are stored on
@@ -206,7 +189,7 @@ export function Privacy() {
       </Section>
 
       <Section>
-        <H2>9. Children's Privacy</H2>
+        <H2>8. Children's Privacy</H2>
         <P>
           AskQuran is suitable for all ages. We do not knowingly collect any personal information from
           children under 13. Because we do not require registration, no age-specific data is collected.
@@ -214,16 +197,15 @@ export function Privacy() {
       </Section>
 
       <Section>
-        <H2>10. Security</H2>
+        <H2>9. Security</H2>
         <P>
           All data transmitted between your device and our server is encrypted using HTTPS/TLS.
-          Push notifications are delivered via FCM's encrypted transport. Server-side logs are
-          stored on a private, access-controlled server.
+          Server-side logs are stored on a private, access-controlled server.
         </P>
       </Section>
 
       <Section>
-        <H2>11. Changes to This Policy</H2>
+        <H2>10. Changes to This Policy</H2>
         <P>
           We may update this Privacy Policy from time to time. When we do, we will update the
           "Effective date" at the top of this page. Continued use of AskQuran after a policy update
@@ -259,7 +241,6 @@ export function DataSafety() {
     "Store which Quran translation you searched with",
     "Use Google Analytics on the website for page-view statistics (not in the mobile app)",
     "Collect anonymous in-app analytics events via xNotify, tied to a randomly generated device ID — no personal information attached",
-    "Register an anonymous FCM push token on Android to deliver push notifications",
     "Transmit all data over HTTPS/TLS encryption",
   ];
   const dontList = [
@@ -273,21 +254,21 @@ export function DataSafety() {
   ];
   const qa: [string, React.ReactNode][] = [
     ["Does this app collect or share any of the required user data types?",
-      <Text><Bold>Yes — data is collected.</Bold> The app sends search queries to our backend server and, on the mobile app, collects anonymous analytics events and an FCM push token for notification delivery.</Text>],
+      <Text><Bold>Yes — data is collected.</Bold> The app sends search queries to our backend server and, on the mobile app, collects anonymous analytics events.</Text>],
     ["Is all of the user data collected by this app encrypted in transit?",
-      <Text><Bold>Yes.</Bold> All communication uses HTTPS/TLS. Push notifications are delivered over Firebase Cloud Messaging's encrypted transport.</Text>],
+      <Text><Bold>Yes.</Bold> All communication uses HTTPS/TLS.</Text>],
     ["Do you provide a way for users to request that their data is deleted?",
       <Text><Bold>No formal deletion mechanism exists</Bold> — AskQuran has no accounts, so there is no account to delete. Users may contact us at {CONTACT} with questions about their data.</Text>],
     ["Data type: App Activity → App interactions / Search history",
       <Text><Bold>Collected.</Bold> Search query text is transmitted to and stored on our server.{"\n"}Purpose: App functionality + Analytics.{"\n"}Required? No. Shared with third parties? No.</Text>],
     ["Data type: Device or other IDs (device ID, anonymous identifier)",
-      <Text><Bold>Collected on the mobile app.</Bold> A randomly generated anonymous distinct_id is stored on the device and used by xNotify to associate analytics events. An anonymous FCM subscriber ID and push token are registered on Android for notification delivery. No advertising ID or personal identifier is used.{"\n"}Purpose: App functionality (push) + Analytics.{"\n"}Shared with third parties? No — xNotify and Firebase act as service providers processing data on AskQuran's behalf.</Text>],
+      <Text><Bold>Collected on the mobile app.</Bold> A randomly generated anonymous distinct_id is stored on the device and used by xNotify to associate analytics events. No advertising ID or personal identifier is used.{"\n"}Purpose: Analytics.{"\n"}Shared with third parties? No — xNotify acts as a service provider processing data on AskQuran's behalf.</Text>],
     ["Data type: Personal info (name, email, phone, address)",
       <Text><Bold>Not collected.</Bold> No registration or login exists.</Text>],
     ["Data type: Location (precise or approximate)",
       <Text><Bold>Approximate location only</Bold> — a country code is derived server-side from the IP address using an offline GeoIP database. The device's GPS or network location is never requested or accessed.</Text>],
     ["Does this app share user data with third parties?",
-      <Text><Bold>No.</Bold> xNotify and Firebase Cloud Messaging are service providers that process data on AskQuran's behalf — they are not independent third parties receiving data for their own use. Data is never sold or shared for commercial purposes. Google Analytics is used on the website only, not in the mobile app.</Text>],
+      <Text><Bold>No.</Bold> xNotify is a service provider that processes data on AskQuran's behalf — not an independent third party receiving data for its own use. Data is never sold or shared for commercial purposes. Google Analytics is used on the website only, not in the mobile app.</Text>],
     ["Is this app designed primarily for children under 13?",
       <Text><Bold>No</Bold> — it is suitable for all ages but not designed exclusively for children.</Text>],
   ];
@@ -333,7 +314,6 @@ export function DataSafety() {
           <DataRow cells={["Country code (from IP)", "Yes", "No"]} />
           <DataRow cells={["Translation preference", "Yes", "No"]} />
           <DataRow cells={["Anonymous device ID (app)", "Yes — random, not linked to identity", "No"]} />
-          <DataRow cells={["FCM push token (Android)", "Yes — anonymous token only", "No"]} />
           <DataRow cells={["Advertising ID", "No", "—"]} />
           <DataRow cells={["Name / email / phone", "No", "—"]} />
           <DataRow cells={["Location (precise)", "No", "—"]} />

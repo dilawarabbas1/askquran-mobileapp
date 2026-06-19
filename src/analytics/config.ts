@@ -35,13 +35,3 @@ export const ANALYTICS_ENABLED = EVENT_KEY.length > 0;
 
 /** Tags every event's `source` so xNotify attributes it to the mobile surface. */
 export const EVENT_SOURCE = "mobile";
-
-// --- xNotify Push (react-native-xpush) ---
-// The Push SDK Key (propertyId) from the portal's Configure SDK page. A CREDENTIAL
-// — never hardcoded; injected via env. Passed as the 2nd arg to
-// Xpush.initialize(subscriberId, propertyId). Empty until push is wired + Firebase
-// is configured, so any push bootstrap stays inert until both are present.
-export const PUSH_PROPERTY_ID = (process.env.EXPO_PUBLIC_XNOTIFY_PUSH_PROPERTY_ID || "").trim();
-
-/** True only once a Push SDK Key is configured. */
-export const PUSH_CONFIGURED = PUSH_PROPERTY_ID.length > 0;

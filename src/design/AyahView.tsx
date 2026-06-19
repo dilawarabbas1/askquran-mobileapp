@@ -17,6 +17,8 @@ import { expandRefs } from "./lib/refs";
 import { SURAHS } from "./refData";
 import { getVerses, getTafsir, type AyahResult } from "@/api";
 import { track } from "@/analytics";
+import { QuranText } from "../quran/QuranText";
+import { saFromKey } from "../quran/qpcIndex";
 
 const SURAH_META = new Map<number, { name: string; ar: string }>(
   SURAHS.map((r) => [r[0], { name: r[2], ar: r[1] }]),
@@ -110,10 +112,17 @@ function AyahRow({
         ) : null}
       </View>
 
-      <Text style={{ fontFamily: FONTS.ar, fontSize: 23, lineHeight: 44, color: tokens.arColor, textAlign: "right", writingDirection: "rtl" }}>{v.arabic}</Text>
+      {(() => {
+        // QPC V2 glyphs; the verse key is shown above, so suppress the baked
+        // medallion (no duplicate number). Falls back to Unicode for range keys.
+        const sa = saFromKey(v.verseKey);
+        return sa
+          ? <QuranText surah={sa.surah} ayah={sa.ayah} uthmani={v.arabic} suppressMedallion color={tokens.arColor} fontSize={26} lineHeight={58} />
+          : <Text style={{ fontFamily: FONTS.ar, fontSize: 26, lineHeight: 58, color: tokens.arColor, textAlign: "justify", writingDirection: "rtl" }}>{v.arabic}</Text>;
+      })()}
 
       {v.transliteration ? (
-        <Text style={{ fontFamily: FONTS.serif.italic, fontStyle: "italic", fontSize: 15, lineHeight: 24, color: tokens.text3, marginTop: 7 }}>{v.transliteration}</Text>
+        <Text style={{ fontFamily: FONTS.serif.italic, fontStyle: "italic", fontSize: 16, lineHeight: 26, color: tokens.text3, marginTop: 7 }}>{v.transliteration}</Text>
       ) : null}
 
       {v.translation ? (

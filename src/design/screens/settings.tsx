@@ -13,7 +13,7 @@ import type { Appearance } from "../AQContext";
 function Group({ label, tokens, children }: { label: string; tokens: Tokens; children: React.ReactNode }) {
   return (
     <View style={{ marginTop: 22 }}>
-      <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[700], letterSpacing: 1.35, textTransform: "uppercase", color: tokens.text3, marginHorizontal: 4, marginBottom: 9 }}>{label}</Text>
+      <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[700], letterSpacing: 1.35, textTransform: "uppercase", color: tokens.text3, marginHorizontal: 4, marginBottom: 9, textAlign: "left" }}>{label}</Text>
       <View style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 15, overflow: "hidden" }, tokens.cardShadow]}>{children}</View>
     </View>
   );
@@ -29,8 +29,11 @@ function Row({
         <Icon name={icon} size={17} color={tokens.brand} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 14, fontFamily: FONTS.sans[600], color: tokens.text }}>{title}</Text>
-        {sub ? <Text style={{ fontSize: 11.5, color: tokens.text2, marginTop: 1 }}>{sub}</Text> : null}
+        {/* Hug the icon side: textAlign "left" auto-swaps to "right" under RTL
+            (RN swapLeftAndRightInRTL), so title/sub sit beside the icon in both
+            directions instead of floating mid-row. */}
+        <Text style={{ fontSize: 14, fontFamily: FONTS.sans[600], color: tokens.text, textAlign: "left" }}>{title}</Text>
+        {sub ? <Text style={{ fontSize: 11.5, color: tokens.text2, marginTop: 1, textAlign: "left" }}>{sub}</Text> : null}
       </View>
       {right}
     </Wrap>

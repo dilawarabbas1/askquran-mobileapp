@@ -116,11 +116,20 @@ export async function getTafsirLanguages(): Promise<string[]> {
   }
 }
 
+// A language can have several editions (Urdu ships 8). Where the owner has a
+// preferred default, pin it by id; we still fall back to the first matching
+// edition if that id isn't in the catalog. Keyed by lowercased language name.
+const PREFERRED_EDITION: Record<string, string> = {
+  urdu: "ur.maududi", // ابوالاعلی مودودی
+};
+
 /** Resolve a translation edition id for a UI language name ("English"/"Urdu"…). */
 export async function translationIdForLanguage(language: string): Promise<string | undefined> {
   try {
     const { default: def, translations } = await getTranslations();
     const want = language.toLowerCase();
+    const preferredId = PREFERRED_EDITION[want];
+    if (preferredId && translations.some((t) => t.id === preferredId)) return preferredId;
     const match = translations.find((t) => t.language?.toLowerCase().includes(want));
     return match?.id ?? def;
   } catch {

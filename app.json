@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ask Quran",
     "slug": "askquran-mobileapp",
-    "version": "1.3.7",
+    "version": "1.3.11",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "scheme": "askquran",
@@ -21,19 +21,12 @@
       "bundleIdentifier": "co.askquran.app",
       "buildNumber": "1",
       "infoPlist": {
-        "UIBackgroundModes": [
-          "remote-notification"
-        ],
-        "NSCameraUsageDescription": "Ask Quran does not use the camera.",
-        "NSMicrophoneUsageDescription": "Ask Quran does not use the microphone."
-      },
-      "entitlements": {
-        "aps-environment": "production"
+        "NSCameraUsageDescription": "Ask Quran does not use the camera."
       }
     },
     "android": {
       "package": "co.askquran.app",
-      "versionCode": 27,
+      "versionCode": 29,
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -50,7 +43,8 @@
             "buildToolsVersion": "35.0.0"
           }
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "web": {
       "bundler": "metro",

@@ -9,13 +9,15 @@ import { SvgXml } from "react-native-svg";
 import { useApp } from "./AQContext";
 import { Icon } from "./Icon";
 import { AudioBar } from "./AudioBar";
-import { scriptKind } from "./lib/rtl";
+import { physicalLeft, physicalRight, scriptKind } from "./lib/rtl";
 import { copyAyah, shareAyah } from "./lib/ayahActions";
 import { withHonorifics } from "./lib/honorifics";
 import type { AyahItem } from "./data";
 import { FONTS, mix, type Tokens } from "./tokens";
 import { track } from "@/analytics";
 import { surahName, surahNoFromRef } from "@/analytics/events";
+import { QuranText } from "../quran/QuranText";
+import { saFromKey } from "../quran/qpcIndex";
 
 /* ---------- translation text style by language (RTL-aware) ----------
  * Urdu → Nastaliq RTL; other RTL languages (Arabic, Persian, Pashto, Sindhi,
@@ -31,14 +33,13 @@ import { surahName, surahNoFromRef } from "@/analytics/events";
 export function translationStyle(language: string, tokens: Tokens, scale = 1) {
   const k = scriptKind(language);
   const r = (n: number) => Math.round(n * scale * 10) / 10;
-  // Urdu translation is right-aligned to match the RTL reading direction, so the
-  // Nastaliq lines start at the right margin like the rest of the RTL languages.
-  if (k === "ur") return { fontSize: r(18), lineHeight: r(48), color: tokens.text, fontFamily: FONTS.ur[400], textAlign: "right" as const, writingDirection: "rtl" as const };
-  if (k === "rtl") return { fontSize: r(19), lineHeight: r(40), color: tokens.text, fontFamily: FONTS.ar, textAlign: "right" as const, writingDirection: "rtl" as const };
-  // Pin LTR explicitly: without it, an English translation inherits the global
-  // layout direction and renders right-aligned whenever the interface language is
-  // RTL (I18nManager.forceRTL stays true process-wide after an Urdu relaunch).
-  return { fontSize: r(15.5), lineHeight: r(27), color: tokens.text, fontFamily: FONTS.serif[400], textAlign: "left" as const, writingDirection: "ltr" as const };
+  // Align each translation to its own physical reading edge regardless of the
+  // interface direction (see physicalRight/physicalLeft — they pre-compensate for
+  // RN's swapLeftAndRightInRTL). Hardcoding "right"/"left" broke this: under the
+  // Urdu UI the swap turned an Urdu translation's "right" into a physical left.
+  if (k === "ur") return { fontSize: r(18), lineHeight: r(48), color: tokens.text, fontFamily: FONTS.ur[400], textAlign: physicalRight(), writingDirection: "rtl" as const };
+  if (k === "rtl") return { fontSize: r(19), lineHeight: r(40), color: tokens.text, fontFamily: FONTS.ar, textAlign: physicalRight(), writingDirection: "rtl" as const };
+  return { fontSize: r(15.5), lineHeight: r(27), color: tokens.text, fontFamily: FONTS.serif[400], textAlign: physicalLeft(), writingDirection: "ltr" as const };
 }
 
 /* ---------- logo mark (lens + open book) ---------- */
@@ -153,7 +154,7 @@ function Surrounding({ item, tokens }: { item: AyahItem; tokens: Tokens }) {
           <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 0.4, color: tokens.text3, marginBottom: 5 }}>
             {n.ref}{n.center ? " · matched" : ""}
           </Text>
-          <Text style={{ fontFamily: FONTS.ar, fontSize: 18, lineHeight: 33, color: tokens.arColor, textAlign: "right", writingDirection: "rtl" }}>{n.ar}</Text>
+          <Text style={{ fontFamily: FONTS.ar, fontSize: 18, lineHeight: 33, color: tokens.arColor, textAlign: physicalRight(), writingDirection: "rtl" }}>{n.ar}</Text>
           <Text style={[translationStyle(language, tokens, 0.9), { color: tokens.text2, marginTop: 4 }]}>{n.en}</Text>
         </View>
       ))}
@@ -198,12 +199,19 @@ export function AyahCard({ item, rank }: { item: AyahItem; rank?: number }) {
 
       {/* arabic */}
       <Pressable onPress={() => app.openReader(item)}>
-        <Text style={{ fontFamily: FONTS.ar, fontSize: 27, lineHeight: 54, color: tokens.arColor, textAlign: "center", writingDirection: "rtl", paddingVertical: 4 }}>{item.arabic}</Text>
+        {(() => {
+          // QPC V2 glyphs (ref shown in the header → medallion suppressed); ayah
+          // justified per the app-wide rule. Range refs fall back to Unicode.
+          const sa = saFromKey(item.ref);
+          return sa
+            ? <View style={{ paddingVertical: 4 }}><QuranText surah={sa.surah} ayah={sa.ayah} uthmani={item.arabic} suppressMedallion color={tokens.arColor} fontSize={26} lineHeight={58} /></View>
+            : <Text style={{ fontFamily: FONTS.ar, fontSize: 26, lineHeight: 58, color: tokens.arColor, textAlign: "justify", writingDirection: "rtl", paddingVertical: 4 }}>{item.arabic}</Text>;
+        })()}
       </Pressable>
       {/* transliteration — Arabic in Latin script, computed server-side; helps
           readers who can't read the Arabic script. Only shown when present. */}
       {item.transliteration ? (
-        <Text style={{ fontFamily: FONTS.serif[400], fontStyle: "italic", fontSize: 13.5, lineHeight: 22, color: tokens.text3, textAlign: "center", marginTop: 6 }}>
+        <Text style={{ fontFamily: FONTS.serif[400], fontStyle: "italic", fontSize: 16, lineHeight: 26, color: tokens.text3, textAlign: "center", marginTop: 6 }}>
           {item.transliteration}
         </Text>
       ) : null}

@@ -172,6 +172,9 @@ export function LangList({ selected, onSelect, q, setQ, filterLangs }: { selecte
           const on = selected === l.name;
           return (
             <Pressable key={l.code} onPress={() => onSelect(l.name)} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 11, borderWidth: 1, borderColor: on ? tokens.brand : tokens.line, backgroundColor: on ? mix(tokens.brand, 7, tokens.surface) : tokens.surface }}>
+              {/* left/right here mirror automatically under RTL via RN's default
+                  swapLeftAndRightInRTL: in LTR the English label leads (left) and
+                  the native name trails (right); in RTL both flip cleanly. */}
               <Text numberOfLines={1} style={{ flex: 1, textAlign: "left", fontSize: 14, fontFamily: FONTS.sans[700], color: tokens.text }}>{l.name}</Text>
               <Text numberOfLines={1} style={{ maxWidth: "52%", textAlign: "right", fontSize: 13.5, fontFamily: FONTS.sans[500], color: on ? tokens.brand2 : tokens.text2 }}>{l.native}</Text>
               <View style={{ width: 16, height: 16, alignItems: "center", justifyContent: "center", opacity: on ? 1 : 0 }}>

@@ -20,6 +20,7 @@ import { RefList } from "./RefList";
 import { Passage } from "./screens/passage";
 import { Saved } from "./screens/saved";
 import { Settings } from "./screens/settings";
+import { FontTest } from "./screens/fonttest";
 import { COLLECTION_BY_ID } from "./refData";
 import { FONTS, mix } from "./tokens";
 
@@ -93,7 +94,7 @@ function AppBar({ screen }: { screen: Screen }) {
   const [titleKey, subKey] = TITLE_KEYS[screen] ?? [screen, null];
   const title = passageTitle ?? refTitle ?? (TITLE_KEYS[screen] ? app.t(titleKey) : screen);
   const sub = subKey ? app.t(subKey) : null;
-  const pushed = screen === "reader" || screen === "refList" || screen === "passage" || screen === "about" || screen === "privacy" || screen === "dataSafety";
+  const pushed = screen === "reader" || screen === "refList" || screen === "passage" || screen === "about" || screen === "privacy" || screen === "dataSafety" || screen === "fonttest";
   const showGlobe = screen === "facts" || screen === "recite" || screen === "refList" || screen === "passage";
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 12, backgroundColor: tokens.bg, borderBottomWidth: pushed ? 1 : 0, borderBottomColor: tokens.lineSoft }}>
@@ -141,6 +142,7 @@ function ScreenRouter({ screen }: { screen: Screen }) {
     case "dataSafety": return <DataSafety />;
     case "saved": return <Saved />;
     case "settings": return <Settings />;
+    case "fonttest": return <FontTest />;
     default: return <SearchHome />;
   }
 }
@@ -203,7 +205,9 @@ function MainApp() {
       <Animated.View style={{ flex: 1, opacity: fade }}>
         <ScreenRouter screen={screen} />
       </Animated.View>
-      <TabBar />
+      {/* Hide the bottom tab bar while Recite audio plays — frees the maximum vertical
+          room for long ayahs (owner request 2026-06-18). Restored the moment it pauses. */}
+      {app.recitePlaying ? null : <TabBar />}
     </View>
   );
 }

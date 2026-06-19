@@ -11,6 +11,7 @@ import { BlockTitle, SegLabel } from "../atoms";
 import { Icon, RawIcon } from "../Icon";
 import { FONTS, mix } from "../tokens";
 import { COLLECTION_BY_ID, type Collection } from "../refData";
+import { QuranText } from "../../quran/QuranText";
 
 // Grouped menus, mirroring the web header's "Allah & Faith" / "Life Guidance" /
 // "Stories & Wisdom" dropdowns (NavMore.tsx). Order matches the web
@@ -176,7 +177,8 @@ export function About() {
 
       {/* ayah feature — SOURCE TEXT, verbatim */}
       <View style={[{ backgroundColor: mix(tokens.gold, 7, tokens.surface), borderWidth: 1, borderColor: mix(tokens.gold, 30, tokens.line), borderRadius: 16, paddingHorizontal: 18, paddingVertical: 18, marginTop: 6 }, tokens.cardShadow]}>
-        <Text style={{ fontFamily: FONTS.ar, fontSize: 24, lineHeight: 46, color: tokens.arColor, textAlign: "center", writingDirection: "rtl" }}>ذَٰلِكَ الْكِتَابُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ</Text>
+        {/* 2:2 — verbatim source quote, rendered in QPC V2 (decorative; no number). */}
+        <QuranText surah={2} ayah={2} uthmani={"ذَٰلِكَ الْكِتَابُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ"} suppressMedallion color={tokens.arColor} fontSize={26} lineHeight={58} />
         <View style={{ height: 1, backgroundColor: tokens.lineSoft, marginVertical: 12 }} />
         <Text style={{ fontFamily: FONTS.serif.italic, fontStyle: "italic", fontSize: 14, lineHeight: 22, color: tokens.text, textAlign: "center" }}>
           “This is the Book about which there is no doubt, a guidance for those conscious of Allah.”

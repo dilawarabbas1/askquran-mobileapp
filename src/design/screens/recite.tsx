@@ -12,12 +12,16 @@ import { useApp } from "../AQContext";
 import { Icon } from "../Icon";
 import { SearchBar } from "../SearchBar";
 import { translationStyle } from "../atoms";
+import { physicalRight, physicalRow } from "../lib/rtl";
 import { SURAHS } from "../data";
 import { BISMILLAH, BISMILLAH_AUDIO_URL, ayahAudioUrl } from "../reciteData";
 import { FONTS, mix, type Tokens } from "../tokens";
 import { getVerses, getTafsir, translationIdForLanguage, AqError } from "@/api";
 import { track } from "@/analytics";
-import { displayAyahNumber, scrollTargetForList, scrollTargetForFlow, flowCharFraction, flowLineYForMarker, scrollTargetForLine, topAyahForList, flowIndexAtScroll } from "../lib/reciteScroll";
+import { displayAyahNumber, scrollTargetForList, flowCharFraction, topAyahForList, flowIndexAtScroll } from "../lib/reciteScroll";
+import { QuranText } from "../../quran/QuranText";
+import { qpcAyah, qpcPage, qpcPagesFor, stripMedallion } from "../../quran/qpcIndex";
+import { ensureQpcPage, isPageReady, qpcFamily } from "../../quran/qpcFonts";
 
 /** The single reciter the recite screen streams (no switching UI exists). */
 const RECITER = "Mishary Alafasy";
@@ -194,6 +198,9 @@ export function Recite() {
   const [mode, setMode] = useState<"surah" | "single">("surah");
   const [repeat, setRepeat] = useState(false);
   const [progress, setProgress] = useState(0);
+  // Bumped whenever a QPC page font finishes registering, so ayahs on that page
+  // re-render from the Unicode fallback into their authentic Madinah-mushaf glyphs.
+  const [, setQpcTick] = useState(0);
 
   // Per-ayah tafsir, loaded lazily on "View tafsir" (stored sources, in the
   // chosen language) — keeps the surah payload light.
@@ -237,6 +244,7 @@ export function Recite() {
   // By Surah (one continuous Text whose ayahs can't be measured individually) we
   // map the ayah's character-weighted position over the measured surah-card span.
   const scrollRef = useRef<ScrollView>(null);
+  const scrollViewHRef = useRef(0); // visible reading-area height (ScrollView), for centering
   const ayahYRef = useRef<Record<number, number>>({});
   // By Surah: per-line layout of the continuous flow Text (text + Y from
   // onTextLayout). We locate the reciting ayah by the line carrying the PREVIOUS
@@ -296,30 +304,75 @@ export function Recite() {
     // This is a programmatic scroll — clear the user-drag flag so its settling
     // doesn't get mistaken for a user scroll and re-save (drifting) the position.
     userScrollRef.current = false;
+    // Center the reciting ayah in the visible reading area (not near the top) so it
+    // never gets clipped against the bottom translation/player box. Placing the ayah's
+    // start ~38% down leaves its body centered with margin below.
+    const centerOffset = Math.round((scrollViewHRef.current || 520) * 0.38);
     if (st.reciteView === "list") {
       const y = ayahYRef.current[target];
       if (y == null) return;
-      sv.scrollTo({ y: scrollTargetForList(y), animated: true });
+      sv.scrollTo({ y: scrollTargetForList(y, centerOffset), animated: true });
     } else {
       const visible = st.ayahs.filter((a) => !(st.num === 1 && a.n === 1));
       const idx = visible.findIndex((a) => a.n === target);
       if (idx < 0) return;
-      // Char-fraction estimate over the measured card span — the always-available fallback.
-      const frac = flowCharFraction(visible.map((a) => a.ar?.length ?? 0), idx);
-      const estimate = () =>
-        sv.scrollTo({ y: scrollTargetForFlow(frac, flowCardTopRef.current, flowCardHeightRef.current), animated: true });
-      // Preferred: scroll to the exact line where this ayah begins. The line is
-      // the one carrying the PREVIOUS ayah's marker (`۝<numeral>`); the first ayah
-      // begins at the top of the text (marker = null → Y 0).
-      const prevMarker = idx === 0 ? null : `۝${toArabicNumeral(displayAyahNumber(st.num, visible[idx - 1].n))}`;
-      const lineY = flowLineYForMarker(flowLinesRef.current, prevMarker);
-      if (lineY == null) {
-        estimate();
+      const visibleH = scrollViewHRef.current || 520;
+      const FLOW_LINE = 58; // matches the By-Surah flow Text lineHeight
+      const textTop = flowCardTopRef.current + flowInnerTopRef.current + flowTextTopRef.current;
+      // Locate the ayah by its CHARACTER OFFSET into the concatenated flow string, then
+      // resolve that offset to a real measured line Y. We deliberately do NOT search the
+      // line text for the ayah's QPC glyph: QPC V2 reuses the same private-use codepoints
+      // on every page (each page font draws them differently), so a code match lands on
+      // the FIRST page that reuses it — usually a far earlier ayah. And a plain char-
+      // FRACTION × cardHeight is too coarse over a long surah (286 ayahs ≈ 57000px, so a
+      // 2% estimate error is ~1000px / ~20 lines). Char offset → exact line Y is precise.
+      const lenOf = (a: { n: number; ar?: string }): number => {
+        const page = qpcPage(st.num, a.n);
+        const entry = qpcAyah(st.num, a.n);
+        const marker = st.num === 1 ? ` ۝${toArabicNumeral(displayAyahNumber(st.num, a.n))} `.length : 0;
+        if (page != null && entry != null && isPageReady(page)) {
+          const g = st.num === 1 ? stripMedallion(entry.g) : entry.g;
+          return g.length + marker + (st.num === 1 ? 0 : 1); // +1 = trailing space after the medallion
+        }
+        return (a.ar?.length ?? 0) + ` ۝${toArabicNumeral(displayAyahNumber(st.num, a.n))} `.length;
+      };
+      let startOff = 1; // leading RLM (U+200F) is the first rendered char
+      for (let i = 0; i < idx; i++) startOff += lenOf(visible[i]);
+      const endOff = startOff + lenOf(visible[idx]);
+      const lines = flowLinesRef.current;
+      let top: number | null = null;
+      let bottom: number | null = null;
+      let cum = 0;
+      for (let i = 0; i < lines.length; i++) {
+        const t = lines[i].text ?? "";
+        const lineEnd = cum + t.length;
+        const ly = lines[i].y ?? i * FLOW_LINE;
+        const lh = (lines[i] as { height?: number }).height ?? FLOW_LINE;
+        if (top === null && lineEnd > startOff) top = textTop + ly;
+        if (lineEnd >= endOff) { bottom = textTop + ly + lh; break; }
+        cum = lineEnd;
+      }
+      if (top === null) {
+        // Lines not measured yet → coarse char-fraction estimate, centered.
+        const frac = flowCharFraction(visible.map((a) => a.ar?.length ?? 0), idx);
+        const cardTop = flowCardTopRef.current;
+        const cardH = flowCardHeightRef.current;
+        const est = cardTop + frac * cardH;
+        sv.scrollTo({ y: Math.max(est - visibleH * 0.38, 0), animated: true });
         return;
       }
-      // Flow Text's content-relative top = card top + inner-border offset + text offset.
-      const textTop = flowCardTopRef.current + flowInnerTopRef.current + flowTextTopRef.current;
-      sv.scrollTo({ y: scrollTargetForLine(lineY, textTop), animated: true });
+      if (bottom === null) bottom = top + FLOW_LINE;
+      const ayahH = Math.max(bottom - top, FLOW_LINE);
+      // Keep the ayah's LAST line clear of the bottom translation/player box (the owner's
+      // hard requirement). If the whole ayah fits the reading area, CENTER it. If it's
+      // taller than the area, BOTTOM-align it (last line just above the box) rather than
+      // top-aligning — top-align would push the final line under the box. Bottom-align is
+      // also self-correcting if `ayahH` is over-measured (e.g. Android's onTextLayout line
+      // metrics differ): the end stays visible no matter what.
+      const y = ayahH <= visibleH - 24
+        ? top - (visibleH - ayahH) / 2
+        : bottom - (visibleH - 24);
+      sv.scrollTo({ y: Math.max(y, 0), animated: true });
     }
   }
 
@@ -333,6 +386,14 @@ export function Recite() {
     scrollToAyah(activeAyah);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeAyah, app.reciteView]);
+
+  // Mirror playback state to the shell so it can hide the bottom tab bar while playing
+  // (more room for long ayahs). Always restore (false) when leaving the Recite screen.
+  useEffect(() => {
+    app.setRecitePlaying(playing);
+    return () => app.setRecitePlaying(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing]);
 
   // Persist the spot the reciter has reached so a returning user can resume it.
   useEffect(() => {
@@ -398,6 +459,12 @@ export function Recite() {
       if (my !== loadTokenRef.current) return;
       const loaded = verses.map((v) => ({ n: v.ayah, ar: v.arabic, tr: v.translation || "" }));
       setAyahs(loaded);
+      // Warm the QPC V2 page fonts this surah spans. Each ayah renders its Unicode
+      // text immediately and upgrades to authentic Madinah-mushaf glyphs as its page
+      // font registers (qpcTick re-render). Fire-and-forget; never blocks load.
+      for (const p of qpcPagesFor(loaded.map((a) => ({ surah: num, ayah: a.n })))) {
+        void ensureQpcPage(p).then((ok) => { if (ok && my === loadTokenRef.current) setQpcTick((t) => t + 1); });
+      }
       setTafOpen(new Set());
       setTafData({});
       setLoading(false);
@@ -498,16 +565,25 @@ export function Recite() {
       if (activeAyah) track("audio_paused", { surah_name: name, ayah_key: `${num}:${activeAyah}`, progress_percent: Math.round(progress * 100) });
       return;
     }
-    if (s) { try { await s.playAsync(); setPlaying(true); } catch { /* noop */ } return; }
+    if (s) {
+      // Resume the loaded (paused) audio. activeAyah is unchanged, so the
+      // audio-follow effect won't re-fire — scroll to the playing spot explicitly
+      // so the view returns to what's reciting (top for the Bismillah prelude).
+      try { await s.playAsync(); setPlaying(true); } catch { /* noop */ }
+      if (activeAyah != null) scrollToAyah(activeAyah);
+      else scrollRef.current?.scrollTo({ y: 0, animated: true });
+      return;
+    }
     if (ayahs) {
       // Resume: an ayah is highlighted but nothing is loaded (a restored spot, or a
       // step/scrub target) — continue the surah from there rather than restarting.
-      if (activeAyah != null) { loadAndPlay(activeAyah, "surah"); return; }
+      if (activeAyah != null) { loadAndPlay(activeAyah, "surah"); scrollToAyah(activeAyah); return; }
       // Fresh whole-surah playback — auto-advance through ayahs fires no events.
       track("surah_played", { surah_name: name, surah_no: num, ayah_count: cnt, reciter: RECITER });
       // Recite the Bismillah first, then ayah 1 — except Al-Fatiha (ayah 1 already
-      // is the basmala) and At-Tawbah (9, no basmala).
-      if (showBismillah && num !== 1) playBismillah();
+      // is the basmala) and At-Tawbah (9, no basmala). Scroll to the top so the
+      // reader sees the recitation start (the Bismillah has no ayah to auto-follow).
+      if (showBismillah && num !== 1) { playBismillah(); scrollRef.current?.scrollTo({ y: 0, animated: true }); }
       else loadAndPlay(ayahs[0].n, "surah");
     }
   }
@@ -547,7 +623,11 @@ export function Recite() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* surah header */}
+      {/* Surah picker + By Ayah/By Surah toggle + translation-language pill. Hidden while
+          audio is playing to free vertical room so long ayahs show in full (owner request
+          2026-06-18); the top app-bar globe still opens the same language sheet, so language
+          stays reachable "next to the world icon." Restored the moment playback pauses. */}
+      {!playing ? (
       <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14 }}>
         <Pressable onPress={app.openSurahSheet} style={[{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12 }, tokens.cardShadow]}>
           <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: mix(tokens.brand, 11), borderWidth: 1, borderColor: mix(tokens.brand, 22, tokens.line) }}>
@@ -563,7 +643,9 @@ export function Recite() {
           <Icon name="chevDown" size={16} w={2.1} color={tokens.text3} />
         </Pressable>
 
-        {/* By Ayah / By Surah view toggle + translation-language control on one row */}
+        {/* By Ayah / By Surah view toggle + translation-language control on one row.
+            By-Surah is the DEFAULT (owner request 2026-06-18) but both tabs stay available
+            and reappear when playback pauses. */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 11 }}>
           <View style={{ flex: 1, flexDirection: "row", backgroundColor: tokens.surface2, borderWidth: 1, borderColor: tokens.line, borderRadius: 11, padding: 3 }}>
             {([
@@ -593,10 +675,12 @@ export function Recite() {
           </Pressable>
         </View>
       </View>
+      ) : null}
 
       {/* body */}
       <ScrollView
         ref={scrollRef}
+        onLayout={(e) => { scrollViewHRef.current = e.nativeEvent.layout.height; }}
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: 14 }}
         showsVerticalScrollIndicator={false}
@@ -639,17 +723,49 @@ export function Recite() {
                 <Text
                   onLayout={(e) => { flowTextTopRef.current = e.nativeEvent.layout.y; }}
                   onTextLayout={(e) => { flowLinesRef.current = e.nativeEvent.lines; }}
-                  style={{ fontFamily: FONTS.ar, fontSize: 26, lineHeight: 58, color: tokens.arColor, textAlign: "justify", writingDirection: "rtl", paddingVertical: 18, paddingHorizontal: 16 }}
+                  style={{ fontFamily: FONTS.ar, fontSize: 26, lineHeight: 58, color: tokens.arColor, textAlign: "justify", writingDirection: "rtl", direction: "rtl", paddingVertical: 18, paddingHorizontal: 16 }}
                 >
+                  {/* Leading RLM (U+200F): QPC glyphs are bidi-neutral PUA, so force the
+                      paragraph's base direction RTL — else justify hugs the left edge. */}
+                  {"‏"}
                   {ayahs.filter((a) => !(num === 1 && a.n === 1)).map((a) => {
                     const on = activeAyah === a.n;
                     const dispNum = displayAyahNumber(num, a.n);
+                    const hl = on ? { backgroundColor: mix(tokens.brand, 13, tokens.surface) } : null;
+                    const page = qpcPage(num, a.n);
+                    const entry = qpcAyah(num, a.n);
+                    const qpcReady = page != null && entry != null && isPageReady(page);
+                    // Amiri ۝ (U+06DD, ARABIC END OF AYAH) renders a clean ring around the
+                    // Arabic-Indic digit — used as the verse marker in the Unicode fallback
+                    // and as Al-Fatihah's own number (its baked QPC medallion is suppressed).
+                    const marker = (
+                      <Text style={{ fontFamily: FONTS.ar, fontSize: 24, color: tokens.orn, textAlign: "justify", writingDirection: "rtl" }}>{` ۝${toArabicNumeral(dispNum)} `}</Text>
+                    );
+                    if (qpcReady) {
+                      // Al-Fatihah: strip the baked medallion (it counts the bismillah) and
+                      // show our own number. Every other surah keeps the native medallion.
+                      const glyphs = num === 1 ? stripMedallion(entry.g) : entry.g;
+                      // Glyphs go DIRECTLY on the highlighted Text (page font on it too) — a
+                      // Text's backgroundColor only paints its own text runs, NOT nested child
+                      // Texts, so nesting the glyphs left the active-ayah highlight uncovered.
+                      return (
+                        <Text key={a.n} onPress={() => toggleAyah(a.n)} accessibilityLabel={a.ar} style={{ fontFamily: qpcFamily(page), textAlign: "justify", writingDirection: "rtl", ...hl }}>
+                          {glyphs}
+                          {/* The QPC glyph string already has a space BEFORE the baked end-
+                              medallion (its token separator); ayahs are concatenated with no
+                              separator, so add one trailing space AFTER it too — under justify
+                              both sides become one equal stretched space, keeping the ornamental
+                              verse number evenly gapped on both sides (owner standard). */}
+                          {num === 1 ? <Text style={{ fontFamily: FONTS.ar, fontSize: 24, color: tokens.orn, ...hl }}>{` ۝${toArabicNumeral(dispNum)} `}</Text> : " "}
+                        </Text>
+                      );
+                    }
+                    // Page font not loaded yet (or no glyph data) → readable Unicode fallback
+                    // with the ۝ marker; upgrades to glyphs when the page font registers.
                     return (
-                      <Text key={a.n} onPress={() => toggleAyah(a.n)} style={on ? { backgroundColor: mix(tokens.brand, 13, tokens.surface) } : undefined}>
+                      <Text key={a.n} onPress={() => toggleAyah(a.n)} style={{ textAlign: "justify", writingDirection: "rtl", ...hl }}>
                         {a.ar}
-                        {/* Amiri renders the ۝ (U+06DD, ARABIC END OF AYAH) as a clean solid ring
-                            that encloses the following Arabic-Indic digits — the verse marker. */}
-                        <Text style={{ fontFamily: FONTS.ar, fontSize: 24, color: tokens.orn }}>{` ۝${toArabicNumeral(dispNum)} `}</Text>
+                        {marker}
                       </Text>
                     );
                   })}
@@ -682,7 +798,7 @@ export function Recite() {
                     onLayout={(e) => { ayahYRef.current[a.n] = e.nativeEvent.layout.y; }}
                     style={[
                       {
-                        flexDirection: "row", gap: 13, padding: 14, marginBottom: 12, borderRadius: 16, borderWidth: 1,
+                        flexDirection: physicalRow(), gap: 13, padding: 14, marginBottom: 12, borderRadius: 16, borderWidth: 1,
                         borderColor: on ? mix(tokens.brand, 34, tokens.line) : tokens.line,
                         backgroundColor: on ? mix(tokens.brand, 6, tokens.surface) : tokens.surface,
                       },
@@ -690,9 +806,9 @@ export function Recite() {
                     ]}
                   >
                     <View style={{ alignItems: "center", gap: 10, paddingTop: 2 }}>
-                      <View style={{ width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center", backgroundColor: on ? tokens.brand : mix(tokens.brand, 9), borderWidth: 1, borderColor: on ? tokens.brand : mix(tokens.brand, 22, tokens.line) }}>
-                        <Text style={{ fontSize: 12, fontFamily: FONTS.sans[600], color: on ? tokens.onBrand : tokens.brand }}>{dispNum}</Text>
-                      </View>
+                      {/* Verse number now shows as the ornamental QPC medallion in the
+                          ayah text (suppressed → no duplicate), so the rail keeps only
+                          the play control. */}
                       <Pressable
                         onPress={() => toggleAyah(a.n)}
                         style={{ width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: on ? tokens.brand : tokens.line, backgroundColor: on ? tokens.brand : tokens.surface2 }}
@@ -702,7 +818,10 @@ export function Recite() {
                     </View>
                     <View style={{ flex: 1 }}>
                       <Pressable onPress={() => toggleAyah(a.n)}>
-                        <Text style={{ fontFamily: FONTS.ar, fontSize: 25, lineHeight: 51, color: tokens.arColor, textAlign: "right", writingDirection: "rtl" }}>{a.ar}</Text>
+                        {/* QPC V2 glyphs with the native ornamental medallion. Al-Fatihah
+                            bakes its medallions counting the bismillah, so there we strip it
+                            and render our own number; every other surah keeps the medallion. */}
+                        <QuranText surah={num} ayah={a.n} uthmani={a.ar} color={tokens.arColor} fontSize={26} lineHeight={58} suppressMedallion={num === 1} ownNumber={num === 1 ? dispNum : undefined} />
                       </Pressable>
                       {a.tr ? (
                         <Text style={[translationStyle(app.language, tokens), { marginTop: 9, color: tokens.text2 }]}>
@@ -790,7 +909,7 @@ export function Recite() {
           <View style={{ height: 3, backgroundColor: tokens.lineSoft }}>
             <View style={{ position: "absolute", left: 0, top: 0, height: 3, width: `${Math.min(progress * 100, 100)}%`, backgroundColor: tokens.brand }} />
           </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 12 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 11, paddingBottom: playing ? 30 : 12 }}>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 11, fontFamily: FONTS.sans[700], letterSpacing: 0.6, textTransform: "uppercase", color: tokens.orn }}>Mishary Alafasy</Text>
               <Text numberOfLines={1} style={{ fontSize: 13, fontFamily: FONTS.sans[600], color: tokens.text, marginTop: 2 }}>

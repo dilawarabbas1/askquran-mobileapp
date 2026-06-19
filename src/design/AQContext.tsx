@@ -4,7 +4,7 @@
 // is driven through this context.
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { AppState, I18nManager, useColorScheme } from "react-native";
+import { AppState, DevSettings, I18nManager, useColorScheme } from "react-native";
 import * as Updates from "expo-updates";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RESULTS, type AyahItem } from "./data";
@@ -14,12 +14,11 @@ import { setUiIsUrdu } from "./lib/uiType";
 import { translate } from "@/i18n";
 import { track } from "@/analytics";
 import { screenName, surahName } from "@/analytics/events";
-import { initPush } from "@/push";
 
 const PREFS_KEY = "aq:prefs:v1";
 
 export type Stage = "splash" | "onboarding" | "app";
-export type Screen = "searchHome" | "results" | "reader" | "recite" | "facts" | "library" | "refList" | "passage" | "about" | "privacy" | "dataSafety" | "saved" | "settings";
+export type Screen = "searchHome" | "results" | "reader" | "recite" | "facts" | "library" | "refList" | "passage" | "about" | "privacy" | "dataSafety" | "saved" | "settings" | "fonttest";
 
 /** A reference card's passage opened as its own page (Arabic + transliteration +
  *  translation, with per-ayah tafsir on request). `refs` are S:A-B ranges. */
@@ -70,15 +69,12 @@ function applyUiDirection(appLanguage: string): void {
   } catch {
     return; // no-op on web (no native I18nManager)
   }
-  // A real native relaunch applies the flip and self-heals: after the restart
+  // A real relaunch applies the flip and self-heals: after the restart
   // `isRTL === rtl`, so the top guard returns early — no loop, and aligned cold
-  // starts never reach here. `reloadAsync` restarts the embedded bundle even with
-  // remote updates disabled; it only rejects under a dev/Metro client, where a
-  // manual restart applies the now-set flag instead.
-  if (__DEV__) return;
-  // The normal persist effect runs asynchronously AFTER this turn, which would
-  // race the reload and bring the app back in the OLD language — so we persist
-  // the new app language synchronously (read-modify-write) BEFORE reloading.
+  // starts never reach here. The normal persist effect runs asynchronously AFTER
+  // this turn, which would race the reload and bring the app back in the OLD
+  // language — so we persist the new app language synchronously (read-modify-
+  // write) BEFORE reloading.
   void (async () => {
     try {
       const raw = await AsyncStorage.getItem(PREFS_KEY);
@@ -86,6 +82,15 @@ function applyUiDirection(appLanguage: string): void {
       await AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ ...prev, appLanguage }));
     } catch {
       /* persisting failed — reload anyway; worst case the flip re-applies next launch */
+    }
+    // Reload to re-init the JS bundle so I18nManager picks up the new direction.
+    // In dev, `Updates.reloadAsync` rejects under the Metro client, so we drive
+    // the reload through DevSettings instead — which mirrors the tree live rather
+    // than leaving a half-flipped session (Urdu text but LTR container). In a
+    // release build `reloadAsync` performs the real native restart.
+    if (__DEV__) {
+      DevSettings.reload();
+      return;
     }
     await Updates.reloadAsync().catch(() => {});
   })();
@@ -101,6 +106,9 @@ export interface AQApi {
   appearance: Appearance;
   homeLayout: HomeLayout;
   reciteView: ReciteView;
+  /** True while Recite audio is playing — lets the shell hide chrome (tab bar) for room. */
+  recitePlaying: boolean;
+  setRecitePlaying: (v: boolean) => void;
   /** Quran translation edition language (alias kept as `language` for callers). */
   language: string;
   appLanguage: string; // UI/interface language
@@ -134,6 +142,7 @@ export interface AQApi {
   openAbout: () => void;
   openPrivacy: () => void;
   openDataSafety: () => void;
+  openFontTest: () => void;
   back: () => void;
   setFactTab: (id: string) => void;
   setLanguage: (name: string) => void; // sets the translation language
@@ -184,7 +193,8 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const [translationLanguage, setTranslationLanguageState] = useState("English");
   const [tafsirLanguage, setTafsirLanguageState] = useState("English");
   const [homeLayout, setHomeLayout] = useState<HomeLayout>("Chips");
-  const [reciteView, setReciteView] = useState<ReciteView>("list");
+  const [reciteView, setReciteView] = useState<ReciteView>("flow"); // recite locked to By-Surah (2026-06-18)
+  const [recitePlaying, setRecitePlaying] = useState(false); // ephemeral — not persisted
   const [hydrated, setHydrated] = useState(false);
   const [onboarded, setOnboarded] = useState(false);
 
@@ -243,9 +253,6 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       // First reveal of this launch = a cold start. platform + app_version are
       // auto-merged into every event by the tracker, so we only add `source`.
       track("app_open", { source: "cold_start", onboarded });
-      // xNotify Push: register this install once the app is interactive. No-op
-      // unless a Push SDK Key is configured AND the native module is linked.
-      initPush();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated]);
@@ -284,7 +291,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
 
   const api: AQApi = useMemo(
     () => ({
-      stage, current, navKey, query, readerItem, factTab, appearance, homeLayout, reciteView,
+      stage, current, navKey, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, setRecitePlaying,
       language, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, refCollection, passageTarget, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
       t: (key, vars) => translate(appLanguage, key, vars),
       uiRTL: isRTL(appLanguage),
@@ -300,6 +307,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       openAbout: () => { setNav((n) => [...n, { screen: "about" }]); bump(); },
       openPrivacy: () => { setNav((n) => [...n, { screen: "privacy" }]); bump(); },
       openDataSafety: () => { setNav((n) => [...n, { screen: "dataSafety" }]); bump(); },
+      openFontTest: () => { setNav((n) => [...n, { screen: "fonttest" }]); bump(); },
       back: () => { setNav((n) => (n.length > 1 ? n.slice(0, -1) : n)); bump(); },
       setFactTab,
       setLanguage: (name) => {
@@ -334,7 +342,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       },
       savedItems: savedList,
     }),
-    [stage, query, readerItem, factTab, appearance, homeLayout, reciteView, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, refCollection, passageTarget, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
+    [stage, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, refCollection, passageTarget, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
   );
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;

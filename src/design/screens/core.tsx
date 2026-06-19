@@ -18,6 +18,8 @@ import { track } from "@/analytics";
 import { surahName, surahNoFromRef } from "@/analytics/events";
 import { copyAyah, shareAyah } from "../lib/ayahActions";
 import { withHonorifics } from "../lib/honorifics";
+import { QuranText } from "../../quran/QuranText";
+import { saFromKey } from "../../quran/qpcIndex";
 
 /* ---------- map an API AyahResult → the card's AyahItem shape ---------- */
 function placeNorm(p: string): "Mecca" | "Madinah" {
@@ -248,9 +250,16 @@ export function Reader() {
 
       <View style={{ paddingHorizontal: 16, paddingTop: 6 }}>
         <View style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 18, paddingHorizontal: 18, paddingTop: 18, paddingBottom: 15 }, tokens.cardShadow]}>
-          <Text style={{ fontFamily: FONTS.ar, fontSize: 30, lineHeight: 60, color: tokens.arColor, textAlign: "center", writingDirection: "rtl" }}>{item.arabic}</Text>
+          {(() => {
+            // QPC V2 glyphs (ref shown in the header → medallion suppressed); ayah
+            // justified per the app-wide rule. Range refs fall back to Unicode.
+            const sa = saFromKey(item.ref);
+            return sa
+              ? <QuranText surah={sa.surah} ayah={sa.ayah} uthmani={item.arabic} suppressMedallion color={tokens.arColor} fontSize={26} lineHeight={58} />
+              : <Text style={{ fontFamily: FONTS.ar, fontSize: 26, lineHeight: 58, color: tokens.arColor, textAlign: "justify", writingDirection: "rtl" }}>{item.arabic}</Text>;
+          })()}
           {item.transliteration ? (
-            <Text style={{ fontFamily: FONTS.serif[400], fontStyle: "italic", fontSize: 14, lineHeight: 23, color: tokens.text3, textAlign: "center", marginTop: 8 }}>
+            <Text style={{ fontFamily: FONTS.serif[400], fontStyle: "italic", fontSize: 16, lineHeight: 26, color: tokens.text3, textAlign: "center", marginTop: 8 }}>
               {item.transliteration}
             </Text>
           ) : null}
