@@ -3,8 +3,9 @@
 // onboarding → bottom-tab app (Search · Facts · Saved · Settings) with the
 // search → results → reader flow and the 44-language picker.
 
-import React from "react";
+import React, { useEffect } from "react";
 import { LogBox, View } from "react-native";
+import { attributeInstallOnce } from "@/install/attribution";
 
 // Suppress the known expo-av deprecation warning (we use it only for audio playback;
 // migration to expo-audio/expo-video is tracked separately). Dev-only — keeps the
@@ -41,6 +42,10 @@ function ThemedStatusBar() {
 }
 
 export default function App() {
+  // Android-only install attribution: read the Play Install Referrer once and
+  // credit the referring volunteer. Fire-and-forget; never blocks startup.
+  useEffect(() => { void attributeInstallOnce(); }, []);
+
   const [fontsLoaded] = useFonts({
     PlusJakartaSans_400Regular,
     PlusJakartaSans_500Medium,
