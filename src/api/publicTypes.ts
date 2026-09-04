@@ -69,3 +69,13 @@ export interface SuggestedGroup {
   priority?: number;
   questions: SuggestedQuestion[];
 }
+
+/** A "Test Your Knowledge" quiz question — options pre-shuffled by the backend. */
+export interface QuizQuestion {
+  id: string;
+  category: string;
+  q: string;
+  options: string[];
+  answer: number;
+  ref: string;
+}

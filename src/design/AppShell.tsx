@@ -21,6 +21,7 @@ import { Passage } from "./screens/passage";
 import { Saved } from "./screens/saved";
 import { Settings } from "./screens/settings";
 import { FontTest } from "./screens/fonttest";
+import { Quiz } from "./screens/quiz";
 import { COLLECTION_BY_ID } from "./refData";
 import { FONTS, mix } from "./tokens";
 
@@ -58,6 +59,7 @@ const TITLE_KEYS: Record<string, [string, string | null]> = {
   dataSafety: ["m.title.dataSafety", null],
   saved: ["m.title.saved", null],
   settings: ["m.title.settings", null],
+  quiz: ["m.quiz.title", null],
 };
 
 function AppBar({ screen }: { screen: Screen }) {
@@ -94,7 +96,7 @@ function AppBar({ screen }: { screen: Screen }) {
   const [titleKey, subKey] = TITLE_KEYS[screen] ?? [screen, null];
   const title = passageTitle ?? refTitle ?? (TITLE_KEYS[screen] ? app.t(titleKey) : screen);
   const sub = subKey ? app.t(subKey) : null;
-  const pushed = screen === "reader" || screen === "refList" || screen === "passage" || screen === "about" || screen === "privacy" || screen === "dataSafety" || screen === "fonttest";
+  const pushed = screen === "reader" || screen === "refList" || screen === "passage" || screen === "about" || screen === "privacy" || screen === "dataSafety" || screen === "fonttest" || screen === "quiz";
   const showGlobe = screen === "facts" || screen === "recite" || screen === "refList" || screen === "passage";
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 12, backgroundColor: tokens.bg, borderBottomWidth: pushed ? 1 : 0, borderBottomColor: tokens.lineSoft }}>
@@ -143,6 +145,7 @@ function ScreenRouter({ screen }: { screen: Screen }) {
     case "saved": return <Saved />;
     case "settings": return <Settings />;
     case "fonttest": return <FontTest />;
+    case "quiz": return <Quiz />;
     default: return <SearchHome />;
   }
 }

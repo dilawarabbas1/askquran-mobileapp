@@ -3052,5 +3052,18 @@
   "names.i.almni.label": "The Preventer",
   "names.i.arr.label": "The Distressor, The Afflicter",
   "names.i.annfi.label": "The Benefiter",
-  "names.i.aabr.label": "The Patient, The Forbearing"
+  "names.i.aabr.label": "The Patient, The Forbearing",
+  "m.quiz.title": "Test Your Knowledge",
+  "m.quiz.lede": "Strengthen your understanding of the Quran — every question is grounded in a verse.",
+  "m.quiz.category": "Category",
+  "m.quiz.start": "Start Quiz",
+  "m.quiz.progress": "Question {n} of {total}",
+  "m.quiz.reference": "Reference: {ref}",
+  "m.quiz.next": "Next",
+  "m.quiz.finish": "See Results",
+  "m.quiz.great": "Excellent, mashaAllah!",
+  "m.quiz.keepGoing": "Keep learning!",
+  "m.quiz.again": "Play Again",
+  "m.quiz.categories": "Choose Category",
+  "m.quiz.ctaSub": "Quiz yourself on stories, laws & more"
 }

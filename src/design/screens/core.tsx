@@ -86,6 +86,18 @@ export function SearchHome() {
       <View style={{ paddingHorizontal: 16, paddingTop: 6 }}>
         <SearchBar value={q} onChangeText={setQ} placeholder={app.t("search.placeholder")} onSubmit={submit} showGo />
 
+        {/* Test Your Knowledge — source-grounded quiz (opens the quiz screen). */}
+        <Pressable onPress={() => app.openQuiz()} style={[{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 14, backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 16, paddingVertical: 13, paddingHorizontal: 14 }, tokens.cardShadow]}>
+          <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: mix(tokens.brand, 11), borderWidth: 1, borderColor: mix(tokens.brand, 22, tokens.line) }}>
+            <Icon name="grid" size={17} w={1.9} color={tokens.brand} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: FONTS.serif[600], fontSize: 16, color: tokens.text }}>{app.t("m.quiz.title")}</Text>
+            <Text style={{ fontSize: 12.5, color: tokens.text2, marginTop: 2 }}>{app.t("m.quiz.ctaSub")}</Text>
+          </View>
+          <Icon name="chevR" size={16} w={2.1} color={tokens.text3} />
+        </Pressable>
+
         {hasApiQuestions ? (
           /* API-loaded suggested questions, grouped by topic ("Try asking") */
           <>

@@ -11,7 +11,7 @@
 import { AqError, mapStatusToError } from "./errors";
 import { PUBLIC_API_BASE_URL, API_KEY } from "./config";
 import { TtlCache, createMemoryStorage, type Storage } from "./cache";
-import type { AskResponse, AyahResult, SuggestedGroup, TranslationMeta, TafsirMeta } from "./publicTypes";
+import type { AskResponse, AyahResult, SuggestedGroup, TranslationMeta, TafsirMeta, QuizQuestion } from "./publicTypes";
 
 /**
  * Headers for public /api calls — adds x-api-key when a key is configured and
@@ -190,4 +190,25 @@ export async function getSuggestedQuestions(): Promise<SuggestedGroup[]> {
     });
     return data.groups ?? [];
   });
+}
+
+/**
+ * GET /api/quiz — a shuffled "Test Your Knowledge" quiz (approved, verse-referenced
+ * questions only). Never cached — each play should be a fresh draw.
+ */
+export async function getQuiz(count = 10, category?: string): Promise<QuizQuestion[]> {
+  const qs = new URLSearchParams({ count: String(count) });
+  if (category && category !== "all") qs.set("category", category);
+  const data = await getJson<{ questions: QuizQuestion[] }>(`${PUBLIC_API_BASE_URL}/quiz?${qs.toString()}`, {
+    headers: publicHeaders(),
+  });
+  return data.questions ?? [];
+}
+
+/** GET /api/quiz/categories — available quiz categories. */
+export async function getQuizCategories(): Promise<string[]> {
+  const data = await getJson<{ categories: string[] }>(`${PUBLIC_API_BASE_URL}/quiz/categories`, {
+    headers: publicHeaders(),
+  });
+  return data.categories ?? [];
 }
