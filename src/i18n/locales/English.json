@@ -3088,5 +3088,12 @@
   "m.plan.juzGrid": "Mark each juzʼ as you finish it",
   "m.plan.reset": "Abandon this plan",
   "m.plan.resetConfirm": "This will clear your current plan and progress. Are you sure?",
-  "m.plan.cancel": "Cancel"
+  "m.plan.cancel": "Cancel",
+  "m.set.dailyVerseGroup": "Daily Verse",
+  "m.set.dailyVerse": "Daily Verse",
+  "m.set.dailyVerseSub": "One ayah each day as a gentle reminder",
+  "m.set.dvTime": "Time of day",
+  "m.set.dvMorning": "Morning",
+  "m.set.dvMidday": "Midday",
+  "m.set.dvEvening": "Evening"
 }

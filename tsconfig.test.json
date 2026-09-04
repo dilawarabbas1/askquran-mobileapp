@@ -17,6 +17,6 @@
     },
     "types": ["node"]
   },
-  "include": ["src/api/**/*", "src/analytics/**/*", "src/design/lib/uiType.ts", "src/design/lib/__tests__/**/*"],
+  "include": ["src/api/**/*", "src/analytics/**/*", "src/design/lib/uiType.ts", "src/design/lib/__tests__/**/*", "src/notifications/schedulePlan.ts", "src/notifications/__tests__/**/*"],
   "exclude": ["src/api/index.ts", "src/analytics/index.ts"]
 }

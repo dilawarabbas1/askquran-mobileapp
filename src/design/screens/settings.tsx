@@ -69,6 +69,30 @@ export function Settings() {
         <Row tokens={tokens} icon="type" title={app.t("m.set.tajweed")} sub={app.t("m.set.tajweedSub")} last right={<Switch on={tajweed} onPress={() => setTajweed((v) => !v)} />} />
       </Group>
 
+      <Group label={app.t("m.set.dailyVerseGroup")} tokens={tokens}>
+        <Row
+          tokens={tokens} icon="bell" title={app.t("m.set.dailyVerse")} sub={app.t("m.set.dailyVerseSub")} last={!app.dailyVerse.enabled}
+          right={<Switch on={app.dailyVerse.enabled} onPress={() => app.setDailyVerse({ enabled: !app.dailyVerse.enabled })} />}
+        />
+        {app.dailyVerse.enabled ? (
+          <Row
+            tokens={tokens} icon="clock" title={app.t("m.set.dvTime")} last
+            right={
+              <View style={{ flexDirection: "row", backgroundColor: tokens.surface2, borderWidth: 1, borderColor: tokens.line, borderRadius: 9, padding: 2, gap: 2 }}>
+                {([[7, "m.set.dvMorning"], [13, "m.set.dvMidday"], [20, "m.set.dvEvening"]] as [number, string][]).map(([h, l]) => {
+                  const on = app.dailyVerse.hour === h;
+                  return (
+                    <Pressable key={h} onPress={() => app.setDailyVerse({ hour: h, minute: 0 })} style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 7, backgroundColor: on ? (tokens.mode === "dark" ? tokens.bg : tokens.surface) : "transparent" }}>
+                      <Text style={{ fontSize: 11.5, fontFamily: FONTS.sans[600], color: on ? tokens.brand : tokens.text2 }}>{app.t(l)}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            }
+          />
+        ) : null}
+      </Group>
+
       <Group label={app.t("m.set.appearance")} tokens={tokens}>
         <Row
           tokens={tokens} icon={app.mode === "dark" ? "moon" : "sun"} title={app.t("m.set.theme")} sub={app.t("m.set.themeSub")} last

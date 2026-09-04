@@ -11,6 +11,7 @@ import { RESULTS, type AyahItem } from "./data";
 import { TOKENS, type Mode, type Tokens } from "./tokens";
 import { isRTL } from "./lib/rtl";
 import { JUZ_COUNT, juzStart } from "./lib/juz";
+import { syncDailyVerse, type DailyVerseSettings } from "@/notifications/dailyVerse";
 import { setUiIsUrdu } from "./lib/uiType";
 import { translate } from "@/i18n";
 import { track } from "@/analytics";
@@ -49,6 +50,9 @@ export interface KhatmPlan {
   lastReadDay: string | null; // local "YYYY-MM-DD" of the last reading (for streak)
   streak: number;             // consecutive-day streak
 }
+
+export type { DailyVerseSettings } from "@/notifications/dailyVerse";
+const DEFAULT_DAILY_VERSE: DailyVerseSettings = { enabled: false, hour: 7, minute: 0 };
 
 /** Local calendar day as "YYYY-MM-DD" (used for the reading streak). */
 function dayStr(d: Date = new Date()): string {
@@ -140,6 +144,7 @@ export interface AQApi {
   reciteSurah: number;
   recitePosition: RecitePosition | null;
   khatm: KhatmPlan | null;
+  dailyVerse: DailyVerseSettings;
   refCollection: string | null;
   passageTarget: PassageTarget | null;
   activeTab: Tab;
@@ -186,6 +191,8 @@ export interface AQApi {
   resetKhatm: () => void;
   /** Jump Recite to the start of the first unread juzʼ of the active plan. */
   continueKhatm: () => void;
+  /** Update Daily-Verse notification settings (merges into the current value). */
+  setDailyVerse: (patch: Partial<DailyVerseSettings>) => void;
   setAppearance: (v: Appearance) => void;
   setHomeLayout: (v: HomeLayout) => void;
   setReciteView: (v: ReciteView) => void;
@@ -217,6 +224,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const [reciteSurah, setReciteSurah] = useState(1);
   const [recitePosition, setRecitePosition] = useState<RecitePosition | null>(null);
   const [khatm, setKhatm] = useState<KhatmPlan | null>(null);
+  const [dailyVerse, setDailyVerseState] = useState<DailyVerseSettings>(DEFAULT_DAILY_VERSE);
   const [refCollection, setRefCollection] = useState<string | null>(null);
   const [passageTarget, setPassageTarget] = useState<PassageTarget | null>(null);
   // Three independent language preferences (all persisted).
@@ -240,7 +248,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
           const p = JSON.parse(raw) as Partial<{
             onboarded: boolean; language: string; appLanguage: string; translationLanguage: string; tafsirLanguage: string;
             appearance: Appearance; homeLayout: HomeLayout; reciteView: ReciteView; savedList: AyahItem[];
-            recitePosition: RecitePosition; khatm: KhatmPlan;
+            recitePosition: RecitePosition; khatm: KhatmPlan; dailyVerse: DailyVerseSettings;
           }>;
           // Migrate the old single `language` pref → translation language.
           const tr = p.translationLanguage ?? p.language;
@@ -267,6 +275,9 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
               streak: typeof p.khatm.streak === "number" ? p.khatm.streak : 0,
             });
           }
+          if (p.dailyVerse && typeof p.dailyVerse.enabled === "boolean" && typeof p.dailyVerse.hour === "number" && typeof p.dailyVerse.minute === "number") {
+            setDailyVerseState({ enabled: p.dailyVerse.enabled, hour: p.dailyVerse.hour, minute: p.dailyVerse.minute });
+          }
           if (Array.isArray(p.savedList)) setSavedList(p.savedList);
           if (p.onboarded) { setOnboarded(true); setStage("app"); }
         }
@@ -282,8 +293,24 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   // Persist preferences whenever they change (after hydration).
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm })).catch(() => {});
-  }, [hydrated, onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm]);
+    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, dailyVerse })).catch(() => {});
+  }, [hydrated, onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, dailyVerse]);
+
+  // Reconcile Daily-Verse local notifications after hydration and whenever the
+  // setting or translation language changes; also re-sync on each foreground so
+  // the rolling window stays topped up. Best-effort — syncDailyVerse never throws.
+  useEffect(() => {
+    if (!hydrated) return;
+    void syncDailyVerse({ ...dailyVerse, translationLanguage });
+  }, [hydrated, dailyVerse, translationLanguage]);
+
+  useEffect(() => {
+    if (!hydrated || !dailyVerse.enabled) return;
+    const sub = AppState.addEventListener("change", (s) => {
+      if (s === "active") void syncDailyVerse({ ...dailyVerse, translationLanguage });
+    });
+    return () => sub.remove();
+  }, [hydrated, dailyVerse, translationLanguage]);
 
   // --- xNotify analytics: app_open (cold start + each foreground), screen_view
   // on each navigation. track() is a no-op unless an Event Key is configured, so
@@ -332,7 +359,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const api: AQApi = useMemo(
     () => ({
       stage, current, navKey, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, setRecitePlaying,
-      language, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, refCollection, passageTarget, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
+      language, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, dailyVerse, refCollection, passageTarget, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
       t: (key, vars) => translate(appLanguage, key, vars),
       uiRTL: isRTL(appLanguage),
       goOnboarding: () => setStage("onboarding"),
@@ -411,6 +438,14 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
         bump();
         track("khatm_continue", { juz: next });
       },
+      setDailyVerse: (patch) => {
+        setDailyVerseState((d) => {
+          const nextV = { ...d, ...patch };
+          if (patch.enabled === true && !d.enabled) track("daily_verse_enable", { hour: nextV.hour });
+          else if (patch.enabled === false && d.enabled) track("daily_verse_disable", {});
+          return nextV;
+        });
+      },
       setAppearance,
       setHomeLayout,
       setReciteView,
@@ -422,7 +457,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       },
       savedItems: savedList,
     }),
-    [stage, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, refCollection, passageTarget, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
+    [stage, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, dailyVerse, refCollection, passageTarget, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
   );
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
