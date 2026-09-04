@@ -98,6 +98,20 @@ export function SearchHome() {
           <Icon name="chevR" size={16} w={2.1} color={tokens.text3} />
         </Pressable>
 
+        {/* Reading Plan / Khatm tracker — shows live progress once a plan is active. */}
+        <Pressable onPress={() => app.openPlan()} style={[{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 10, backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 16, paddingVertical: 13, paddingHorizontal: 14 }, tokens.cardShadow]}>
+          <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: mix(tokens.brand, 11), borderWidth: 1, borderColor: mix(tokens.brand, 22, tokens.line) }}>
+            <Icon name="book" size={18} w={1.9} color={tokens.brand} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: FONTS.serif[600], fontSize: 16, color: tokens.text }}>{app.t("m.plan.title")}</Text>
+            <Text style={{ fontSize: 12.5, color: tokens.text2, marginTop: 2 }}>
+              {app.khatm ? app.t("m.plan.progress", { done: app.khatm.completedJuz.length, total: 30 }) : app.t("m.plan.ctaSub")}
+            </Text>
+          </View>
+          <Icon name="chevR" size={16} w={2.1} color={tokens.text3} />
+        </Pressable>
+
         {hasApiQuestions ? (
           /* API-loaded suggested questions, grouped by topic ("Try asking") */
           <>

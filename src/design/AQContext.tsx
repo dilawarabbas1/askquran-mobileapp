@@ -10,6 +10,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RESULTS, type AyahItem } from "./data";
 import { TOKENS, type Mode, type Tokens } from "./tokens";
 import { isRTL } from "./lib/rtl";
+import { JUZ_COUNT, juzStart } from "./lib/juz";
 import { setUiIsUrdu } from "./lib/uiType";
 import { translate } from "@/i18n";
 import { track } from "@/analytics";
@@ -18,7 +19,7 @@ import { screenName, surahName } from "@/analytics/events";
 const PREFS_KEY = "aq:prefs:v1";
 
 export type Stage = "splash" | "onboarding" | "app";
-export type Screen = "searchHome" | "results" | "reader" | "recite" | "facts" | "library" | "refList" | "passage" | "about" | "privacy" | "dataSafety" | "saved" | "settings" | "fonttest" | "quiz";
+export type Screen = "searchHome" | "results" | "reader" | "recite" | "facts" | "library" | "refList" | "passage" | "about" | "privacy" | "dataSafety" | "saved" | "settings" | "fonttest" | "quiz" | "plan";
 
 /** A reference card's passage opened as its own page (Arabic + transliteration +
  *  translation, with per-ayah tafsir on request). `refs` are S:A-B ranges. */
@@ -37,6 +38,24 @@ export type HomeLayout = "Chips" | "Grid";
 export type ReciteView = "list" | "flow";
 /** Last recitation spot — restored on return so the user resumes where they left. */
 export interface RecitePosition { surah: number; ayah: number; }
+
+/** A read-the-whole-Quran plan (khatm), paced over N days. Progress is tracked by
+ *  juzʼ (30 units); the streak counts consecutive calendar days with any reading. */
+export type KhatmKind = "30" | "60" | "365";
+export interface KhatmPlan {
+  kind: KhatmKind;
+  startedAt: number;          // epoch ms when the plan was started
+  completedJuz: number[];     // which juzʼ (1..30) are done
+  lastReadDay: string | null; // local "YYYY-MM-DD" of the last reading (for streak)
+  streak: number;             // consecutive-day streak
+}
+
+/** Local calendar day as "YYYY-MM-DD" (used for the reading streak). */
+function dayStr(d: Date = new Date()): string {
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${dd}`;
+}
 
 const ROOT: Record<Tab, Screen> = { search: "searchHome", recite: "recite", facts: "facts", library: "library", saved: "saved", settings: "settings" };
 
@@ -120,6 +139,7 @@ export interface AQApi {
   surahSheetOpen: boolean;
   reciteSurah: number;
   recitePosition: RecitePosition | null;
+  khatm: KhatmPlan | null;
   refCollection: string | null;
   passageTarget: PassageTarget | null;
   activeTab: Tab;
@@ -142,6 +162,7 @@ export interface AQApi {
   openAbout: () => void;
   openPrivacy: () => void;
   openQuiz: () => void;
+  openPlan: () => void;
   openDataSafety: () => void;
   openFontTest: () => void;
   back: () => void;
@@ -157,6 +178,14 @@ export interface AQApi {
   pickSurah: (n: number) => void;
   /** Record the spot the reciter just reached, so it can be resumed later. */
   saveRecitePosition: (surah: number, ayah: number) => void;
+  /** Start a fresh khatm (read-the-whole-Quran) plan paced over N days. */
+  startKhatm: (kind: KhatmKind) => void;
+  /** Toggle a juzʼ (1..30) as read/unread, updating the streak on a new day. */
+  toggleJuzRead: (juz: number) => void;
+  /** Abandon the current plan. */
+  resetKhatm: () => void;
+  /** Jump Recite to the start of the first unread juzʼ of the active plan. */
+  continueKhatm: () => void;
   setAppearance: (v: Appearance) => void;
   setHomeLayout: (v: HomeLayout) => void;
   setReciteView: (v: ReciteView) => void;
@@ -187,6 +216,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const [surahSheetOpen, setSurahSheetOpen] = useState(false);
   const [reciteSurah, setReciteSurah] = useState(1);
   const [recitePosition, setRecitePosition] = useState<RecitePosition | null>(null);
+  const [khatm, setKhatm] = useState<KhatmPlan | null>(null);
   const [refCollection, setRefCollection] = useState<string | null>(null);
   const [passageTarget, setPassageTarget] = useState<PassageTarget | null>(null);
   // Three independent language preferences (all persisted).
@@ -210,7 +240,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
           const p = JSON.parse(raw) as Partial<{
             onboarded: boolean; language: string; appLanguage: string; translationLanguage: string; tafsirLanguage: string;
             appearance: Appearance; homeLayout: HomeLayout; reciteView: ReciteView; savedList: AyahItem[];
-            recitePosition: RecitePosition;
+            recitePosition: RecitePosition; khatm: KhatmPlan;
           }>;
           // Migrate the old single `language` pref → translation language.
           const tr = p.translationLanguage ?? p.language;
@@ -228,6 +258,15 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
             setRecitePosition(p.recitePosition);
             setReciteSurah(p.recitePosition.surah);
           }
+          if (p.khatm && (p.khatm.kind === "30" || p.khatm.kind === "60" || p.khatm.kind === "365")) {
+            setKhatm({
+              kind: p.khatm.kind,
+              startedAt: typeof p.khatm.startedAt === "number" ? p.khatm.startedAt : Date.now(),
+              completedJuz: Array.isArray(p.khatm.completedJuz) ? p.khatm.completedJuz.filter((n) => n >= 1 && n <= JUZ_COUNT) : [],
+              lastReadDay: typeof p.khatm.lastReadDay === "string" ? p.khatm.lastReadDay : null,
+              streak: typeof p.khatm.streak === "number" ? p.khatm.streak : 0,
+            });
+          }
           if (Array.isArray(p.savedList)) setSavedList(p.savedList);
           if (p.onboarded) { setOnboarded(true); setStage("app"); }
         }
@@ -243,8 +282,8 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   // Persist preferences whenever they change (after hydration).
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition })).catch(() => {});
-  }, [hydrated, onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition]);
+    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm })).catch(() => {});
+  }, [hydrated, onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm]);
 
   // --- xNotify analytics: app_open (cold start + each foreground), screen_view
   // on each navigation. track() is a no-op unless an Event Key is configured, so
@@ -293,7 +332,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const api: AQApi = useMemo(
     () => ({
       stage, current, navKey, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, setRecitePlaying,
-      language, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, refCollection, passageTarget, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
+      language, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, refCollection, passageTarget, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
       t: (key, vars) => translate(appLanguage, key, vars),
       uiRTL: isRTL(appLanguage),
       goOnboarding: () => setStage("onboarding"),
@@ -308,6 +347,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       openAbout: () => { setNav((n) => [...n, { screen: "about" }]); bump(); },
       openPrivacy: () => { setNav((n) => [...n, { screen: "privacy" }]); bump(); },
       openQuiz: () => { setNav((n) => [...n, { screen: "quiz" }]); bump(); },
+      openPlan: () => { setNav((n) => [...n, { screen: "plan" }]); bump(); track("open_plan", {}); },
       openDataSafety: () => { setNav((n) => [...n, { screen: "dataSafety" }]); bump(); },
       openFontTest: () => { setNav((n) => [...n, { screen: "fonttest" }]); bump(); },
       back: () => { setNav((n) => (n.length > 1 ? n.slice(0, -1) : n)); bump(); },
@@ -333,6 +373,44 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       closeSurahSheet: () => setSurahSheetOpen(false),
       pickSurah: (n) => { setReciteSurah(n); setSurahSheetOpen(false); },
       saveRecitePosition: (surah, ayah) => setRecitePosition((p) => (p && p.surah === surah && p.ayah === ayah ? p : { surah, ayah })),
+      startKhatm: (kind) => {
+        setKhatm({ kind, startedAt: Date.now(), completedJuz: [], lastReadDay: null, streak: 0 });
+        track("khatm_start", { kind });
+      },
+      toggleJuzRead: (juz) => {
+        if (juz < 1 || juz > JUZ_COUNT) return;
+        setKhatm((k) => {
+          if (!k) return k;
+          const had = k.completedJuz.includes(juz);
+          const completedJuz = had ? k.completedJuz.filter((n) => n !== juz) : [...k.completedJuz, juz].sort((a, b) => a - b);
+          // Only advance the streak when adding a reading (not when un-marking),
+          // and only once per calendar day.
+          let { lastReadDay, streak } = k;
+          if (!had) {
+            const today = dayStr();
+            if (lastReadDay !== today) {
+              const yest = dayStr(new Date(Date.now() - 86400000));
+              streak = lastReadDay === yest ? streak + 1 : 1;
+              lastReadDay = today;
+            }
+          }
+          return { ...k, completedJuz, lastReadDay, streak };
+        });
+        track("khatm_juz_toggle", { juz });
+      },
+      resetKhatm: () => { setKhatm(null); track("khatm_reset", {}); },
+      continueKhatm: () => {
+        const done = new Set(khatm?.completedJuz ?? []);
+        let next = 1;
+        while (next <= JUZ_COUNT && done.has(next)) next += 1;
+        if (next > JUZ_COUNT) next = 1; // whole khatm done → loop back to juzʼ 1
+        const start = juzStart(next);
+        setReciteSurah(start.surah);
+        setRecitePosition({ surah: start.surah, ayah: start.ayah });
+        setNav([{ screen: "recite" }]);
+        bump();
+        track("khatm_continue", { juz: next });
+      },
       setAppearance,
       setHomeLayout,
       setReciteView,
@@ -344,7 +422,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       },
       savedItems: savedList,
     }),
-    [stage, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, refCollection, passageTarget, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
+    [stage, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, refCollection, passageTarget, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
   );
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
