@@ -45,3 +45,14 @@ export const JUZ_COUNT = 30;
 export function juzStart(n: number): JuzStart {
   return JUZ_STARTS[Math.min(Math.max(n, 1), JUZ_COUNT) - 1];
 }
+
+/** Which juzʼ (1..30) a given ayah falls in — the last juzʼ whose start is ≤ it. */
+export function juzOf(surah: number, ayah: number): number {
+  let j = 1;
+  for (let i = 0; i < JUZ_STARTS.length; i++) {
+    const s = JUZ_STARTS[i];
+    if (surah > s.surah || (surah === s.surah && ayah >= s.ayah)) j = i + 1;
+    else break;
+  }
+  return j;
+}

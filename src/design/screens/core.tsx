@@ -106,7 +106,7 @@ export function SearchHome() {
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: FONTS.serif[600], fontSize: 16, color: tokens.text }}>{app.t("m.plan.title")}</Text>
             <Text style={{ fontSize: 12.5, color: tokens.text2, marginTop: 2 }}>
-              {app.khatm ? app.t("m.plan.progress", { done: app.khatm.completedJuz.length, total: 30 }) : app.t("m.plan.ctaSub")}
+              {app.khatm ? app.t("m.plan.progressPages", { done: app.khatm.pagesRead, total: 604 }) : app.t("m.plan.ctaSub")}
             </Text>
           </View>
           <Icon name="chevR" size={16} w={2.1} color={tokens.text3} />

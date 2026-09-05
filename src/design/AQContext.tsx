@@ -10,7 +10,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RESULTS, type AyahItem } from "./data";
 import { TOKENS, type Mode, type Tokens } from "./tokens";
 import { isRTL } from "./lib/rtl";
-import { JUZ_COUNT, juzStart } from "./lib/juz";
+import { pageStartRef, QPC_PAGE_COUNT } from "../quran/qpcIndex";
 import { syncDailyVerse, type DailyVerseSettings } from "@/notifications/dailyVerse";
 import { evaluateResult, type QuizResult, type QuizOutcome } from "./lib/quizBadges";
 import { setUiIsUrdu } from "./lib/uiType";
@@ -41,13 +41,14 @@ export type ReciteView = "list" | "flow";
 /** Last recitation spot — restored on return so the user resumes where they left. */
 export interface RecitePosition { surah: number; ayah: number; }
 
-/** A read-the-whole-Quran plan (khatm), paced over N days. Progress is tracked by
- *  juzʼ (30 units); the streak counts consecutive calendar days with any reading. */
-export type KhatmKind = "30" | "60" | "365";
+/** A read-the-whole-Quran plan (khatm), tracked by PAGE of the 604-page Madinah
+ *  mushaf. `pagesRead` is a contiguous cursor from page 1; the daily target is
+ *  `pagesPerDay` (from a preset or a custom amount). The streak counts consecutive
+ *  calendar days with any reading. */
 export interface KhatmPlan {
-  kind: KhatmKind;
   startedAt: number;          // epoch ms when the plan was started
-  completedJuz: number[];     // which juzʼ (1..30) are done
+  pagesPerDay: number;        // daily target (1..604)
+  pagesRead: number;          // pages completed so far (0..604), contiguous from p1
   lastReadDay: string | null; // local "YYYY-MM-DD" of the last reading (for streak)
   streak: number;             // consecutive-day streak
 }
@@ -147,6 +148,8 @@ export interface AQApi {
   reciteSurah: number;
   recitePosition: RecitePosition | null;
   khatm: KhatmPlan | null;
+  /** Lifetime count of full Quran readings completed (khatams). */
+  khatmCompletions: number;
   dailyVerse: DailyVerseSettings;
   quizResults: QuizResult[];
   refCollection: string | null;
@@ -187,13 +190,16 @@ export interface AQApi {
   pickSurah: (n: number) => void;
   /** Record the spot the reciter just reached, so it can be resumed later. */
   saveRecitePosition: (surah: number, ayah: number) => void;
-  /** Start a fresh khatm (read-the-whole-Quran) plan paced over N days. */
-  startKhatm: (kind: KhatmKind) => void;
-  /** Toggle a juzʼ (1..30) as read/unread, updating the streak on a new day. */
-  toggleJuzRead: (juz: number) => void;
+  /** Start a fresh khatm reading `pagesPerDay` pages a day (from a preset or custom). */
+  startKhatm: (pagesPerDay: number) => void;
+  /** Mark today's portion read — advance the page cursor by one day's target,
+   *  bumping the streak on a new calendar day. */
+  markDayRead: () => void;
+  /** Set the page cursor directly (0..604) — e.g. manual adjust; no streak change. */
+  setPagesRead: (pages: number) => void;
   /** Abandon the current plan. */
   resetKhatm: () => void;
-  /** Jump Recite to the start of the first unread juzʼ of the active plan. */
+  /** Jump Recite to the start of the next unread page of the active plan. */
   continueKhatm: () => void;
   /** Update Daily-Verse notification settings (merges into the current value). */
   setDailyVerse: (patch: Partial<DailyVerseSettings>) => void;
@@ -230,6 +236,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const [reciteSurah, setReciteSurah] = useState(1);
   const [recitePosition, setRecitePosition] = useState<RecitePosition | null>(null);
   const [khatm, setKhatm] = useState<KhatmPlan | null>(null);
+  const [khatmCompletions, setKhatmCompletions] = useState(0); // lifetime full readings completed
   const [dailyVerse, setDailyVerseState] = useState<DailyVerseSettings>(DEFAULT_DAILY_VERSE);
   const [quizResults, setQuizResults] = useState<QuizResult[]>([]);
   const [refCollection, setRefCollection] = useState<string | null>(null);
@@ -255,7 +262,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
           const p = JSON.parse(raw) as Partial<{
             onboarded: boolean; language: string; appLanguage: string; translationLanguage: string; tafsirLanguage: string;
             appearance: Appearance; homeLayout: HomeLayout; reciteView: ReciteView; savedList: AyahItem[];
-            recitePosition: RecitePosition; khatm: KhatmPlan; dailyVerse: DailyVerseSettings; quizResults: QuizResult[];
+            recitePosition: RecitePosition; khatm: KhatmPlan; khatmCompletions: number; dailyVerse: DailyVerseSettings; quizResults: QuizResult[];
           }>;
           // Migrate the old single `language` pref → translation language.
           const tr = p.translationLanguage ?? p.language;
@@ -273,15 +280,26 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
             setRecitePosition(p.recitePosition);
             setReciteSurah(p.recitePosition.surah);
           }
-          if (p.khatm && (p.khatm.kind === "30" || p.khatm.kind === "60" || p.khatm.kind === "365")) {
-            setKhatm({
-              kind: p.khatm.kind,
-              startedAt: typeof p.khatm.startedAt === "number" ? p.khatm.startedAt : Date.now(),
-              completedJuz: Array.isArray(p.khatm.completedJuz) ? p.khatm.completedJuz.filter((n) => n >= 1 && n <= JUZ_COUNT) : [],
-              lastReadDay: typeof p.khatm.lastReadDay === "string" ? p.khatm.lastReadDay : null,
-              streak: typeof p.khatm.streak === "number" ? p.khatm.streak : 0,
-            });
+          if (p.khatm && typeof (p.khatm as { startedAt?: unknown }).startedAt === "number") {
+            const kh = p.khatm as unknown as Record<string, unknown>;
+            const clampInt = (v: unknown, lo: number, hi: number, fb: number) =>
+              typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v))) : fb;
+            const base = {
+              startedAt: kh.startedAt as number,
+              lastReadDay: typeof kh.lastReadDay === "string" ? (kh.lastReadDay as string) : null,
+              streak: typeof kh.streak === "number" ? (kh.streak as number) : 0,
+            };
+            if (typeof kh.pagesPerDay === "number") {
+              // current (page-based) shape
+              setKhatm({ ...base, pagesPerDay: clampInt(kh.pagesPerDay, 1, QPC_PAGE_COUNT, 21), pagesRead: clampInt(kh.pagesRead, 0, QPC_PAGE_COUNT, 0) });
+            } else if (kh.kind === "30" || kh.kind === "60" || kh.kind === "365") {
+              // migrate legacy juzʼ-based plan → pages
+              const days = Number(kh.kind);
+              const juzDone = Array.isArray(kh.completedJuz) ? (kh.completedJuz as unknown[]).length : 0;
+              setKhatm({ ...base, pagesPerDay: Math.ceil(QPC_PAGE_COUNT / days), pagesRead: Math.round((juzDone / 30) * QPC_PAGE_COUNT) });
+            }
           }
+          if (typeof p.khatmCompletions === "number" && p.khatmCompletions >= 0) setKhatmCompletions(Math.round(p.khatmCompletions));
           if (p.dailyVerse && typeof p.dailyVerse.enabled === "boolean" && typeof p.dailyVerse.hour === "number" && typeof p.dailyVerse.minute === "number") {
             setDailyVerseState({ enabled: p.dailyVerse.enabled, hour: p.dailyVerse.hour, minute: p.dailyVerse.minute });
           }
@@ -303,8 +321,8 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   // Persist preferences whenever they change (after hydration).
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, dailyVerse, quizResults })).catch(() => {});
-  }, [hydrated, onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, dailyVerse, quizResults]);
+    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, khatmCompletions, dailyVerse, quizResults })).catch(() => {});
+  }, [hydrated, onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, khatmCompletions, dailyVerse, quizResults]);
 
   // Reconcile Daily-Verse local notifications after hydration and whenever the
   // setting or translation language changes; also re-sync on each foreground so
@@ -369,7 +387,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const api: AQApi = useMemo(
     () => ({
       stage, current, navKey, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, setRecitePlaying,
-      language, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, dailyVerse, quizResults, refCollection, passageTarget, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
+      language, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, khatmCompletions, dailyVerse, quizResults, refCollection, passageTarget, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
       t: (key, vars) => translate(appLanguage, key, vars),
       uiRTL: isRTL(appLanguage),
       goOnboarding: () => setStage("onboarding"),
@@ -410,43 +428,47 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       closeSurahSheet: () => setSurahSheetOpen(false),
       pickSurah: (n) => { setReciteSurah(n); setSurahSheetOpen(false); },
       saveRecitePosition: (surah, ayah) => setRecitePosition((p) => (p && p.surah === surah && p.ayah === ayah ? p : { surah, ayah })),
-      startKhatm: (kind) => {
-        setKhatm({ kind, startedAt: Date.now(), completedJuz: [], lastReadDay: null, streak: 0 });
-        track("khatm_start", { kind });
+      startKhatm: (pagesPerDay) => {
+        const ppd = Math.min(QPC_PAGE_COUNT, Math.max(1, Math.round(pagesPerDay)));
+        setKhatm({ startedAt: Date.now(), pagesPerDay: ppd, pagesRead: 0, lastReadDay: null, streak: 0 });
+        track("khatm_start", { pagesPerDay: ppd });
       },
-      toggleJuzRead: (juz) => {
-        if (juz < 1 || juz > JUZ_COUNT) return;
-        setKhatm((k) => {
-          if (!k) return k;
-          const had = k.completedJuz.includes(juz);
-          const completedJuz = had ? k.completedJuz.filter((n) => n !== juz) : [...k.completedJuz, juz].sort((a, b) => a - b);
-          // Only advance the streak when adding a reading (not when un-marking),
-          // and only once per calendar day.
-          let { lastReadDay, streak } = k;
-          if (!had) {
-            const today = dayStr();
-            if (lastReadDay !== today) {
-              const yest = dayStr(new Date(Date.now() - 86400000));
-              streak = lastReadDay === yest ? streak + 1 : 1;
-              lastReadDay = today;
-            }
-          }
-          return { ...k, completedJuz, lastReadDay, streak };
-        });
-        track("khatm_juz_toggle", { juz });
+      markDayRead: () => {
+        if (!khatm) return;
+        const before = khatm.pagesRead;
+        const pagesRead = Math.min(QPC_PAGE_COUNT, before + khatm.pagesPerDay);
+        if (pagesRead === before) return; // already finished
+        // Advance the streak once per calendar day.
+        let { lastReadDay, streak } = khatm;
+        const today = dayStr();
+        if (lastReadDay !== today) {
+          const yest = dayStr(new Date(Date.now() - 86400000));
+          streak = lastReadDay === yest ? streak + 1 : 1;
+          lastReadDay = today;
+        }
+        setKhatm({ ...khatm, pagesRead, lastReadDay, streak });
+        if (before < QPC_PAGE_COUNT && pagesRead >= QPC_PAGE_COUNT) {
+          setKhatmCompletions((c) => c + 1); // finished a full reading
+          track("khatm_complete", {});
+        }
+        track("khatm_day_read", {});
+      },
+      setPagesRead: (pages) => {
+        if (!khatm) return;
+        const pagesRead = Math.min(QPC_PAGE_COUNT, Math.max(0, Math.round(pages)));
+        const wasComplete = khatm.pagesRead >= QPC_PAGE_COUNT;
+        setKhatm({ ...khatm, pagesRead });
+        if (!wasComplete && pagesRead >= QPC_PAGE_COUNT) setKhatmCompletions((c) => c + 1);
       },
       resetKhatm: () => { setKhatm(null); track("khatm_reset", {}); },
       continueKhatm: () => {
-        const done = new Set(khatm?.completedJuz ?? []);
-        let next = 1;
-        while (next <= JUZ_COUNT && done.has(next)) next += 1;
-        if (next > JUZ_COUNT) next = 1; // whole khatm done → loop back to juzʼ 1
-        const start = juzStart(next);
+        const nextPage = Math.min(QPC_PAGE_COUNT, (khatm?.pagesRead ?? 0) + 1);
+        const start = pageStartRef(nextPage);
         setReciteSurah(start.surah);
         setRecitePosition({ surah: start.surah, ayah: start.ayah });
         setNav([{ screen: "recite" }]);
         bump();
-        track("khatm_continue", { juz: next });
+        track("khatm_continue", { page: nextPage });
       },
       setDailyVerse: (patch) => {
         setDailyVerseState((d) => {
@@ -474,7 +496,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       },
       savedItems: savedList,
     }),
-    [stage, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, dailyVerse, quizResults, refCollection, passageTarget, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
+    [stage, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, khatmCompletions, dailyVerse, quizResults, refCollection, passageTarget, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
   );
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;

@@ -12,6 +12,31 @@ export type QpcEntry = { p: number; g: string };
 // JSON — that explodes typecheck time/memory. Metro bundles the JSON either way.
 const INDEX = require("../../assets/qpc-v2.json") as Record<string, QpcEntry>;
 
+/** Total pages in the QPC V2 Madinah mushaf. */
+export const QPC_PAGE_COUNT = 604;
+
+// Reverse index: page number → its FIRST ayah (smallest surah:ayah on that page).
+// Built lazily from INDEX on first use (one pass over 6236 ayahs) so the Reading
+// Plan can jump Recite to the start of any page.
+let PAGE_STARTS: Record<number, { surah: number; ayah: number }> | null = null;
+
+/** First ayah typeset on `page` (1..604). Clamps out-of-range; falls back to 1:1. */
+export function pageStartRef(page: number): { surah: number; ayah: number } {
+  if (!PAGE_STARTS) {
+    PAGE_STARTS = {};
+    for (const key of Object.keys(INDEX)) {
+      const sa = saFromKey(key);
+      if (!sa) continue;
+      const p = INDEX[key].p;
+      const cur = PAGE_STARTS[p];
+      const ord = sa.surah * 1000 + sa.ayah;
+      if (!cur || ord < cur.surah * 1000 + cur.ayah) PAGE_STARTS[p] = sa;
+    }
+  }
+  const clamped = Math.min(Math.max(Math.round(page), 1), QPC_PAGE_COUNT);
+  return PAGE_STARTS[clamped] ?? { surah: 1, ayah: 1 };
+}
+
 /** Glyph entry for one ayah, or undefined if the key is unknown. */
 export function qpcAyah(surah: number, ayah: number): QpcEntry | undefined {
   return INDEX[`${surah}:${ayah}`];
