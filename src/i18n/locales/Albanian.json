@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Kujtesë ditore",
   "m.plan.reminderSub": "Një rikujtim për të lexuar faqet e sotme",
   "m.plan.reminderTitle": "Plani i leximit",
-  "m.plan.reminderBody": "Është koha për faqet e sotme — vazhdo khatmin."
+  "m.plan.reminderBody": "Është koha për faqet e sotme — vazhdo khatmin.",
+  "m.set.dailyVerseGroup": "Ajeti ditor",
+  "m.set.dailyVerse": "Ajeti ditor",
+  "m.set.dailyVerseSub": "Një ajet çdo ditë si kujtesë e butë",
+  "m.set.dvTime": "Koha e ditës",
+  "m.set.dvMorning": "Mëngjes",
+  "m.set.dvMidday": "Mesditë",
+  "m.set.dvEvening": "Mbrëmje"
 }

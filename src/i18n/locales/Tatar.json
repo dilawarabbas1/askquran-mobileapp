@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Көндәлек искәртү",
   "m.plan.reminderSub": "Бүгенге битләрне укырга искәртү",
   "m.plan.reminderTitle": "Уку планы",
-  "m.plan.reminderBody": "Бүгенге битләр вакыты — хатмыңны дәвам ит."
+  "m.plan.reminderBody": "Бүгенге битләр вакыты — хатмыңны дәвам ит.",
+  "m.set.dailyVerseGroup": "Көндәлек аять",
+  "m.set.dailyVerse": "Көндәлек аять",
+  "m.set.dailyVerseSub": "Һәр көн бер аять, йомшак искәртү буларак",
+  "m.set.dvTime": "Көн вакыты",
+  "m.set.dvMorning": "Иртән",
+  "m.set.dvMidday": "Төш",
+  "m.set.dvEvening": "Кич"
 }

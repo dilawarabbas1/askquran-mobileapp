@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Dnevni podsjetnik",
   "m.plan.reminderSub": "Podsjetnik da pročitaš današnje stranice",
   "m.plan.reminderTitle": "Plan čitanja",
-  "m.plan.reminderBody": "Vrijeme je za današnje stranice — nastavi svoj hatmu."
+  "m.plan.reminderBody": "Vrijeme je za današnje stranice — nastavi svoj hatmu.",
+  "m.set.dailyVerseGroup": "Dnevni ajet",
+  "m.set.dailyVerse": "Dnevni ajet",
+  "m.set.dailyVerseSub": "Jedan ajet svaki dan kao blagi podsjetnik",
+  "m.set.dvTime": "Doba dana",
+  "m.set.dvMorning": "Jutro",
+  "m.set.dvMidday": "Podne",
+  "m.set.dvEvening": "Večer"
 }

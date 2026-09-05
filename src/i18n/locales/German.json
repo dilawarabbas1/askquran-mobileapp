@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Tägliche Erinnerung",
   "m.plan.reminderSub": "Eine Erinnerung, die heutigen Seiten zu lesen",
   "m.plan.reminderTitle": "Leseplan",
-  "m.plan.reminderBody": "Zeit für die heutigen Seiten — bleiben Sie bei Ihrer Koranlesung dran."
+  "m.plan.reminderBody": "Zeit für die heutigen Seiten — bleiben Sie bei Ihrer Koranlesung dran.",
+  "m.set.dailyVerseGroup": "Täglicher Vers",
+  "m.set.dailyVerse": "Täglicher Vers",
+  "m.set.dailyVerseSub": "Jeden Tag ein Vers als sanfte Erinnerung",
+  "m.set.dvTime": "Tageszeit",
+  "m.set.dvMorning": "Morgen",
+  "m.set.dvMidday": "Mittag",
+  "m.set.dvEvening": "Abend"
 }

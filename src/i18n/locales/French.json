@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Rappel quotidien",
   "m.plan.reminderSub": "Un rappel pour lire les pages du jour",
   "m.plan.reminderTitle": "Plan de lecture",
-  "m.plan.reminderBody": "C’est l’heure des pages du jour — poursuivez votre lecture complète."
+  "m.plan.reminderBody": "C’est l’heure des pages du jour — poursuivez votre lecture complète.",
+  "m.set.dailyVerseGroup": "Verset du jour",
+  "m.set.dailyVerse": "Verset du jour",
+  "m.set.dailyVerseSub": "Un verset chaque jour comme doux rappel",
+  "m.set.dvTime": "Moment de la journée",
+  "m.set.dvMorning": "Matin",
+  "m.set.dvMidday": "Midi",
+  "m.set.dvEvening": "Soir"
 }

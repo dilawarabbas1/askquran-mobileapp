@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Ежедневное напоминание",
   "m.plan.reminderSub": "Напоминание прочитать сегодняшние страницы",
   "m.plan.reminderTitle": "План чтения",
-  "m.plan.reminderBody": "Пора читать сегодняшние страницы — продолжайте свой хатм."
+  "m.plan.reminderBody": "Пора читать сегодняшние страницы — продолжайте свой хатм.",
+  "m.set.dailyVerseGroup": "Аят дня",
+  "m.set.dailyVerse": "Аят дня",
+  "m.set.dailyVerseSub": "Один аят каждый день как мягкое напоминание",
+  "m.set.dvTime": "Время дня",
+  "m.set.dvMorning": "Утро",
+  "m.set.dvMidday": "Полдень",
+  "m.set.dvEvening": "Вечер"
 }

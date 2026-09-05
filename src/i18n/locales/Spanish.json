@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Recordatorio diario",
   "m.plan.reminderSub": "Un aviso para leer las páginas de hoy",
   "m.plan.reminderTitle": "Plan de lectura",
-  "m.plan.reminderBody": "Es hora de las páginas de hoy — continúa tu lectura completa."
+  "m.plan.reminderBody": "Es hora de las páginas de hoy — continúa tu lectura completa.",
+  "m.set.dailyVerseGroup": "Versículo diario",
+  "m.set.dailyVerse": "Versículo diario",
+  "m.set.dailyVerseSub": "Una aleya cada día como recordatorio suave",
+  "m.set.dvTime": "Hora del día",
+  "m.set.dvMorning": "Mañana",
+  "m.set.dvMidday": "Mediodía",
+  "m.set.dvEvening": "Noche"
 }

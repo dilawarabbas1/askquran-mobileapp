@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Günlük hatırlatma",
   "m.plan.reminderSub": "Bugünkü sayfaları okumanız için hatırlatma",
   "m.plan.reminderTitle": "Okuma planı",
-  "m.plan.reminderBody": "Bugünkü sayfaların zamanı — hatminize devam edin."
+  "m.plan.reminderBody": "Bugünkü sayfaların zamanı — hatminize devam edin.",
+  "m.set.dailyVerseGroup": "Günün ayeti",
+  "m.set.dailyVerse": "Günün ayeti",
+  "m.set.dailyVerseSub": "Her gün yumuşak bir hatırlatma olarak bir ayet",
+  "m.set.dvTime": "Günün zamanı",
+  "m.set.dvMorning": "Sabah",
+  "m.set.dvMidday": "Öğle",
+  "m.set.dvEvening": "Akşam"
 }

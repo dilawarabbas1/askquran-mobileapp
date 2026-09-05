@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "เตือนอ่านทุกวัน",
   "m.plan.reminderSub": "เตือนให้อ่านหน้าของวันนี้",
   "m.plan.reminderTitle": "แผนการอ่าน",
-  "m.plan.reminderBody": "ถึงเวลาอ่านหน้าของวันนี้แล้ว — อ่านคอตัมของคุณต่อไป"
+  "m.plan.reminderBody": "ถึงเวลาอ่านหน้าของวันนี้แล้ว — อ่านคอตัมของคุณต่อไป",
+  "m.set.dailyVerseGroup": "อายะฮ์ประจำวัน",
+  "m.set.dailyVerse": "อายะฮ์ประจำวัน",
+  "m.set.dailyVerseSub": "วันละหนึ่งอายะฮ์ เป็นการเตือนใจอย่างอ่อนโยน",
+  "m.set.dvTime": "ช่วงเวลา",
+  "m.set.dvMorning": "เช้า",
+  "m.set.dvMidday": "เที่ยง",
+  "m.set.dvEvening": "เย็น"
 }

@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "ورځنۍ یادونه",
   "m.plan.reminderSub": "د نن ورځې پاڼو لوستلو لپاره یادونه",
   "m.plan.reminderTitle": "د لوستلو پلان",
-  "m.plan.reminderBody": "د نن ورځې پاڼو وخت دی — خپل ختم روان وساتئ."
+  "m.plan.reminderBody": "د نن ورځې پاڼو وخت دی — خپل ختم روان وساتئ.",
+  "m.set.dailyVerseGroup": "ورځنی آیت",
+  "m.set.dailyVerse": "ورځنی آیت",
+  "m.set.dailyVerseSub": "هره ورځ یو آیت د نرمي یادونې په توګه",
+  "m.set.dvTime": "د ورځې وخت",
+  "m.set.dvMorning": "سهار",
+  "m.set.dvMidday": "غرمه",
+  "m.set.dvEvening": "ماښام"
 }

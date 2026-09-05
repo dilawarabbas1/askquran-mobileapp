@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "தினசரி நினைவூட்டல்",
   "m.plan.reminderSub": "இன்றைய பக்கங்களை வாசிக்க நினைவூட்டல்",
   "m.plan.reminderTitle": "வாசிப்பு திட்டம்",
-  "m.plan.reminderBody": "இன்றைய பக்கங்களுக்கான நேரம் — உங்கள் கத்மைத் தொடருங்கள்."
+  "m.plan.reminderBody": "இன்றைய பக்கங்களுக்கான நேரம் — உங்கள் கத்மைத் தொடருங்கள்.",
+  "m.set.dailyVerseGroup": "தினசரி வசனம்",
+  "m.set.dailyVerse": "தினசரி வசனம்",
+  "m.set.dailyVerseSub": "மென்மையான நினைவூட்டலாக தினமும் ஒரு ஆயா",
+  "m.set.dvTime": "நாளின் நேரம்",
+  "m.set.dvMorning": "காலை",
+  "m.set.dvMidday": "நண்பகல்",
+  "m.set.dvEvening": "மாலை"
 }

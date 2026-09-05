@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "দৈনিক স্মরণ করিয়ে দেওয়া",
   "m.plan.reminderSub": "আজকের পৃষ্ঠা পড়ার জন্য একটি স্মরণ",
   "m.plan.reminderTitle": "পড়ার পরিকল্পনা",
-  "m.plan.reminderBody": "আজকের পৃষ্ঠা পড়ার সময় হয়েছে — আপনার খতম চালিয়ে যান।"
+  "m.plan.reminderBody": "আজকের পৃষ্ঠা পড়ার সময় হয়েছে — আপনার খতম চালিয়ে যান।",
+  "m.set.dailyVerseGroup": "দৈনিক আয়াত",
+  "m.set.dailyVerse": "দৈনিক আয়াত",
+  "m.set.dailyVerseSub": "প্রতিদিন একটি আয়াত, কোমল স্মরণ হিসেবে",
+  "m.set.dvTime": "দিনের সময়",
+  "m.set.dvMorning": "সকাল",
+  "m.set.dvMidday": "দুপুর",
+  "m.set.dvEvening": "সন্ধ্যা"
 }

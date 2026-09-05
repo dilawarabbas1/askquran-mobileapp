@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Pengingat harian",
   "m.plan.reminderSub": "Pengingat untuk membaca halaman hari ini",
   "m.plan.reminderTitle": "Rencana membaca",
-  "m.plan.reminderBody": "Saatnya membaca halaman hari ini — lanjutkan khatam Anda."
+  "m.plan.reminderBody": "Saatnya membaca halaman hari ini — lanjutkan khatam Anda.",
+  "m.set.dailyVerseGroup": "Ayat harian",
+  "m.set.dailyVerse": "Ayat harian",
+  "m.set.dailyVerseSub": "Satu ayat setiap hari sebagai pengingat lembut",
+  "m.set.dvTime": "Waktu hari",
+  "m.set.dvMorning": "Pagi",
+  "m.set.dvMidday": "Siang",
+  "m.set.dvEvening": "Malam"
 }

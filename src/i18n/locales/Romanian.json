@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Memento zilnic",
   "m.plan.reminderSub": "Un memento pentru paginile de azi",
   "m.plan.reminderTitle": "Plan de lectură",
-  "m.plan.reminderBody": "E timpul pentru paginile de azi — continuă khatmul."
+  "m.plan.reminderBody": "E timpul pentru paginile de azi — continuă khatmul.",
+  "m.set.dailyVerseGroup": "Verset zilnic",
+  "m.set.dailyVerse": "Verset zilnic",
+  "m.set.dailyVerseSub": "Câte o ayah în fiecare zi, ca o amintire blândă",
+  "m.set.dvTime": "Momentul zilei",
+  "m.set.dvMorning": "Dimineață",
+  "m.set.dvMidday": "Prânz",
+  "m.set.dvEvening": "Seară"
 }

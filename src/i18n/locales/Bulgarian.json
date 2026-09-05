@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Ежедневно напомняне",
   "m.plan.reminderSub": "Напомняне да прочетете страниците за днес",
   "m.plan.reminderTitle": "План за четене",
-  "m.plan.reminderBody": "Време е за страниците за днес — продължете своя хатм."
+  "m.plan.reminderBody": "Време е за страниците за днес — продължете своя хатм.",
+  "m.set.dailyVerseGroup": "Ежедневен айет",
+  "m.set.dailyVerse": "Ежедневен айет",
+  "m.set.dailyVerseSub": "По един айет всеки ден като леко напомняне",
+  "m.set.dvTime": "Час от деня",
+  "m.set.dvMorning": "Сутрин",
+  "m.set.dvMidday": "По обяд",
+  "m.set.dvEvening": "Вечер"
 }

@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "كۈندىلىك ئەسكەرتىش",
   "m.plan.reminderSub": "بۈگۈنكى بەتلەرنى ئوقۇش ئۈچۈن ئەسكەرتىش",
   "m.plan.reminderTitle": "ئوقۇش پىلانى",
-  "m.plan.reminderBody": "بۈگۈنكى بەتلەرنىڭ ۋاقتى بولدى — خەتمىڭىزنى داۋاملاشتۇرۇڭ."
+  "m.plan.reminderBody": "بۈگۈنكى بەتلەرنىڭ ۋاقتى بولدى — خەتمىڭىزنى داۋاملاشتۇرۇڭ.",
+  "m.set.dailyVerseGroup": "كۈندىلىك ئايەت",
+  "m.set.dailyVerse": "كۈندىلىك ئايەت",
+  "m.set.dailyVerseSub": "ھەر كۈنى بىر ئايەت، مۇلايىم ئەسكەرتىش سۈپىتىدە",
+  "m.set.dvTime": "كۈننىڭ ۋاقتى",
+  "m.set.dvMorning": "ئەتىگەن",
+  "m.set.dvMidday": "چۈش",
+  "m.set.dvEvening": "كەچ"
 }

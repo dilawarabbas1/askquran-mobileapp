@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "یادآوری روزانه",
   "m.plan.reminderSub": "یادآوری برای خواندن صفحه‌های امروز",
   "m.plan.reminderTitle": "برنامه خواندن",
-  "m.plan.reminderBody": "وقت صفحه‌های امروز است — ختم قرآن خود را ادامه دهید."
+  "m.plan.reminderBody": "وقت صفحه‌های امروز است — ختم قرآن خود را ادامه دهید.",
+  "m.set.dailyVerseGroup": "آیه روزانه",
+  "m.set.dailyVerse": "آیه روزانه",
+  "m.set.dailyVerseSub": "هر روز یک آیه برای یادآوری آرام",
+  "m.set.dvTime": "زمان روز",
+  "m.set.dvMorning": "صبح",
+  "m.set.dvMidday": "ظهر",
+  "m.set.dvEvening": "عصر"
 }

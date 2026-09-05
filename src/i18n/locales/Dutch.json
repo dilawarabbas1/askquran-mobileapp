@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Dagelijkse herinnering",
   "m.plan.reminderSub": "Een seintje om de pagina’s van vandaag te lezen",
   "m.plan.reminderTitle": "Leesplan",
-  "m.plan.reminderBody": "Tijd voor de pagina’s van vandaag — houd je khatm vol."
+  "m.plan.reminderBody": "Tijd voor de pagina’s van vandaag — houd je khatm vol.",
+  "m.set.dailyVerseGroup": "Dagelijkse ayah",
+  "m.set.dailyVerse": "Dagelijkse ayah",
+  "m.set.dailyVerseSub": "Elke dag één ayah als zachte herinnering",
+  "m.set.dvTime": "Tijd van de dag",
+  "m.set.dvMorning": "Ochtend",
+  "m.set.dvMidday": "Middag",
+  "m.set.dvEvening": "Avond"
 }

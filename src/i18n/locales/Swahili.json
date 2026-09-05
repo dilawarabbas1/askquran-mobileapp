@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Kikumbusho cha kila siku",
   "m.plan.reminderSub": "Kikumbusho cha kusoma kurasa za leo",
   "m.plan.reminderTitle": "Mpango wa kusoma",
-  "m.plan.reminderBody": "Ni wakati wa kurasa za leo — endelea na khitma yako."
+  "m.plan.reminderBody": "Ni wakati wa kurasa za leo — endelea na khitma yako.",
+  "m.set.dailyVerseGroup": "Aya ya kila siku",
+  "m.set.dailyVerse": "Aya ya kila siku",
+  "m.set.dailyVerseSub": "Aya moja kila siku kama ukumbusho mpole",
+  "m.set.dvTime": "Wakati wa siku",
+  "m.set.dvMorning": "Asubuhi",
+  "m.set.dvMidday": "Mchana",
+  "m.set.dvEvening": "Jioni"
 }

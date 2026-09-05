@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Ёдрасии ҳаррӯза",
   "m.plan.reminderSub": "Ёдрасӣ барои хондани саҳифаҳои имрӯз",
   "m.plan.reminderTitle": "Нақшаи хондан",
-  "m.plan.reminderBody": "Вақти саҳифаҳои имрӯз расид — хатми худро идома диҳед."
+  "m.plan.reminderBody": "Вақти саҳифаҳои имрӯз расид — хатми худро идома диҳед.",
+  "m.set.dailyVerseGroup": "Ояти рӯз",
+  "m.set.dailyVerse": "Ояти рӯз",
+  "m.set.dailyVerseSub": "Ҳар рӯз як оят ҳамчун ёдрасии нарм",
+  "m.set.dvTime": "Вақти рӯз",
+  "m.set.dvMorning": "Субҳ",
+  "m.set.dvMidday": "Нисфирӯзӣ",
+  "m.set.dvEvening": "Шом"
 }

@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Promemoria giornaliero",
   "m.plan.reminderSub": "Un promemoria per leggere le pagine di oggi",
   "m.plan.reminderTitle": "Piano di lettura",
-  "m.plan.reminderBody": "È il momento delle pagine di oggi — continua la tua lettura completa."
+  "m.plan.reminderBody": "È il momento delle pagine di oggi — continua la tua lettura completa.",
+  "m.set.dailyVerseGroup": "Versetto del giorno",
+  "m.set.dailyVerse": "Versetto del giorno",
+  "m.set.dailyVerseSub": "Un versetto al giorno come promemoria gentile",
+  "m.set.dvTime": "Momento della giornata",
+  "m.set.dvMorning": "Mattina",
+  "m.set.dvMidday": "Mezzogiorno",
+  "m.set.dvEvening": "Sera"
 }

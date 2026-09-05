@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "매일 알림",
   "m.plan.reminderSub": "오늘 읽을 쪽을 알려드려요",
   "m.plan.reminderTitle": "읽기 계획",
-  "m.plan.reminderBody": "오늘 읽을 시간입니다 — 꾸란 완독을 계속 이어가세요."
+  "m.plan.reminderBody": "오늘 읽을 시간입니다 — 꾸란 완독을 계속 이어가세요.",
+  "m.set.dailyVerseGroup": "오늘의 아야",
+  "m.set.dailyVerse": "오늘의 아야",
+  "m.set.dailyVerseSub": "매일 한 구절을 부드러운 알림으로 보여줍니다",
+  "m.set.dvTime": "하루 중 시간",
+  "m.set.dvMorning": "아침",
+  "m.set.dvMidday": "정오",
+  "m.set.dvEvening": "저녁"
 }

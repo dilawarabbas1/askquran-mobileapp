@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "毎日のリマインダー",
   "m.plan.reminderSub": "今日のページを読むためのお知らせ",
   "m.plan.reminderTitle": "読誦プラン",
-  "m.plan.reminderBody": "今日のページを読む時間です — 読誦を続けましょう。"
+  "m.plan.reminderBody": "今日のページを読む時間です — 読誦を続けましょう。",
+  "m.set.dailyVerseGroup": "今日のアーヤ",
+  "m.set.dailyVerse": "今日のアーヤ",
+  "m.set.dailyVerseSub": "毎日一つのアーヤをやさしいリマインダーとして表示",
+  "m.set.dvTime": "時刻",
+  "m.set.dvMorning": "朝",
+  "m.set.dvMidday": "昼",
+  "m.set.dvEvening": "夕方"
 }

@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Tunatarwa ta kullum",
   "m.plan.reminderSub": "Tunatarwa don karanta shafukan yau",
   "m.plan.reminderTitle": "Tsarin karatu",
-  "m.plan.reminderBody": "Lokacin shafukan yau ya yi — ci gaba da khatam ɗinka."
+  "m.plan.reminderBody": "Lokacin shafukan yau ya yi — ci gaba da khatam ɗinka.",
+  "m.set.dailyVerseGroup": "Aya ta yau",
+  "m.set.dailyVerse": "Aya ta yau",
+  "m.set.dailyVerseSub": "Aya ɗaya kowace rana a matsayin tunatarwa mai sauƙi",
+  "m.set.dvTime": "Lokacin rana",
+  "m.set.dvMorning": "Safiya",
+  "m.set.dvMidday": "Tsakar rana",
+  "m.set.dvEvening": "Maraice"
 }

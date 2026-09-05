@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "روزاني ياد ڏياريندڙ",
   "m.plan.reminderSub": "اڄ جا صفحا پڙهڻ لاءِ ياد ڏيارڻ",
   "m.plan.reminderTitle": "پڙهڻ جو منصوبو",
-  "m.plan.reminderBody": "اڄ جي صفحن جو وقت ٿي ويو — پنهنجو ختم جاري رکو."
+  "m.plan.reminderBody": "اڄ جي صفحن جو وقت ٿي ويو — پنهنجو ختم جاري رکو.",
+  "m.set.dailyVerseGroup": "روزانو آيت",
+  "m.set.dailyVerse": "روزانو آيت",
+  "m.set.dailyVerseSub": "هر ڏينهن هڪ آيت نرم ياد ڏيارڻ طور",
+  "m.set.dvTime": "ڏينهن جو وقت",
+  "m.set.dvMorning": "صبح",
+  "m.set.dvMidday": "منجهند",
+  "m.set.dvEvening": "شام"
 }

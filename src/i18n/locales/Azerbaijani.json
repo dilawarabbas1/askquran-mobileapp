@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Gündəlik xatırlatma",
   "m.plan.reminderSub": "Bugünkü səhifələri oxumaq üçün xatırlatma",
   "m.plan.reminderTitle": "Oxu planı",
-  "m.plan.reminderBody": "Bugünkü səhifələrin vaxtıdır — xətminizi davam etdirin."
+  "m.plan.reminderBody": "Bugünkü səhifələrin vaxtıdır — xətminizi davam etdirin.",
+  "m.set.dailyVerseGroup": "Günün ayəsi",
+  "m.set.dailyVerse": "Günün ayəsi",
+  "m.set.dailyVerseSub": "Hər gün yumşaq xatırlatma kimi bir ayə",
+  "m.set.dvTime": "Günün vaxtı",
+  "m.set.dvMorning": "Səhər",
+  "m.set.dvMidday": "Günorta",
+  "m.set.dvEvening": "Axşam"
 }

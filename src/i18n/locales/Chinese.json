@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "每日提醒",
   "m.plan.reminderSub": "提醒你阅读今天的页数",
   "m.plan.reminderTitle": "阅读计划",
-  "m.plan.reminderBody": "该读今天的页数了 — 继续完成你的诵读计划。"
+  "m.plan.reminderBody": "该读今天的页数了 — 继续完成你的诵读计划。",
+  "m.set.dailyVerseGroup": "每日经文",
+  "m.set.dailyVerse": "每日经文",
+  "m.set.dailyVerseSub": "每天一节经文，温和提醒",
+  "m.set.dvTime": "一天中的时间",
+  "m.set.dvMorning": "早晨",
+  "m.set.dvMidday": "中午",
+  "m.set.dvEvening": "晚上"
 }

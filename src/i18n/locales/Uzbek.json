@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Kundalik eslatma",
   "m.plan.reminderSub": "Bugungi sahifalarni o‘qish uchun eslatma",
   "m.plan.reminderTitle": "O‘qish rejasi",
-  "m.plan.reminderBody": "Bugungi sahifalar vaqti — xatmingizni davom ettiring."
+  "m.plan.reminderBody": "Bugungi sahifalar vaqti — xatmingizni davom ettiring.",
+  "m.set.dailyVerseGroup": "Kunlik oyat",
+  "m.set.dailyVerse": "Kunlik oyat",
+  "m.set.dailyVerseSub": "Har kuni bitta oyat, muloyim eslatma sifatida",
+  "m.set.dvTime": "Kun vaqti",
+  "m.set.dvMorning": "Tong",
+  "m.set.dvMidday": "Tush payti",
+  "m.set.dvEvening": "Kechqurun"
 }

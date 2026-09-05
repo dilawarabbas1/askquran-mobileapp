@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "روزانہ یاد دہانی",
   "m.plan.reminderSub": "آج کے صفحات پڑھنے کی یاد دہانی",
   "m.plan.reminderTitle": "پڑھنے کا منصوبہ",
-  "m.plan.reminderBody": "آج کے صفحات پڑھنے کا وقت ہے — اپنا ختم جاری رکھیں۔"
+  "m.plan.reminderBody": "آج کے صفحات پڑھنے کا وقت ہے — اپنا ختم جاری رکھیں۔",
+  "m.set.dailyVerseGroup": "روزانہ آیت",
+  "m.set.dailyVerse": "روزانہ آیت",
+  "m.set.dailyVerseSub": "ہر دن ایک آیت، نرم یاد دہانی کے طور پر",
+  "m.set.dvTime": "دن کا وقت",
+  "m.set.dvMorning": "صبح",
+  "m.set.dvMidday": "دوپہر",
+  "m.set.dvEvening": "شام"
 }

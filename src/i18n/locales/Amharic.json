@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "ዕለታዊ ማስታወሻ",
   "m.plan.reminderSub": "የዛሬን ገጾች እንዲያነቡ ቀላል ማስታወሻ",
   "m.plan.reminderTitle": "የንባብ እቅድ",
-  "m.plan.reminderBody": "የዛሬን ገጾች የሚያነቡበት ጊዜ ነው — ኸትምዎን ይቀጥሉ።"
+  "m.plan.reminderBody": "የዛሬን ገጾች የሚያነቡበት ጊዜ ነው — ኸትምዎን ይቀጥሉ።",
+  "m.set.dailyVerseGroup": "ዕለታዊ አያ",
+  "m.set.dailyVerse": "ዕለታዊ አያ",
+  "m.set.dailyVerseSub": "በየቀኑ አንድ አያ እንደ ቀላል ማስታወሻ",
+  "m.set.dvTime": "የቀን ሰዓት",
+  "m.set.dvMorning": "ጠዋት",
+  "m.set.dvMidday": "እኩለ ቀን",
+  "m.set.dvEvening": "ማታ"
 }

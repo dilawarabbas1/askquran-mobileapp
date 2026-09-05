@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "ദൈനംദിന ഓർമ്മപ്പെടുത്തൽ",
   "m.plan.reminderSub": "ഇന്നത്തെ പേജുകൾ വായിക്കാൻ ഓർമ്മപ്പെടുത്തൽ",
   "m.plan.reminderTitle": "വായനാ പദ്ധതി",
-  "m.plan.reminderBody": "ഇന്നത്തെ പേജുകൾ വായിക്കാനുള്ള സമയമായി — നിങ്ങളുടെ ഖതം തുടരുക."
+  "m.plan.reminderBody": "ഇന്നത്തെ പേജുകൾ വായിക്കാനുള്ള സമയമായി — നിങ്ങളുടെ ഖതം തുടരുക.",
+  "m.set.dailyVerseGroup": "ദിവസത്തെ ആയത്ത്",
+  "m.set.dailyVerse": "ദിവസത്തെ ആയത്ത്",
+  "m.set.dailyVerseSub": "മൃദുവായ ഓർമ്മപ്പെടുത്തലായി ഓരോ ദിവസവും ഒരു ആയത്ത്",
+  "m.set.dvTime": "ദിവസത്തിലെ സമയം",
+  "m.set.dvMorning": "രാവിലെ",
+  "m.set.dvMidday": "ഉച്ചയ്ക്ക്",
+  "m.set.dvEvening": "വൈകുന്നേരം"
 }

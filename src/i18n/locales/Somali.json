@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Xusuusin maalinle ah",
   "m.plan.reminderSub": "Xusuusin si aad u akhrido bogagga maanta",
   "m.plan.reminderTitle": "Qorshaha akhriska",
-  "m.plan.reminderBody": "Waa waqtigii bogagga maanta — sii wad khatamkaaga."
+  "m.plan.reminderBody": "Waa waqtigii bogagga maanta — sii wad khatamkaaga.",
+  "m.set.dailyVerseGroup": "Aayadda maalinlaha ah",
+  "m.set.dailyVerse": "Aayadda maalinlaha ah",
+  "m.set.dailyVerseSub": "Hal aayad maalin kasta, xusuusin deggan ahaan",
+  "m.set.dvTime": "Waqtiga maalinta",
+  "m.set.dvMorning": "Subax",
+  "m.set.dvMidday": "Duhur",
+  "m.set.dvEvening": "Fiid"
 }

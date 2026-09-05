@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Bîranîna rojane",
   "m.plan.reminderSub": "Bîranîn ji bo xwendina rûpelên îro",
   "m.plan.reminderTitle": "Plana xwendinê",
-  "m.plan.reminderBody": "Demê rûpelên îro ye — xetma xwe bidomîne."
+  "m.plan.reminderBody": "Demê rûpelên îro ye — xetma xwe bidomîne.",
+  "m.set.dailyVerseGroup": "Ayeta rojane",
+  "m.set.dailyVerse": "Ayeta rojane",
+  "m.set.dailyVerseSub": "Her roj ayetek wek bîranînek nerm",
+  "m.set.dvTime": "Dema rojê",
+  "m.set.dvMorning": "Sibeh",
+  "m.set.dvMidday": "Nîvro",
+  "m.set.dvEvening": "Êvar"
 }

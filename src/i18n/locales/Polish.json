@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Codzienne przypomnienie",
   "m.plan.reminderSub": "Przypomnienie, by przeczytać dzisiejsze strony",
   "m.plan.reminderTitle": "Plan czytania",
-  "m.plan.reminderBody": "Czas na dzisiejsze strony — kontynuuj swój khatm."
+  "m.plan.reminderBody": "Czas na dzisiejsze strony — kontynuuj swój khatm.",
+  "m.set.dailyVerseGroup": "Codzienny werset",
+  "m.set.dailyVerse": "Codzienny werset",
+  "m.set.dailyVerseSub": "Jedna aja dziennie jako łagodne przypomnienie",
+  "m.set.dvTime": "Pora dnia",
+  "m.set.dvMorning": "Rano",
+  "m.set.dvMidday": "Południe",
+  "m.set.dvEvening": "Wieczór"
 }

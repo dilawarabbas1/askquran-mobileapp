@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Lembrete diário",
   "m.plan.reminderSub": "Um lembrete para ler as páginas de hoje",
   "m.plan.reminderTitle": "Plano de leitura",
-  "m.plan.reminderBody": "Hora das páginas de hoje — continue seu khatm."
+  "m.plan.reminderBody": "Hora das páginas de hoje — continue seu khatm.",
+  "m.set.dailyVerseGroup": "Versículo diário",
+  "m.set.dailyVerse": "Versículo diário",
+  "m.set.dailyVerseSub": "Uma ayah por dia como lembrete suave",
+  "m.set.dvTime": "Hora do dia",
+  "m.set.dvMorning": "Manhã",
+  "m.set.dvMidday": "Meio-dia",
+  "m.set.dvEvening": "Noite"
 }

@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Denní připomenutí",
   "m.plan.reminderSub": "Připomenutí k přečtení dnešních stran",
   "m.plan.reminderTitle": "Plán čtení",
-  "m.plan.reminderBody": "Je čas na dnešní strany — pokračujte ve svém khatmu."
+  "m.plan.reminderBody": "Je čas na dnešní strany — pokračujte ve svém khatmu.",
+  "m.set.dailyVerseGroup": "Denní ája",
+  "m.set.dailyVerse": "Denní ája",
+  "m.set.dailyVerseSub": "Jedna ája každý den jako jemné připomenutí",
+  "m.set.dvTime": "Čas dne",
+  "m.set.dvMorning": "Ráno",
+  "m.set.dvMidday": "Poledne",
+  "m.set.dvEvening": "Večer"
 }

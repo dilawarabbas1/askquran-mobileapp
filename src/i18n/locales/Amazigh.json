@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Asmekti n yal ass",
   "m.plan.reminderSub": "Asmekti iwakken ad teɣreḍ isebtar n wassa",
   "m.plan.reminderTitle": "Aɣawas n tɣuri",
-  "m.plan.reminderBody": "D lawan n isebtar n wassa — kemmel lkhatm inek."
+  "m.plan.reminderBody": "D lawan n isebtar n wassa — kemmel lkhatm inek.",
+  "m.set.dailyVerseGroup": "Ayet n yal ass",
+  "m.set.dailyVerse": "Ayet n yal ass",
+  "m.set.dailyVerseSub": "Yiwet n tayet yal ass d asmekti arqaq",
+  "m.set.dvTime": "Akud n wass",
+  "m.set.dvMorning": "Tifawt",
+  "m.set.dvMidday": "Azal",
+  "m.set.dvEvening": "Tameddit"
 }

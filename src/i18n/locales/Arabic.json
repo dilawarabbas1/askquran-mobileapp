@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "تذكير يومي",
   "m.plan.reminderSub": "تنبيه لطيف لقراءة ورد اليوم",
   "m.plan.reminderTitle": "خطة القراءة",
-  "m.plan.reminderBody": "حان وقت ورد اليوم — واصل ختمتك."
+  "m.plan.reminderBody": "حان وقت ورد اليوم — واصل ختمتك.",
+  "m.set.dailyVerseGroup": "آية يومية",
+  "m.set.dailyVerse": "آية يومية",
+  "m.set.dailyVerseSub": "آية واحدة كل يوم كتذكير لطيف",
+  "m.set.dvTime": "وقت اليوم",
+  "m.set.dvMorning": "الصباح",
+  "m.set.dvMidday": "منتصف اليوم",
+  "m.set.dvEvening": "المساء"
 }

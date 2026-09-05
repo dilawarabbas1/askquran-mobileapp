@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "दैनिक रिमाइंडर",
   "m.plan.reminderSub": "आज के पेज पढ़ने की याद दिलाएगा",
   "m.plan.reminderTitle": "पढ़ने की योजना",
-  "m.plan.reminderBody": "आज के पेज पढ़ने का समय है — अपना ख़त्म जारी रखें।"
+  "m.plan.reminderBody": "आज के पेज पढ़ने का समय है — अपना ख़त्म जारी रखें।",
+  "m.set.dailyVerseGroup": "आज की आयत",
+  "m.set.dailyVerse": "आज की आयत",
+  "m.set.dailyVerseSub": "हर दिन एक आयत, एक हल्की याद दिलाने के लिए",
+  "m.set.dvTime": "दिन का समय",
+  "m.set.dvMorning": "सुबह",
+  "m.set.dvMidday": "दोपहर",
+  "m.set.dvEvening": "शाम"
 }

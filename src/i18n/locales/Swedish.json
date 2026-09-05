@@ -3149,5 +3149,12 @@
   "m.plan.reminder": "Daglig påminnelse",
   "m.plan.reminderSub": "En påminnelse om att läsa dagens sidor",
   "m.plan.reminderTitle": "Läsplan",
-  "m.plan.reminderBody": "Dags för dagens sidor — fortsätt med din khatm."
+  "m.plan.reminderBody": "Dags för dagens sidor — fortsätt med din khatm.",
+  "m.set.dailyVerseGroup": "Dagens vers",
+  "m.set.dailyVerse": "Dagens vers",
+  "m.set.dailyVerseSub": "En ayah varje dag som en stillsam påminnelse",
+  "m.set.dvTime": "Tid på dagen",
+  "m.set.dvMorning": "Morgon",
+  "m.set.dvMidday": "Mitt på dagen",
+  "m.set.dvEvening": "Kväll"
 }
