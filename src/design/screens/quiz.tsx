@@ -16,15 +16,6 @@ type Phase = "start" | "loading" | "playing" | "done";
 
 const BADGE_ICON: Record<string, string> = Object.fromEntries(BADGES.map((b) => [b.id, b.icon]));
 
-const CAT_LABEL: Record<string, string> = {
-  all: "All",
-  stories: "Stories",
-  events: "Events",
-  laws: "Laws",
-  mentioned: "In the Quran?",
-  themes: "Themes",
-};
-
 const DIFFS = ["all", "basic", "intermediate", "advanced", "expert"] as const;
 
 const OK = "#1C7A68";
@@ -61,12 +52,12 @@ export function Quiz() {
     setError("");
     try {
       const qs = await getQuiz(10, cat, diff, app.appLanguage);
-      if (qs.length === 0) { setError("No questions available yet."); setPhase("start"); return; }
+      if (qs.length === 0) { setError(app.t("m.quiz.errEmpty")); setPhase("start"); return; }
       setQuestions(qs);
       setIdx(0); setChosen(null); setScore(0);
       setPhase("playing");
     } catch {
-      setError("Couldn't load the quiz. Please check your connection.");
+      setError(app.t("m.quiz.errLoad"));
       setPhase("start");
     }
   }
@@ -169,7 +160,7 @@ export function Quiz() {
             const on = cat === c;
             return (
               <Pressable key={c} onPress={() => setCat(c)} style={[{ borderWidth: 1, borderColor: on ? tokens.brand : tokens.line, backgroundColor: on ? tokens.brand : tokens.surface, borderRadius: 999, paddingVertical: 9, paddingHorizontal: 15 }, on ? null : tokens.cardShadow]}>
-                <Text style={{ fontSize: 13.5, fontFamily: FONTS.sans[600], color: on ? tokens.onBrand : tokens.text }}>{CAT_LABEL[c] ?? c}</Text>
+                <Text style={{ fontSize: 13.5, fontFamily: FONTS.sans[600], color: on ? tokens.onBrand : tokens.text }}>{app.t(`m.quiz.cat.${c}`)}</Text>
               </Pressable>
             );
           })}
