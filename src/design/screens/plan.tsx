@@ -159,8 +159,9 @@ export function Plan() {
       <View style={{ alignItems: "center", marginTop: 18 }}>
         <Ring pct={pct} color={tokens.brand} track={tokens.lineSoft}>
           <Text style={{ fontFamily: FONTS.serif[600], fontSize: 32, color: tokens.brand }}>{pct}%</Text>
-          {/* force LTR so the done/total fraction never reverses under RTL (Urdu etc.) */}
-          <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[600], color: tokens.text3, marginTop: 2, writingDirection: "ltr" }}>{`${done} / ${PAGES}`}</Text>
+          {/* wrap in LTR isolates (U+2066…U+2069) so the done/total fraction never
+              reverses under RTL (Urdu etc.) — reads "61 / 604", not "604 / 61". */}
+          <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[600], color: tokens.text3, marginTop: 2 }}>{`⁦${done} / ${PAGES}⁩`}</Text>
           <Text style={{ fontSize: 10, color: tokens.text3, letterSpacing: 0.3 }}>{app.t("m.plan.pagesUnit")}</Text>
         </Ring>
         <Text style={{ fontSize: 13.5, fontFamily: FONTS.sans[700], color: statusColor, marginTop: 12 }}>{statusText}</Text>
@@ -190,7 +191,9 @@ export function Plan() {
               <Text style={{ fontSize: 9.5, color: tokens.text3, marginTop: -1 }}>{app.t("m.plan.pagesUnit")}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: FONTS.serif[600], fontSize: 16, color: tokens.text }}>{app.t("m.plan.pagesRange", { from: fromPage, to: toPage })}</Text>
+              {/* LRI before {from} + PDI after {to} wraps the "62–82" run as one LTR
+                  isolate so the page range never reverses under RTL. */}
+              <Text style={{ fontFamily: FONTS.serif[600], fontSize: 16, color: tokens.text }}>{app.t("m.plan.pagesRange", { from: `⁦${fromPage}`, to: `${toPage}⁩` })}</Text>
               <Text style={{ fontSize: 12.5, color: tokens.text2, marginTop: 2 }}>{app.t("m.plan.juzN", { n: startJuz })} · {surahName(startRef.surah)} {startRef.surah}:{startRef.ayah}</Text>
             </View>
           </View>
