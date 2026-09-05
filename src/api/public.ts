@@ -206,6 +206,14 @@ export async function getQuiz(count = 10, category?: string, difficulty?: string
   return data.questions ?? [];
 }
 
+/** GET /api/quiz/summary — categories + a count matrix [category][difficulty]. */
+export async function getQuizSummary(): Promise<{ categories: string[]; counts: Record<string, Record<string, number>> }> {
+  const data = await getJson<{ categories: string[]; counts: Record<string, Record<string, number>> }>(`${PUBLIC_API_BASE_URL}/quiz/summary`, {
+    headers: publicHeaders(),
+  });
+  return { categories: data.categories ?? [], counts: data.counts ?? {} };
+}
+
 /** GET /api/quiz/categories — available quiz categories. */
 export async function getQuizCategories(): Promise<string[]> {
   const data = await getJson<{ categories: string[] }>(`${PUBLIC_API_BASE_URL}/quiz/categories`, {

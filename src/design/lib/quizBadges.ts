@@ -70,6 +70,33 @@ export function bestPct(results: QuizResult[]): number {
   return computeStats(results).maxPct;
 }
 
+export interface QuizStats {
+  count: number;
+  bestPct: number;
+  avgPct: number;
+  perTierBest: Record<Difficulty, number | null>; // null = never played that tier
+  recent: number[]; // last up to 10 percentages, oldest → newest (for a sparkline)
+  earned: number;   // badges earned
+  totalBadges: number;
+}
+
+type Difficulty = "basic" | "intermediate" | "advanced" | "expert";
+const TIER_LIST: Difficulty[] = ["basic", "intermediate", "advanced", "expert"];
+
+/** Aggregate view of a player's history for the progress card. `results` is
+ *  newest-first (as stored); `recent` is returned oldest→newest for charting. */
+export function quizStats(results: QuizResult[]): QuizStats {
+  const s = computeStats(results);
+  const avgPct = results.length ? Math.round(results.reduce((a, r) => a + pctOf(r), 0) / results.length) : 0;
+  const perTierBest = {} as Record<Difficulty, number | null>;
+  for (const t of TIER_LIST) {
+    const inTier = results.filter((r) => r.difficulty === t);
+    perTierBest[t] = inTier.length ? Math.max(...inTier.map(pctOf)) : null;
+  }
+  const recent = results.slice(0, 10).map(pctOf).reverse();
+  return { count: s.count, bestPct: s.maxPct, avgPct, perTierBest, recent, earned: earnedBadgeIds(results).length, totalBadges: BADGES.length };
+}
+
 export interface QuizOutcome {
   pct: number;
   prevBest: number;      // best % BEFORE this result

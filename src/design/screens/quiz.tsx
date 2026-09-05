@@ -3,14 +3,14 @@
 // Stories · Events · Laws · Mentioned in the Quran · Themes.
 
 import React, { useEffect, useState } from "react";
-import { ScrollView, View, Pressable, ActivityIndicator } from "react-native";
+import { ScrollView, View, Pressable, ActivityIndicator, Modal } from "react-native";
 import { Text } from "../AppText";
 import { useApp } from "../AQContext";
 import { BlockTitle, FieldLabel, OrnDivider } from "../atoms";
 import { Icon } from "../Icon";
 import { FONTS, mix } from "../tokens";
-import { getQuiz, getQuizCategories, type QuizQuestion } from "@/api";
-import { BADGES, earnedBadgeIds, bestPct, type QuizOutcome } from "../lib/quizBadges";
+import { getQuiz, getQuizSummary, type QuizQuestion } from "@/api";
+import { BADGES, earnedBadgeIds, bestPct, quizStats, type QuizOutcome } from "../lib/quizBadges";
 
 type Phase = "start" | "loading" | "playing" | "done";
 
@@ -36,6 +36,8 @@ export function Quiz() {
 
   const [phase, setPhase] = useState<Phase>("start");
   const [cats, setCats] = useState<string[]>([]);
+  const [counts, setCounts] = useState<Record<string, Record<string, number>>>({});
+  const [galleryOpen, setGalleryOpen] = useState(false);
   const [cat, setCat] = useState<string>("all");
   const [diff, setDiff] = useState<string>("all");
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -47,9 +49,12 @@ export function Quiz() {
 
   useEffect(() => {
     let alive = true;
-    getQuizCategories().then((c) => { if (alive) setCats(c); }).catch(() => {});
+    getQuizSummary().then((s) => { if (alive) { setCats(s.categories); setCounts(s.counts); } }).catch(() => {});
     return () => { alive = false; };
   }, []);
+
+  const available = counts[cat]?.[diff] ?? null; // null until summary loads
+  const quizCount = available === null ? 10 : Math.min(10, available);
 
   async function start() {
     setPhase("loading");
@@ -96,27 +101,64 @@ export function Quiz() {
         <OrnDivider />
 
         {app.quizResults.length > 0 ? (() => {
-          const earned = earnedBadgeIds(app.quizResults);
+          const st = quizStats(app.quizResults);
+          const TIERS: Array<"basic" | "intermediate" | "advanced" | "expert"> = ["basic", "intermediate", "advanced", "expert"];
           return (
-            <View style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 16, padding: 14, marginBottom: 4 }, tokens.cardShadow]}>
+            <View style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 16, padding: 16, marginBottom: 4 }, tokens.cardShadow]}>
               <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
                 <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[700], letterSpacing: 0.4, textTransform: "uppercase", color: tokens.text3 }}>{app.t("m.quiz.yourProgress")}</Text>
-                <Text style={{ fontSize: 12.5, color: tokens.text2 }}>{app.t("m.quiz.quizzesTaken", { n: app.quizResults.length })}</Text>
+                <Text style={{ fontSize: 12.5, color: tokens.text2 }}>{app.t("m.quiz.quizzesTaken", { n: st.count })}</Text>
               </View>
-              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, marginTop: 6 }}>
-                <Text style={{ fontFamily: FONTS.serif[600], fontSize: 24, color: tokens.brand }}>{bestPct(app.quizResults)}%</Text>
-                <Text style={{ fontSize: 12.5, color: tokens.text3 }}>{app.t("m.quiz.personalBest")}</Text>
-              </View>
-              {earned.length > 0 ? (
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
-                  {BADGES.filter((b) => earned.includes(b.id)).map((b) => (
-                    <View key={b.id} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: mix(tokens.gold, 14, tokens.surface), borderWidth: 1, borderColor: mix(tokens.gold, 30, tokens.line), borderRadius: 999, paddingVertical: 6, paddingHorizontal: 11 }}>
-                      <Icon name={b.icon} size={14} w={1.9} color={tokens.goldDeep} />
-                      <Text style={{ fontSize: 12, fontFamily: FONTS.sans[600], color: tokens.goldDeep }}>{app.t(`m.quiz.badge.${b.id}`)}</Text>
-                    </View>
-                  ))}
+
+              {/* best / average + a mini trend of recent scores */}
+              <View style={{ flexDirection: "row", alignItems: "flex-end", marginTop: 10 }}>
+                <View style={{ marginRight: 22 }}>
+                  <Text style={{ fontFamily: FONTS.serif[600], fontSize: 26, color: tokens.brand }}>{st.bestPct}%</Text>
+                  <Text style={{ fontSize: 11.5, color: tokens.text3 }}>{app.t("m.quiz.personalBest")}</Text>
                 </View>
-              ) : null}
+                <View style={{ marginRight: 22 }}>
+                  <Text style={{ fontFamily: FONTS.serif[600], fontSize: 26, color: tokens.text }}>{st.avgPct}%</Text>
+                  <Text style={{ fontSize: 11.5, color: tokens.text3 }}>{app.t("m.quiz.average")}</Text>
+                </View>
+                {st.recent.length >= 2 ? (
+                  <View style={{ flex: 1, alignItems: "flex-end" }}>
+                    <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 3, height: 34 }}>
+                      {st.recent.map((p, i) => (
+                        <View key={i} style={{ width: 7, height: Math.max(4, Math.round((p / 100) * 34)), borderRadius: 2, backgroundColor: i === st.recent.length - 1 ? tokens.brand : mix(tokens.brand, 35, tokens.surface) }} />
+                      ))}
+                    </View>
+                    <Text style={{ fontSize: 10.5, color: tokens.text3, marginTop: 4 }}>{app.t("m.quiz.recentTrend")}</Text>
+                  </View>
+                ) : null}
+              </View>
+
+              {/* best per difficulty tier */}
+              <View style={{ flexDirection: "row", gap: 8, marginTop: 14 }}>
+                {TIERS.map((t) => (
+                  <View key={t} style={{ flex: 1, alignItems: "center", backgroundColor: mix(tokens.brand, 6, tokens.surface), borderRadius: 10, paddingVertical: 8 }}>
+                    <Text style={{ fontSize: 13, fontFamily: FONTS.sans[700], color: st.perTierBest[t] === null ? tokens.text3 : tokens.text }}>{st.perTierBest[t] === null ? "—" : `${st.perTierBest[t]}%`}</Text>
+                    <Text style={{ fontSize: 9.5, color: tokens.text3, marginTop: 2 }}>{app.t(`m.quiz.tierShort.${t}`)}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* badges summary + gallery entry */}
+              <Pressable onPress={() => setGalleryOpen(true)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 14, paddingTop: 13, borderTopWidth: 1, borderTopColor: tokens.lineSoft }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <View style={{ flexDirection: "row" }}>
+                    {BADGES.filter((b) => earnedBadgeIds(app.quizResults).includes(b.id)).slice(0, 4).map((b, i) => (
+                      <View key={b.id} style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: mix(tokens.gold, 16, tokens.surface), borderWidth: 1.5, borderColor: tokens.surface, alignItems: "center", justifyContent: "center", marginLeft: i === 0 ? 0 : -7 }}>
+                        <Icon name={b.icon} size={13} w={2} color={tokens.goldDeep} />
+                      </View>
+                    ))}
+                  </View>
+                  <Text style={{ fontSize: 13, fontFamily: FONTS.sans[600], color: tokens.text2 }}>{app.t("m.quiz.badgesEarned", { earned: st.earned, total: st.totalBadges })}</Text>
+                </View>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                  <Text style={{ fontSize: 13, fontFamily: FONTS.sans[600], color: tokens.brand }}>{app.t("m.quiz.viewAll")}</Text>
+                  <Icon name="chevR" size={15} w={2.1} color={tokens.brand} />
+                </View>
+              </Pressable>
             </View>
           );
         })() : null}
@@ -146,12 +188,47 @@ export function Quiz() {
         </View>
 
         {error ? <Text style={{ color: NO, fontSize: 13, marginTop: 16 }}>{error}</Text> : null}
+        {available === 0 ? <Text style={{ color: tokens.text2, fontSize: 13, marginTop: 16, textAlign: "center" }}>{app.t("m.quiz.noneInCombo")}</Text> : null}
 
-        <Pressable onPress={start} disabled={phase === "loading"} style={[{ marginTop: 26, backgroundColor: tokens.brand, borderRadius: 14, paddingVertical: 15, alignItems: "center" }, tokens.cardShadow]}>
+        <Pressable onPress={start} disabled={phase === "loading" || available === 0} style={[{ marginTop: available === 0 ? 12 : 26, backgroundColor: available === 0 ? tokens.line : tokens.brand, borderRadius: 14, paddingVertical: 15, alignItems: "center" }, available === 0 ? null : tokens.cardShadow]}>
           {phase === "loading"
             ? <ActivityIndicator color={tokens.onBrand} />
-            : <Text style={{ fontSize: 16, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>{app.t("m.quiz.start")}</Text>}
+            : <Text style={{ fontSize: 16, fontFamily: FONTS.sans[700], color: available === 0 ? tokens.text3 : tokens.onBrand }}>{available === 0 ? app.t("m.quiz.start") : app.t("m.quiz.startCount", { n: quizCount })}</Text>}
         </Pressable>
+
+        {/* Badge gallery — earned + locked, so there's always something to chase. */}
+        <Modal visible={galleryOpen} animationType="slide" transparent onRequestClose={() => setGalleryOpen(false)}>
+          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "flex-end" }}>
+            <View style={{ backgroundColor: tokens.bg, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 34, maxHeight: "82%" }}>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                <BlockTitle>{app.t("m.quiz.badgesTitle")}</BlockTitle>
+                <Pressable onPress={() => setGalleryOpen(false)} style={{ width: 34, height: 34, borderRadius: 11, borderWidth: 1, borderColor: tokens.line, backgroundColor: tokens.surface2, alignItems: "center", justifyContent: "center" }}>
+                  <Icon name="close" size={17} w={2.1} color={tokens.text2} />
+                </Pressable>
+              </View>
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingTop: 6 }}>
+                {(() => {
+                  const earned = new Set(earnedBadgeIds(app.quizResults));
+                  return BADGES.map((b) => {
+                    const got = earned.has(b.id);
+                    return (
+                      <View key={b.id} style={{ flexDirection: "row", alignItems: "center", gap: 13, backgroundColor: tokens.surface, borderWidth: 1, borderColor: got ? mix(tokens.gold, 34, tokens.line) : tokens.lineSoft, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 14, opacity: got ? 1 : 0.6 }}>
+                        <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: got ? mix(tokens.gold, 16, tokens.surface) : tokens.surface2 }}>
+                          <Icon name={got ? b.icon : "lock"} size={19} w={1.9} color={got ? tokens.goldDeep : tokens.text3} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontFamily: FONTS.serif[600], fontSize: 15, color: got ? tokens.text : tokens.text2 }}>{app.t(`m.quiz.badge.${b.id}`)}</Text>
+                          <Text style={{ fontSize: 12, color: tokens.text3, marginTop: 1 }}>{app.t(`m.quiz.badgeDesc.${b.id}`)}</Text>
+                        </View>
+                        {got ? <Icon name="check" size={17} w={2.2} color={tokens.goldDeep} /> : null}
+                      </View>
+                    );
+                  });
+                })()}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     );
   }

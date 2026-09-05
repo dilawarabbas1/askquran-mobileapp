@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { earnedBadgeIds, bestPct, evaluateResult, pctOf, type QuizResult } from "../quizBadges";
+import { earnedBadgeIds, bestPct, evaluateResult, pctOf, quizStats, type QuizResult } from "../quizBadges";
 
 const r = (o: Partial<QuizResult>): QuizResult => ({ ts: 0, category: "all", difficulty: "all", score: 5, total: 10, ...o });
 
@@ -51,6 +51,32 @@ test("evaluateResult reports personal best + newly earned badges", () => {
   assert.ok(out.isPersonalBest);
   assert.ok(out.newBadges.includes("perfect"));
   assert.ok(out.newBadges.includes("sharp"));
+});
+
+test("quizStats: avg, per-tier best, recent trend (oldest→newest)", () => {
+  // stored newest-first
+  const results = [
+    r({ difficulty: "expert", score: 9, total: 10 }),   // newest, 90
+    r({ difficulty: "basic", score: 6, total: 10 }),     // 60
+    r({ difficulty: "basic", score: 4, total: 10 }),     // oldest, 40
+  ];
+  const s = quizStats(results);
+  assert.equal(s.count, 3);
+  assert.equal(s.bestPct, 90);
+  assert.equal(s.avgPct, Math.round((90 + 60 + 40) / 3));
+  assert.equal(s.perTierBest.basic, 60);
+  assert.equal(s.perTierBest.expert, 90);
+  assert.equal(s.perTierBest.intermediate, null);
+  assert.deepEqual(s.recent, [40, 60, 90]); // oldest → newest
+  assert.equal(s.totalBadges, 7);
+});
+
+test("quizStats: empty history is all zeros / nulls", () => {
+  const s = quizStats([]);
+  assert.equal(s.count, 0);
+  assert.equal(s.avgPct, 0);
+  assert.equal(s.perTierBest.basic, null);
+  assert.deepEqual(s.recent, []);
 });
 
 test("evaluateResult: first-ever quiz is not flagged a personal best", () => {
