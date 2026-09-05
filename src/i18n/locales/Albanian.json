@@ -3143,5 +3143,11 @@
   "m.plan.done": "Khatm i plotë - mashaAllah",
   "m.plan.reset": "Hiqni dorë nga ky plan",
   "m.plan.resetConfirm": "Kjo do të pastrojë planin dhe përparimin tuaj aktual. je i sigurt?",
-  "m.plan.cancel": "Anulo"
+  "m.plan.cancel": "Anulo",
+  "m.plan.pagesPerDayQ": "Sa faqe në ditë?",
+  "m.plan.orByTime": "Ose përfundoje brenda një kohe të caktuar",
+  "m.plan.reminder": "Kujtesë ditore",
+  "m.plan.reminderSub": "Një rikujtim për të lexuar faqet e sotme",
+  "m.plan.reminderTitle": "Plani i leximit",
+  "m.plan.reminderBody": "Është koha për faqet e sotme — vazhdo khatmin."
 }

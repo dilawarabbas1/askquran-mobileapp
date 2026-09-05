@@ -3143,5 +3143,11 @@
   "m.plan.done": "ختم مکمل — ماشاءاللہ",
   "m.plan.reset": "یہ منصوبہ ختم کریں",
   "m.plan.resetConfirm": "اس سے آپ کا موجودہ منصوبہ اور پیش رفت ختم ہو جائے گی۔ کیا آپ کو یقین ہے؟",
-  "m.plan.cancel": "منسوخ کریں"
+  "m.plan.cancel": "منسوخ کریں",
+  "m.plan.pagesPerDayQ": "روزانہ کتنے صفحات؟",
+  "m.plan.orByTime": "یا مقررہ وقت میں مکمل کریں",
+  "m.plan.reminder": "روزانہ یاد دہانی",
+  "m.plan.reminderSub": "آج کے صفحات پڑھنے کی یاد دہانی",
+  "m.plan.reminderTitle": "پڑھنے کا منصوبہ",
+  "m.plan.reminderBody": "آج کے صفحات پڑھنے کا وقت ہے — اپنا ختم جاری رکھیں۔"
 }

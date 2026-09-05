@@ -3143,5 +3143,11 @@
   "m.plan.done": "Vollständige Lesung abgeschlossen — mashaAllah",
   "m.plan.reset": "Diesen Plan aufgeben",
   "m.plan.resetConfirm": "Ihr aktueller Plan und Fortschritt werden gelöscht. Sind Sie sicher?",
-  "m.plan.cancel": "Abbrechen"
+  "m.plan.cancel": "Abbrechen",
+  "m.plan.pagesPerDayQ": "Wie viele Seiten pro Tag?",
+  "m.plan.orByTime": "Oder in einem festen Zeitraum abschließen",
+  "m.plan.reminder": "Tägliche Erinnerung",
+  "m.plan.reminderSub": "Eine Erinnerung, die heutigen Seiten zu lesen",
+  "m.plan.reminderTitle": "Leseplan",
+  "m.plan.reminderBody": "Zeit für die heutigen Seiten — bleiben Sie bei Ihrer Koranlesung dran."
 }

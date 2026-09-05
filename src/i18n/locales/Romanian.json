@@ -3143,5 +3143,11 @@
   "m.plan.done": "Khatm complet - mashaAllah",
   "m.plan.reset": "Renunță la acest plan",
   "m.plan.resetConfirm": "Acest lucru vă va șterge planul și progresul actual. esti sigur?",
-  "m.plan.cancel": "Anula"
+  "m.plan.cancel": "Anula",
+  "m.plan.pagesPerDayQ": "Câte pagini pe zi?",
+  "m.plan.orByTime": "Sau termină într-un timp stabilit",
+  "m.plan.reminder": "Memento zilnic",
+  "m.plan.reminderSub": "Un memento pentru paginile de azi",
+  "m.plan.reminderTitle": "Plan de lectură",
+  "m.plan.reminderBody": "E timpul pentru paginile de azi — continuă khatmul."
 }

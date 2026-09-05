@@ -3143,5 +3143,11 @@
   "m.plan.done": "完整诵读已完成 — mashaAllah",
   "m.plan.reset": "放弃此计划",
   "m.plan.resetConfirm": "这会清除当前计划和进度。确定吗？",
-  "m.plan.cancel": "取消"
+  "m.plan.cancel": "取消",
+  "m.plan.pagesPerDayQ": "每天读几页？",
+  "m.plan.orByTime": "或按指定时间完成",
+  "m.plan.reminder": "每日提醒",
+  "m.plan.reminderSub": "提醒你阅读今天的页数",
+  "m.plan.reminderTitle": "阅读计划",
+  "m.plan.reminderBody": "该读今天的页数了 — 继续完成你的诵读计划。"
 }

@@ -3143,5 +3143,11 @@
   "m.plan.done": "Xətm tamamlandı - maşaAllah",
   "m.plan.reset": "Bu plandan imtina edin",
   "m.plan.resetConfirm": "Bu, cari planınızı və tərəqqinizi aydınlaşdıracaq. əminsən?",
-  "m.plan.cancel": "Ləğv et"
+  "m.plan.cancel": "Ləğv et",
+  "m.plan.pagesPerDayQ": "Gündə neçə səhifə?",
+  "m.plan.orByTime": "Və ya müəyyən vaxtda bitirin",
+  "m.plan.reminder": "Gündəlik xatırlatma",
+  "m.plan.reminderSub": "Bugünkü səhifələri oxumaq üçün xatırlatma",
+  "m.plan.reminderTitle": "Oxu planı",
+  "m.plan.reminderBody": "Bugünkü səhifələrin vaxtıdır — xətminizi davam etdirin."
 }

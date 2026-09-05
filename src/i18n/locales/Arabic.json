@@ -3143,5 +3143,11 @@
   "m.plan.done": "اكتملت الختمة — ما شاء الله",
   "m.plan.reset": "إلغاء هذه الخطة",
   "m.plan.resetConfirm": "سيؤدي هذا إلى حذف خطتك الحالية وتقدمك. هل أنت متأكد؟",
-  "m.plan.cancel": "إلغاء"
+  "m.plan.cancel": "إلغاء",
+  "m.plan.pagesPerDayQ": "كم صفحة في اليوم؟",
+  "m.plan.orByTime": "أو أكمل خلال مدة محددة",
+  "m.plan.reminder": "تذكير يومي",
+  "m.plan.reminderSub": "تنبيه لطيف لقراءة ورد اليوم",
+  "m.plan.reminderTitle": "خطة القراءة",
+  "m.plan.reminderBody": "حان وقت ورد اليوم — واصل ختمتك."
 }

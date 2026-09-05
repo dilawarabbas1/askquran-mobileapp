@@ -3143,5 +3143,11 @@
   "m.plan.done": "Khatm complete — mashaAllah",
   "m.plan.reset": "Katag qorshahan",
   "m.plan.resetConfirm": "Tani waxay nadiifin doontaa qorshahaaga hadda iyo horumarkaaga. Ma hubtaa?",
-  "m.plan.cancel": "Jooji"
+  "m.plan.cancel": "Jooji",
+  "m.plan.pagesPerDayQ": "Imisa bog maalintii?",
+  "m.plan.orByTime": "Ama ku dhammee waqti cayiman",
+  "m.plan.reminder": "Xusuusin maalinle ah",
+  "m.plan.reminderSub": "Xusuusin si aad u akhrido bogagga maanta",
+  "m.plan.reminderTitle": "Qorshaha akhriska",
+  "m.plan.reminderBody": "Waa waqtigii bogagga maanta — sii wad khatamkaaga."
 }

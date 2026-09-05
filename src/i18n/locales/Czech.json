@@ -3143,5 +3143,11 @@
   "m.plan.done": "Khatm kompletní — mashaAllah",
   "m.plan.reset": "Opusťte tento plán",
   "m.plan.resetConfirm": "Tím se vymaže váš aktuální plán a postup. jsi si jistý?",
-  "m.plan.cancel": "Zrušit"
+  "m.plan.cancel": "Zrušit",
+  "m.plan.pagesPerDayQ": "Kolik stran denně?",
+  "m.plan.orByTime": "Nebo dokončit v určeném čase",
+  "m.plan.reminder": "Denní připomenutí",
+  "m.plan.reminderSub": "Připomenutí k přečtení dnešních stran",
+  "m.plan.reminderTitle": "Plán čtení",
+  "m.plan.reminderBody": "Je čas na dnešní strany — pokračujte ve svém khatmu."
 }

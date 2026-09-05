@@ -3143,5 +3143,11 @@
   "m.plan.done": "Khatm пълен - машаАллах",
   "m.plan.reset": "Откажете се от този план",
   "m.plan.resetConfirm": "Това ще изчисти текущия ви план и напредък. сигурен ли си",
-  "m.plan.cancel": "Отказ"
+  "m.plan.cancel": "Отказ",
+  "m.plan.pagesPerDayQ": "Колко страници на ден?",
+  "m.plan.orByTime": "Или завършете за избран срок",
+  "m.plan.reminder": "Ежедневно напомняне",
+  "m.plan.reminderSub": "Напомняне да прочетете страниците за днес",
+  "m.plan.reminderTitle": "План за четене",
+  "m.plan.reminderBody": "Време е за страниците за днес — продължете своя хатм."
 }

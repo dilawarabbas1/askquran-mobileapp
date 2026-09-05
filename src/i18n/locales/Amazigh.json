@@ -3143,5 +3143,11 @@
   "m.plan.done": "ⴽⵀⴰⵜⵎ ⴽⴰⵎⵍ — ⵎⴰⵛⴰⴰⵍⵍⴰⵀ",
   "m.plan.reset": "ⴵⴵ ⴰⵖⴰⵡⴰⵙⴰ",
   "m.plan.resetConfirm": "ⴰⵢⴰ ⴰⴷ ⵢⴻⵙⴼⴻⴹ ⴰⵀⵉⵍⵉⴽ ⵏ ⵜⵓⵔⴰ ⴷ ⵜⵎⵓⵖⵍⵉⴽ. ⵜⴻⵜⵜⵡⴰⴽⴽⴻⴷ?",
-  "m.plan.cancel": "ⵢⴻⴽⴽⴻⵙ"
+  "m.plan.cancel": "ⵢⴻⴽⴽⴻⵙ",
+  "m.plan.pagesPerDayQ": "Mnac n isebtar deg wass?",
+  "m.plan.orByTime": "Neɣ fak deg wakud i d-tferneḍ",
+  "m.plan.reminder": "Asmekti n yal ass",
+  "m.plan.reminderSub": "Asmekti iwakken ad teɣreḍ isebtar n wassa",
+  "m.plan.reminderTitle": "Aɣawas n tɣuri",
+  "m.plan.reminderBody": "D lawan n isebtar n wassa — kemmel lkhatm inek."
 }

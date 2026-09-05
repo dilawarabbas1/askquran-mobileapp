@@ -3143,5 +3143,11 @@
   "m.plan.done": "ختم کامل شد — ماشاءالله",
   "m.plan.reset": "لغو این برنامه",
   "m.plan.resetConfirm": "برنامه فعلی و پیشرفت شما پاک می‌شود. مطمئن هستید؟",
-  "m.plan.cancel": "انصراف"
+  "m.plan.cancel": "انصراف",
+  "m.plan.pagesPerDayQ": "روزانه چند صفحه؟",
+  "m.plan.orByTime": "یا در زمان مشخصی تمام کنید",
+  "m.plan.reminder": "یادآوری روزانه",
+  "m.plan.reminderSub": "یادآوری برای خواندن صفحه‌های امروز",
+  "m.plan.reminderTitle": "برنامه خواندن",
+  "m.plan.reminderBody": "وقت صفحه‌های امروز است — ختم قرآن خود را ادامه دهید."
 }

@@ -3143,5 +3143,11 @@
   "m.plan.done": "Khatam selesai — masyaAllah",
   "m.plan.reset": "Tinggalkan rencana ini",
   "m.plan.resetConfirm": "Ini akan menghapus rencana dan progres Anda saat ini. Yakin?",
-  "m.plan.cancel": "Batal"
+  "m.plan.cancel": "Batal",
+  "m.plan.pagesPerDayQ": "Berapa halaman per hari?",
+  "m.plan.orByTime": "Atau selesai dalam waktu tertentu",
+  "m.plan.reminder": "Pengingat harian",
+  "m.plan.reminderSub": "Pengingat untuk membaca halaman hari ini",
+  "m.plan.reminderTitle": "Rencana membaca",
+  "m.plan.reminderBody": "Saatnya membaca halaman hari ini — lanjutkan khatam Anda."
 }

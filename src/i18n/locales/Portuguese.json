@@ -3143,5 +3143,11 @@
   "m.plan.done": "Khatm completo – mashaAllah",
   "m.plan.reset": "Abandone este plano",
   "m.plan.resetConfirm": "Isso limpará seu plano e progresso atuais. Tem certeza?",
-  "m.plan.cancel": "Cancelar"
+  "m.plan.cancel": "Cancelar",
+  "m.plan.pagesPerDayQ": "Quantas páginas por dia?",
+  "m.plan.orByTime": "Ou termine em um prazo definido",
+  "m.plan.reminder": "Lembrete diário",
+  "m.plan.reminderSub": "Um lembrete para ler as páginas de hoje",
+  "m.plan.reminderTitle": "Plano de leitura",
+  "m.plan.reminderBody": "Hora das páginas de hoje — continue seu khatm."
 }

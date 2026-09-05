@@ -3143,5 +3143,11 @@
   "m.plan.done": "Khatm voltooid – mashaAllah",
   "m.plan.reset": "Laat dit plan varen",
   "m.plan.resetConfirm": "Hiermee worden uw huidige plan en voortgang gewist. Weet je het zeker?",
-  "m.plan.cancel": "Annuleren"
+  "m.plan.cancel": "Annuleren",
+  "m.plan.pagesPerDayQ": "Hoeveel pagina’s per dag?",
+  "m.plan.orByTime": "Of rond af binnen een vaste tijd",
+  "m.plan.reminder": "Dagelijkse herinnering",
+  "m.plan.reminderSub": "Een seintje om de pagina’s van vandaag te lezen",
+  "m.plan.reminderTitle": "Leesplan",
+  "m.plan.reminderBody": "Tijd voor de pagina’s van vandaag — houd je khatm vol."
 }

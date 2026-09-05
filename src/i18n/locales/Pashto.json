@@ -3143,5 +3143,11 @@
   "m.plan.done": "ختم مکمل - ماشاءالله",
   "m.plan.reset": "دا پلان پریږدئ",
   "m.plan.resetConfirm": "دا به ستاسو اوسنی پلان او پرمختګ روښانه کړي. ایا تاسو ډاډه یاست؟",
-  "m.plan.cancel": "لغوه کړئ"
+  "m.plan.cancel": "لغوه کړئ",
+  "m.plan.pagesPerDayQ": "په ورځ کې څو پاڼې؟",
+  "m.plan.orByTime": "یا په ټاکلي وخت کې یې بشپړ کړئ",
+  "m.plan.reminder": "ورځنۍ یادونه",
+  "m.plan.reminderSub": "د نن ورځې پاڼو لوستلو لپاره یادونه",
+  "m.plan.reminderTitle": "د لوستلو پلان",
+  "m.plan.reminderBody": "د نن ورځې پاڼو وخت دی — خپل ختم روان وساتئ."
 }

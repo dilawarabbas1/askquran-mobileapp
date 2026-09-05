@@ -3143,5 +3143,11 @@
   "m.plan.done": "ختم مڪمل - ماشاالله",
   "m.plan.reset": "هن منصوبي کي ڇڏي ڏيو",
   "m.plan.resetConfirm": "اهو توهان جي موجوده منصوبي ۽ ترقي کي صاف ڪندو. ڇا توهان کي پڪ آهي؟",
-  "m.plan.cancel": "منسوخ ڪريو"
+  "m.plan.cancel": "منسوخ ڪريو",
+  "m.plan.pagesPerDayQ": "روز ڪيترا صفحا؟",
+  "m.plan.orByTime": "يا مقرر وقت ۾ مڪمل ڪريو",
+  "m.plan.reminder": "روزاني ياد ڏياريندڙ",
+  "m.plan.reminderSub": "اڄ جا صفحا پڙهڻ لاءِ ياد ڏيارڻ",
+  "m.plan.reminderTitle": "پڙهڻ جو منصوبو",
+  "m.plan.reminderBody": "اڄ جي صفحن جو وقت ٿي ويو — پنهنجو ختم جاري رکو."
 }

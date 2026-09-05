@@ -3143,5 +3143,11 @@
   "m.plan.done": "Khatm komplett — mashaAllah",
   "m.plan.reset": "Överge denna plan",
   "m.plan.resetConfirm": "Detta kommer att rensa din nuvarande plan och framsteg. Är du säker?",
-  "m.plan.cancel": "Avboka"
+  "m.plan.cancel": "Avboka",
+  "m.plan.pagesPerDayQ": "Hur många sidor per dag?",
+  "m.plan.orByTime": "Eller slutför inom en bestämd tid",
+  "m.plan.reminder": "Daglig påminnelse",
+  "m.plan.reminderSub": "En påminnelse om att läsa dagens sidor",
+  "m.plan.reminderTitle": "Läsplan",
+  "m.plan.reminderBody": "Dags för dagens sidor — fortsätt med din khatm."
 }

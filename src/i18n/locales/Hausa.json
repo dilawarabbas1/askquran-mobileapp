@@ -3143,5 +3143,11 @@
   "m.plan.done": "Khatm complete - mashaAllah",
   "m.plan.reset": "Yi watsi da wannan shirin",
   "m.plan.resetConfirm": "Wannan zai share shirin ku na yanzu da ci gaban ku. Ka tabbata?",
-  "m.plan.cancel": "Soke"
+  "m.plan.cancel": "Soke",
+  "m.plan.pagesPerDayQ": "Shafuka nawa a rana?",
+  "m.plan.orByTime": "Ko ka kammala cikin lokacin da ka tsara",
+  "m.plan.reminder": "Tunatarwa ta kullum",
+  "m.plan.reminderSub": "Tunatarwa don karanta shafukan yau",
+  "m.plan.reminderTitle": "Tsarin karatu",
+  "m.plan.reminderBody": "Lokacin shafukan yau ya yi — ci gaba da khatam ɗinka."
 }

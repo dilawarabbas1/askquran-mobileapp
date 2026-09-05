@@ -3143,5 +3143,11 @@
   "m.plan.done": "ጫትም ተጠናቀቀ - ማሻአላህ",
   "m.plan.reset": "ይህን እቅድ ተወው",
   "m.plan.resetConfirm": "ይህ አሁን ያለዎትን እቅድ እና እድገት ያጸዳል። ኧረ",
-  "m.plan.cancel": "ሰርዝ"
+  "m.plan.cancel": "ሰርዝ",
+  "m.plan.pagesPerDayQ": "በቀን ስንት ገጽ?",
+  "m.plan.orByTime": "ወይም በተወሰነ ጊዜ ውስጥ ጨርስ",
+  "m.plan.reminder": "ዕለታዊ ማስታወሻ",
+  "m.plan.reminderSub": "የዛሬን ገጾች እንዲያነቡ ቀላል ማስታወሻ",
+  "m.plan.reminderTitle": "የንባብ እቅድ",
+  "m.plan.reminderBody": "የዛሬን ገጾች የሚያነቡበት ጊዜ ነው — ኸትምዎን ይቀጥሉ።"
 }

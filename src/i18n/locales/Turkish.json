@@ -3143,5 +3143,11 @@
   "m.plan.done": "Hatim tamamlandı — maşaAllah",
   "m.plan.reset": "Bu planı bırak",
   "m.plan.resetConfirm": "Mevcut planınız ve ilerlemeniz silinecek. Emin misiniz?",
-  "m.plan.cancel": "İptal"
+  "m.plan.cancel": "İptal",
+  "m.plan.pagesPerDayQ": "Günde kaç sayfa?",
+  "m.plan.orByTime": "Ya da belirli sürede bitir",
+  "m.plan.reminder": "Günlük hatırlatma",
+  "m.plan.reminderSub": "Bugünkü sayfaları okumanız için hatırlatma",
+  "m.plan.reminderTitle": "Okuma planı",
+  "m.plan.reminderBody": "Bugünkü sayfaların zamanı — hatminize devam edin."
 }

@@ -3143,5 +3143,11 @@
   "m.plan.done": "Xatm temam - maşaAllah",
   "m.plan.reset": "Dev ji vê planê berdin",
   "m.plan.resetConfirm": "Ev ê plan û pêşkeftina weya heyî paqij bike. Piştrastin?",
-  "m.plan.cancel": "Bişûndekirin"
+  "m.plan.cancel": "Bişûndekirin",
+  "m.plan.pagesPerDayQ": "Rojê çend rûpel?",
+  "m.plan.orByTime": "Yan di demekî diyarkirî de biqedîne",
+  "m.plan.reminder": "Bîranîna rojane",
+  "m.plan.reminderSub": "Bîranîn ji bo xwendina rûpelên îro",
+  "m.plan.reminderTitle": "Plana xwendinê",
+  "m.plan.reminderBody": "Demê rûpelên îro ye — xetma xwe bidomîne."
 }

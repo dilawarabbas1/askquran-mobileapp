@@ -3143,5 +3143,11 @@
   "m.plan.done": "Lecture complète terminée — mashaAllah",
   "m.plan.reset": "Abandonner ce plan",
   "m.plan.resetConfirm": "Cela effacera votre plan actuel et votre progression. Êtes-vous sûr ?",
-  "m.plan.cancel": "Annuler"
+  "m.plan.cancel": "Annuler",
+  "m.plan.pagesPerDayQ": "Combien de pages par jour ?",
+  "m.plan.orByTime": "Ou terminer dans un délai choisi",
+  "m.plan.reminder": "Rappel quotidien",
+  "m.plan.reminderSub": "Un rappel pour lire les pages du jour",
+  "m.plan.reminderTitle": "Plan de lecture",
+  "m.plan.reminderBody": "C’est l’heure des pages du jour — poursuivez votre lecture complète."
 }

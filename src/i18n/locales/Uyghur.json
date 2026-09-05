@@ -3143,5 +3143,11 @@
   "m.plan.done": "Khatm complete - mashaAllah",
   "m.plan.reset": "بۇ پىلاندىن ۋاز كېچىڭ",
   "m.plan.resetConfirm": "بۇ سىزنىڭ ھازىرقى پىلانىڭىز ۋە ئىلگىرىلىشىڭىزنى تازىلايدۇ. ئىشىنەمسىز؟",
-  "m.plan.cancel": "بىكار قىلىش"
+  "m.plan.cancel": "بىكار قىلىش",
+  "m.plan.pagesPerDayQ": "كۈنىگە قانچە بەت؟",
+  "m.plan.orByTime": "ياكى بەلگىلەنگەن ۋاقىتتا تاماملاڭ",
+  "m.plan.reminder": "كۈندىلىك ئەسكەرتىش",
+  "m.plan.reminderSub": "بۈگۈنكى بەتلەرنى ئوقۇش ئۈچۈن ئەسكەرتىش",
+  "m.plan.reminderTitle": "ئوقۇش پىلانى",
+  "m.plan.reminderBody": "بۈگۈنكى بەتلەرنىڭ ۋاقتى بولدى — خەتمىڭىزنى داۋاملاشتۇرۇڭ."
 }

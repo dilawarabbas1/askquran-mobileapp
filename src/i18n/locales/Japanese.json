@@ -3143,5 +3143,11 @@
   "m.plan.done": "Khatm が完了しました — mashaAllah",
   "m.plan.reset": "この計画を放棄する",
   "m.plan.resetConfirm": "これにより、現在の計画と進捗状況がクリアされます。本気ですか？",
-  "m.plan.cancel": "キャンセル"
+  "m.plan.cancel": "キャンセル",
+  "m.plan.pagesPerDayQ": "1日に何ページ読みますか？",
+  "m.plan.orByTime": "または期間を決めて完了する",
+  "m.plan.reminder": "毎日のリマインダー",
+  "m.plan.reminderSub": "今日のページを読むためのお知らせ",
+  "m.plan.reminderTitle": "読誦プラン",
+  "m.plan.reminderBody": "今日のページを読む時間です — 読誦を続けましょう。"
 }

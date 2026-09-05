@@ -3143,5 +3143,11 @@
   "m.plan.done": "Xatm tugal - mashaAlloh",
   "m.plan.reset": "Bu rejadan voz keching",
   "m.plan.resetConfirm": "Bu sizning joriy rejangiz va taraqqiyotingizni tozalaydi. Ishonchingiz komilmi?",
-  "m.plan.cancel": "Bekor qilish"
+  "m.plan.cancel": "Bekor qilish",
+  "m.plan.pagesPerDayQ": "Kuniga nechta sahifa?",
+  "m.plan.orByTime": "Yoki belgilangan muddatda tugating",
+  "m.plan.reminder": "Kundalik eslatma",
+  "m.plan.reminderSub": "Bugungi sahifalarni o‘qish uchun eslatma",
+  "m.plan.reminderTitle": "O‘qish rejasi",
+  "m.plan.reminderBody": "Bugungi sahifalar vaqti — xatmingizni davom ettiring."
 }

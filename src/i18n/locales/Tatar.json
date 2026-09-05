@@ -3143,5 +3143,11 @@
   "m.plan.done": "Хатм тулы - mashaAllah",
   "m.plan.reset": "Бу планнан баш тарт",
   "m.plan.resetConfirm": "Бу сезнең хәзерге планыгызны һәм алгарышыгызны чистартачак. Сез ышанасызмы?",
-  "m.plan.cancel": "Баш тарту"
+  "m.plan.cancel": "Баш тарту",
+  "m.plan.pagesPerDayQ": "Көненә ничә бит?",
+  "m.plan.orByTime": "Яки билгеләнгән вакытта тәмамла",
+  "m.plan.reminder": "Көндәлек искәртү",
+  "m.plan.reminderSub": "Бүгенге битләрне укырга искәртү",
+  "m.plan.reminderTitle": "Уку планы",
+  "m.plan.reminderBody": "Бүгенге битләр вакыты — хатмыңны дәвам ит."
 }

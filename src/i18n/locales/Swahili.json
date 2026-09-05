@@ -3143,5 +3143,11 @@
   "m.plan.done": "Khatm imekamilika - mashaAllah",
   "m.plan.reset": "Achana na mpango huu",
   "m.plan.resetConfirm": "Hii itafuta mpango wako wa sasa na maendeleo. Je, una uhakika?",
-  "m.plan.cancel": "Ghairi"
+  "m.plan.cancel": "Ghairi",
+  "m.plan.pagesPerDayQ": "Kurasa ngapi kwa siku?",
+  "m.plan.orByTime": "Au maliza ndani ya muda ulioweka",
+  "m.plan.reminder": "Kikumbusho cha kila siku",
+  "m.plan.reminderSub": "Kikumbusho cha kusoma kurasa za leo",
+  "m.plan.reminderTitle": "Mpango wa kusoma",
+  "m.plan.reminderBody": "Ni wakati wa kurasa za leo — endelea na khitma yako."
 }

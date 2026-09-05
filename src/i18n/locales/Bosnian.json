@@ -3143,5 +3143,11 @@
   "m.plan.done": "Hatm potpun — mašaAllah",
   "m.plan.reset": "Odustani od ovog plana",
   "m.plan.resetConfirm": "Ovo će očistiti vaš trenutni plan i napredak. Jeste li sigurni?",
-  "m.plan.cancel": "Otkaži"
+  "m.plan.cancel": "Otkaži",
+  "m.plan.pagesPerDayQ": "Koliko stranica dnevno?",
+  "m.plan.orByTime": "Ili završi u određenom roku",
+  "m.plan.reminder": "Dnevni podsjetnik",
+  "m.plan.reminderSub": "Podsjetnik da pročitaš današnje stranice",
+  "m.plan.reminderTitle": "Plan čitanja",
+  "m.plan.reminderBody": "Vrijeme je za današnje stranice — nastavi svoj hatmu."
 }
