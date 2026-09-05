@@ -159,7 +159,8 @@ export function Plan() {
       <View style={{ alignItems: "center", marginTop: 18 }}>
         <Ring pct={pct} color={tokens.brand} track={tokens.lineSoft}>
           <Text style={{ fontFamily: FONTS.serif[600], fontSize: 32, color: tokens.brand }}>{pct}%</Text>
-          <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[600], color: tokens.text3, marginTop: 2 }}>{done} / {PAGES}</Text>
+          {/* force LTR so the done/total fraction never reverses under RTL (Urdu etc.) */}
+          <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[600], color: tokens.text3, marginTop: 2, writingDirection: "ltr" }}>{`${done} / ${PAGES}`}</Text>
           <Text style={{ fontSize: 10, color: tokens.text3, letterSpacing: 0.3 }}>{app.t("m.plan.pagesUnit")}</Text>
         </Ring>
         <Text style={{ fontSize: 13.5, fontFamily: FONTS.sans[700], color: statusColor, marginTop: 12 }}>{statusText}</Text>
