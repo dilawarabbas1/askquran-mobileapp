@@ -21,6 +21,8 @@ const CAT_LABEL: Record<string, string> = {
   themes: "Themes",
 };
 
+const DIFFS = ["all", "basic", "intermediate", "advanced", "expert"] as const;
+
 const OK = "#1C7A68";
 const NO = "#B3261E";
 
@@ -31,6 +33,7 @@ export function Quiz() {
   const [phase, setPhase] = useState<Phase>("start");
   const [cats, setCats] = useState<string[]>([]);
   const [cat, setCat] = useState<string>("all");
+  const [diff, setDiff] = useState<string>("all");
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [idx, setIdx] = useState(0);
   const [chosen, setChosen] = useState<number | null>(null);
@@ -47,7 +50,7 @@ export function Quiz() {
     setPhase("loading");
     setError("");
     try {
-      const qs = await getQuiz(10, cat);
+      const qs = await getQuiz(10, cat, diff);
       if (qs.length === 0) { setError("No questions available yet."); setPhase("start"); return; }
       setQuestions(qs);
       setIdx(0); setChosen(null); setScore(0);
@@ -89,6 +92,18 @@ export function Quiz() {
             return (
               <Pressable key={c} onPress={() => setCat(c)} style={[{ borderWidth: 1, borderColor: on ? tokens.brand : tokens.line, backgroundColor: on ? tokens.brand : tokens.surface, borderRadius: 999, paddingVertical: 9, paddingHorizontal: 15 }, on ? null : tokens.cardShadow]}>
                 <Text style={{ fontSize: 13.5, fontFamily: FONTS.sans[600], color: on ? tokens.onBrand : tokens.text }}>{CAT_LABEL[c] ?? c}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <FieldLabel>{app.t("m.quiz.difficulty")}</FieldLabel>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
+          {DIFFS.map((d) => {
+            const on = diff === d;
+            return (
+              <Pressable key={d} onPress={() => setDiff(d)} style={[{ borderWidth: 1, borderColor: on ? tokens.brand : tokens.line, backgroundColor: on ? tokens.brand : tokens.surface, borderRadius: 999, paddingVertical: 9, paddingHorizontal: 15 }, on ? null : tokens.cardShadow]}>
+                <Text style={{ fontSize: 13.5, fontFamily: FONTS.sans[600], color: on ? tokens.onBrand : tokens.text }}>{app.t(`m.quiz.tier.${d}`)}</Text>
               </Pressable>
             );
           })}
@@ -156,7 +171,22 @@ export function Quiz() {
 
       {chosen !== null ? (
         <View style={{ marginTop: 18 }}>
-          <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[600], color: tokens.text3 }}>{app.t("m.quiz.reference", { ref: q.ref })}</Text>
+          {/* Learning moment — right or wrong, explain from the verse. */}
+          {(() => {
+            const correct = chosen === q.answer;
+            const accent = correct ? OK : NO;
+            return (
+              <View style={{ backgroundColor: mix(accent, 8, tokens.surface), borderWidth: 1, borderColor: mix(accent, 30, tokens.line), borderRadius: 14, padding: 14 }}>
+                <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[700], color: accent, marginBottom: 6 }}>
+                  {correct ? app.t("m.quiz.correct") : app.t("m.quiz.incorrect")}
+                </Text>
+                {q.explanation ? (
+                  <Text style={{ fontSize: 14, lineHeight: 21, color: tokens.text }}>{q.explanation}</Text>
+                ) : null}
+                <Text style={{ fontSize: 12, fontFamily: FONTS.sans[600], color: tokens.text3, marginTop: 8 }}>{app.t("m.quiz.reference", { ref: q.ref })}</Text>
+              </View>
+            );
+          })()}
           <Pressable onPress={next} style={[{ marginTop: 16, backgroundColor: tokens.brand, borderRadius: 14, paddingVertical: 15, alignItems: "center" }, tokens.cardShadow]}>
             <Text style={{ fontSize: 16, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>
               {idx < questions.length - 1 ? app.t("m.quiz.next") : app.t("m.quiz.finish")}
