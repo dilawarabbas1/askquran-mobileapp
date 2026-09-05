@@ -9,7 +9,7 @@ import { Alert, Pressable, ScrollView, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { Text } from "../AppText";
 import { useApp } from "../AQContext";
-import { BlockTitle, FieldLabel, OrnDivider } from "../atoms";
+import { BlockTitle, FieldLabel, OrnDivider, Switch } from "../atoms";
 import { Icon } from "../Icon";
 import { FONTS, mix } from "../tokens";
 import { juzOf } from "../lib/juz";
@@ -20,8 +20,9 @@ const PAGES = QPC_PAGE_COUNT; // 604
 const PRESETS = [30, 60, 365]; // days
 const CUSTOM_MIN = 1;
 const CUSTOM_MAX = 40;
-const BLOCKS = 30;                              // page-milestone blocks
-const BLOCK_SIZE = Math.ceil(PAGES / BLOCKS);   // ≈21 pages per milestone
+const BLOCK_SIZE = 21;                          // pages per milestone block (≈ one juzʼ)
+const BLOCKS = Math.ceil(PAGES / BLOCK_SIZE);   // 29 blocks over 604 pages (no clamped duplicate)
+const QUICK_PPD = [1, 5, 10, 21];              // quick pages-a-day picks (21 ≈ one juzʼ)
 
 const surahName = (n: number): string => SURAHS.find((s) => s[0] === n)?.[2] ?? `Surah ${n}`;
 
@@ -50,7 +51,7 @@ export function Plan() {
   const app = useApp();
   const { tokens } = app;
   const k = app.khatm;
-  const [custom, setCustom] = useState(5); // pages/day for the custom picker
+  const [custom, setCustom] = useState(1); // pages/day chooser (defaults to a gentle 1/day)
 
   /* ---------- no active plan → pace picker ---------- */
   if (!k) {
@@ -72,28 +73,19 @@ export function Plan() {
         ) : null}
 
         <OrnDivider />
-        <FieldLabel>{app.t("m.plan.choosePace")}</FieldLabel>
-        <View style={{ gap: 12 }}>
-          {PRESETS.map((days) => {
-            const ppd = Math.ceil(PAGES / days);
-            const kindKey = days === 30 ? "30" : days === 60 ? "60" : "365";
+
+        {/* PRIMARY: how many pages a day */}
+        <FieldLabel>{app.t("m.plan.pagesPerDayQ")}</FieldLabel>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9, marginBottom: 12 }}>
+          {QUICK_PPD.map((n) => {
+            const on = custom === n;
             return (
-              <Pressable key={days} onPress={() => app.startKhatm(ppd)} style={[{ flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 16, paddingVertical: 15, paddingHorizontal: 16 }, tokens.cardShadow]}>
-                <View style={{ width: 46, height: 46, borderRadius: 13, alignItems: "center", justifyContent: "center", backgroundColor: mix(tokens.brand, 11), borderWidth: 1, borderColor: mix(tokens.brand, 22, tokens.line) }}>
-                  <Icon name="book" size={20} w={1.9} color={tokens.brand} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: FONTS.serif[600], fontSize: 16.5, color: tokens.text }}>{app.t(`m.plan.days${kindKey}`)}</Text>
-                  <Text style={{ fontSize: 12.5, color: tokens.text2, marginTop: 2 }}>{app.t("m.plan.pagesPerDay", { n: ppd })}</Text>
-                </View>
-                <Icon name="chevR" size={16} w={2.1} color={tokens.text3} />
+              <Pressable key={n} onPress={() => setCustom(n)} style={[{ borderWidth: 1, borderColor: on ? tokens.brand : tokens.line, backgroundColor: on ? tokens.brand : tokens.surface, borderRadius: 999, paddingVertical: 9, paddingHorizontal: 15 }, on ? null : tokens.cardShadow]}>
+                <Text style={{ fontSize: 13.5, fontFamily: FONTS.sans[600], color: on ? tokens.onBrand : tokens.text }}>{app.t("m.plan.pagesPerDay", { n })}</Text>
               </Pressable>
             );
           })}
         </View>
-
-        {/* custom pace */}
-        <FieldLabel>{app.t("m.plan.customPace")}</FieldLabel>
         <View style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 16, padding: 16 }, tokens.cardShadow]}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <Stepper value={custom} min={CUSTOM_MIN} max={CUSTOM_MAX} onChange={setCustom} tokens={tokens} />
@@ -105,6 +97,21 @@ export function Plan() {
           <Pressable onPress={() => app.startKhatm(custom)} style={[{ marginTop: 14, backgroundColor: tokens.brand, borderRadius: 13, paddingVertical: 14, alignItems: "center" }, tokens.cardShadow]}>
             <Text style={{ fontSize: 15, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>{app.t("m.plan.startPlan")}</Text>
           </Pressable>
+        </View>
+
+        {/* SECONDARY: finish in a set time (presets set the pages/day for you) */}
+        <FieldLabel>{app.t("m.plan.orByTime")}</FieldLabel>
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          {PRESETS.map((days) => {
+            const ppd = Math.ceil(PAGES / days);
+            const kindKey = days === 30 ? "30" : days === 60 ? "60" : "365";
+            return (
+              <Pressable key={days} onPress={() => setCustom(ppd)} style={[{ flex: 1, alignItems: "center", backgroundColor: custom === ppd ? mix(tokens.brand, 10, tokens.surface) : tokens.surface, borderWidth: 1, borderColor: custom === ppd ? tokens.brand : tokens.line, borderRadius: 14, paddingVertical: 12 }, tokens.cardShadow]}>
+                <Text style={{ fontFamily: FONTS.serif[600], fontSize: 14.5, color: tokens.text }}>{app.t(`m.plan.days${kindKey}`)}</Text>
+                <Text style={{ fontSize: 11, color: tokens.text3, marginTop: 2 }}>{app.t("m.plan.pagesPerDay", { n: ppd })}</Text>
+              </Pressable>
+            );
+          })}
         </View>
       </ScrollView>
     );
@@ -209,6 +216,32 @@ export function Plan() {
           </View>
         </View>
       )}
+
+      {/* daily reminder */}
+      <View style={[{ marginTop: 18, backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 16, paddingVertical: 13, paddingHorizontal: 16 }, tokens.cardShadow]}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: mix(tokens.brand, 11), borderWidth: 1, borderColor: mix(tokens.brand, 22, tokens.line) }}>
+            <Icon name="bell" size={18} w={1.9} color={tokens.brand} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: FONTS.serif[600], fontSize: 15.5, color: tokens.text }}>{app.t("m.plan.reminder")}</Text>
+            <Text style={{ fontSize: 12, color: tokens.text2, marginTop: 1 }}>{app.t("m.plan.reminderSub")}</Text>
+          </View>
+          <Switch on={app.planReminder.enabled} onPress={() => app.setPlanReminder({ enabled: !app.planReminder.enabled })} />
+        </View>
+        {app.planReminder.enabled ? (
+          <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
+            {([[7, "m.set.dvMorning"], [13, "m.set.dvMidday"], [20, "m.set.dvEvening"]] as [number, string][]).map(([h, l]) => {
+              const on = app.planReminder.hour === h;
+              return (
+                <Pressable key={h} onPress={() => app.setPlanReminder({ hour: h, minute: 0 })} style={{ flex: 1, alignItems: "center", paddingVertical: 9, borderRadius: 11, borderWidth: 1, borderColor: on ? tokens.brand : tokens.line, backgroundColor: on ? mix(tokens.brand, 10, tokens.surface) : tokens.surface }}>
+                  <Text style={{ fontSize: 13, fontFamily: FONTS.sans[600], color: on ? tokens.brand : tokens.text2 }}>{app.t(l)}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
+      </View>
 
       <OrnDivider />
 

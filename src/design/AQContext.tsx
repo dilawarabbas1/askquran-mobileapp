@@ -12,6 +12,7 @@ import { TOKENS, type Mode, type Tokens } from "./tokens";
 import { isRTL } from "./lib/rtl";
 import { pageStartRef, QPC_PAGE_COUNT } from "../quran/qpcIndex";
 import { syncDailyVerse, type DailyVerseSettings } from "@/notifications/dailyVerse";
+import { syncPlanReminder, type PlanReminderSettings } from "@/notifications/planReminder";
 import { evaluateResult, type QuizResult, type QuizOutcome } from "./lib/quizBadges";
 import { setUiIsUrdu } from "./lib/uiType";
 import { translate } from "@/i18n";
@@ -54,8 +55,11 @@ export interface KhatmPlan {
 }
 
 export type { DailyVerseSettings } from "@/notifications/dailyVerse";
+export type { PlanReminderSettings } from "@/notifications/planReminder";
 export type { QuizResult, QuizOutcome } from "./lib/quizBadges";
 const DEFAULT_DAILY_VERSE: DailyVerseSettings = { enabled: false, hour: 7, minute: 0 };
+// Reading-plan reminder defaults to 8pm; auto-enabled when a plan is created.
+const DEFAULT_PLAN_REMINDER: PlanReminderSettings = { enabled: false, hour: 20, minute: 0 };
 const QUIZ_HISTORY_CAP = 200;
 
 /** Local calendar day as "YYYY-MM-DD" (used for the reading streak). */
@@ -203,6 +207,9 @@ export interface AQApi {
   continueKhatm: () => void;
   /** Update Daily-Verse notification settings (merges into the current value). */
   setDailyVerse: (patch: Partial<DailyVerseSettings>) => void;
+  /** Reading-plan daily reminder settings + updater (merges into the current value). */
+  planReminder: PlanReminderSettings;
+  setPlanReminder: (patch: Partial<PlanReminderSettings>) => void;
   /** Record a finished quiz; returns improvement + newly-earned badges for the result screen. */
   recordQuizResult: (category: string, difficulty: string, score: number, total: number) => QuizOutcome;
   setAppearance: (v: Appearance) => void;
@@ -238,6 +245,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const [khatm, setKhatm] = useState<KhatmPlan | null>(null);
   const [khatmCompletions, setKhatmCompletions] = useState(0); // lifetime full readings completed
   const [dailyVerse, setDailyVerseState] = useState<DailyVerseSettings>(DEFAULT_DAILY_VERSE);
+  const [planReminder, setPlanReminderState] = useState<PlanReminderSettings>(DEFAULT_PLAN_REMINDER);
   const [quizResults, setQuizResults] = useState<QuizResult[]>([]);
   const [refCollection, setRefCollection] = useState<string | null>(null);
   const [passageTarget, setPassageTarget] = useState<PassageTarget | null>(null);
@@ -262,7 +270,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
           const p = JSON.parse(raw) as Partial<{
             onboarded: boolean; language: string; appLanguage: string; translationLanguage: string; tafsirLanguage: string;
             appearance: Appearance; homeLayout: HomeLayout; reciteView: ReciteView; savedList: AyahItem[];
-            recitePosition: RecitePosition; khatm: KhatmPlan; khatmCompletions: number; dailyVerse: DailyVerseSettings; quizResults: QuizResult[];
+            recitePosition: RecitePosition; khatm: KhatmPlan; khatmCompletions: number; dailyVerse: DailyVerseSettings; planReminder: PlanReminderSettings; quizResults: QuizResult[];
           }>;
           // Migrate the old single `language` pref → translation language.
           const tr = p.translationLanguage ?? p.language;
@@ -303,6 +311,9 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
           if (p.dailyVerse && typeof p.dailyVerse.enabled === "boolean" && typeof p.dailyVerse.hour === "number" && typeof p.dailyVerse.minute === "number") {
             setDailyVerseState({ enabled: p.dailyVerse.enabled, hour: p.dailyVerse.hour, minute: p.dailyVerse.minute });
           }
+          if (p.planReminder && typeof p.planReminder.enabled === "boolean" && typeof p.planReminder.hour === "number" && typeof p.planReminder.minute === "number") {
+            setPlanReminderState({ enabled: p.planReminder.enabled, hour: p.planReminder.hour, minute: p.planReminder.minute });
+          }
           if (Array.isArray(p.quizResults)) {
             setQuizResults(p.quizResults.filter((q) => q && typeof q.score === "number" && typeof q.total === "number"));
           }
@@ -321,8 +332,8 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   // Persist preferences whenever they change (after hydration).
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, khatmCompletions, dailyVerse, quizResults })).catch(() => {});
-  }, [hydrated, onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, khatmCompletions, dailyVerse, quizResults]);
+    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, khatmCompletions, dailyVerse, planReminder, quizResults })).catch(() => {});
+  }, [hydrated, onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, khatmCompletions, dailyVerse, planReminder, quizResults]);
 
   // Reconcile Daily-Verse local notifications after hydration and whenever the
   // setting or translation language changes; also re-sync on each foreground so
@@ -339,6 +350,18 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
     });
     return () => sub.remove();
   }, [hydrated, dailyVerse, translationLanguage]);
+
+  // Reconcile the reading-plan daily reminder: scheduled only while a plan is
+  // active and the reminder is enabled; localized title/body follow appLanguage.
+  useEffect(() => {
+    if (!hydrated) return;
+    void syncPlanReminder({
+      ...planReminder,
+      hasPlan: khatm !== null,
+      title: translate(appLanguage, "m.plan.reminderTitle"),
+      body: translate(appLanguage, "m.plan.reminderBody"),
+    });
+  }, [hydrated, planReminder, khatm, appLanguage]);
 
   // --- xNotify analytics: app_open (cold start + each foreground), screen_view
   // on each navigation. track() is a no-op unless an Event Key is configured, so
@@ -387,7 +410,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const api: AQApi = useMemo(
     () => ({
       stage, current, navKey, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, setRecitePlaying,
-      language, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, khatmCompletions, dailyVerse, quizResults, refCollection, passageTarget, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
+      language, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, khatmCompletions, dailyVerse, planReminder, quizResults, refCollection, passageTarget, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
       t: (key, vars) => translate(appLanguage, key, vars),
       uiRTL: isRTL(appLanguage),
       goOnboarding: () => setStage("onboarding"),
@@ -431,6 +454,8 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       startKhatm: (pagesPerDay) => {
         const ppd = Math.min(QPC_PAGE_COUNT, Math.max(1, Math.round(pagesPerDay)));
         setKhatm({ startedAt: Date.now(), pagesPerDay: ppd, pagesRead: 0, lastReadDay: null, streak: 0 });
+        // Auto-enable the daily reminder when a plan is created (keeps any prior time).
+        setPlanReminderState((r) => (r.enabled ? r : { ...r, enabled: true }));
         track("khatm_start", { pagesPerDay: ppd });
       },
       markDayRead: () => {
@@ -478,6 +503,14 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
           return nextV;
         });
       },
+      setPlanReminder: (patch) => {
+        setPlanReminderState((r) => {
+          const next = { ...r, ...patch };
+          if (patch.enabled === true && !r.enabled) track("plan_reminder_enable", { hour: next.hour });
+          else if (patch.enabled === false && r.enabled) track("plan_reminder_disable", {});
+          return next;
+        });
+      },
       recordQuizResult: (category, difficulty, score, total) => {
         const fresh: QuizResult = { ts: Date.now(), category, difficulty, score, total };
         const outcome = evaluateResult(quizResults, fresh);
@@ -496,7 +529,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       },
       savedItems: savedList,
     }),
-    [stage, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, khatmCompletions, dailyVerse, quizResults, refCollection, passageTarget, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
+    [stage, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, khatmCompletions, dailyVerse, planReminder, quizResults, refCollection, passageTarget, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
   );
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
