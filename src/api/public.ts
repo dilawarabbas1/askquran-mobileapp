@@ -196,10 +196,11 @@ export async function getSuggestedQuestions(): Promise<SuggestedGroup[]> {
  * GET /api/quiz — a shuffled "Test Your Knowledge" quiz (approved, verse-referenced
  * questions only). Never cached — each play should be a fresh draw.
  */
-export async function getQuiz(count = 10, category?: string, difficulty?: string): Promise<QuizQuestion[]> {
+export async function getQuiz(count = 10, category?: string, difficulty?: string, lang?: string): Promise<QuizQuestion[]> {
   const qs = new URLSearchParams({ count: String(count) });
   if (category && category !== "all") qs.set("category", category);
   if (difficulty && difficulty !== "all") qs.set("difficulty", difficulty);
+  if (lang && lang !== "English") qs.set("lang", lang);
   const data = await getJson<{ questions: QuizQuestion[] }>(`${PUBLIC_API_BASE_URL}/quiz?${qs.toString()}`, {
     headers: publicHeaders(),
   });

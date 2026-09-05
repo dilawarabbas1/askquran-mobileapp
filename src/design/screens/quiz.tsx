@@ -60,7 +60,7 @@ export function Quiz() {
     setPhase("loading");
     setError("");
     try {
-      const qs = await getQuiz(10, cat, diff);
+      const qs = await getQuiz(10, cat, diff, app.appLanguage);
       if (qs.length === 0) { setError("No questions available yet."); setPhase("start"); return; }
       setQuestions(qs);
       setIdx(0); setChosen(null); setScore(0);
