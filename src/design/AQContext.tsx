@@ -12,6 +12,7 @@ import { TOKENS, type Mode, type Tokens } from "./tokens";
 import { isRTL } from "./lib/rtl";
 import { JUZ_COUNT, juzStart } from "./lib/juz";
 import { syncDailyVerse, type DailyVerseSettings } from "@/notifications/dailyVerse";
+import { evaluateResult, type QuizResult, type QuizOutcome } from "./lib/quizBadges";
 import { setUiIsUrdu } from "./lib/uiType";
 import { translate } from "@/i18n";
 import { track } from "@/analytics";
@@ -52,7 +53,9 @@ export interface KhatmPlan {
 }
 
 export type { DailyVerseSettings } from "@/notifications/dailyVerse";
+export type { QuizResult, QuizOutcome } from "./lib/quizBadges";
 const DEFAULT_DAILY_VERSE: DailyVerseSettings = { enabled: false, hour: 7, minute: 0 };
+const QUIZ_HISTORY_CAP = 200;
 
 /** Local calendar day as "YYYY-MM-DD" (used for the reading streak). */
 function dayStr(d: Date = new Date()): string {
@@ -145,6 +148,7 @@ export interface AQApi {
   recitePosition: RecitePosition | null;
   khatm: KhatmPlan | null;
   dailyVerse: DailyVerseSettings;
+  quizResults: QuizResult[];
   refCollection: string | null;
   passageTarget: PassageTarget | null;
   activeTab: Tab;
@@ -193,6 +197,8 @@ export interface AQApi {
   continueKhatm: () => void;
   /** Update Daily-Verse notification settings (merges into the current value). */
   setDailyVerse: (patch: Partial<DailyVerseSettings>) => void;
+  /** Record a finished quiz; returns improvement + newly-earned badges for the result screen. */
+  recordQuizResult: (category: string, difficulty: string, score: number, total: number) => QuizOutcome;
   setAppearance: (v: Appearance) => void;
   setHomeLayout: (v: HomeLayout) => void;
   setReciteView: (v: ReciteView) => void;
@@ -225,6 +231,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const [recitePosition, setRecitePosition] = useState<RecitePosition | null>(null);
   const [khatm, setKhatm] = useState<KhatmPlan | null>(null);
   const [dailyVerse, setDailyVerseState] = useState<DailyVerseSettings>(DEFAULT_DAILY_VERSE);
+  const [quizResults, setQuizResults] = useState<QuizResult[]>([]);
   const [refCollection, setRefCollection] = useState<string | null>(null);
   const [passageTarget, setPassageTarget] = useState<PassageTarget | null>(null);
   // Three independent language preferences (all persisted).
@@ -248,7 +255,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
           const p = JSON.parse(raw) as Partial<{
             onboarded: boolean; language: string; appLanguage: string; translationLanguage: string; tafsirLanguage: string;
             appearance: Appearance; homeLayout: HomeLayout; reciteView: ReciteView; savedList: AyahItem[];
-            recitePosition: RecitePosition; khatm: KhatmPlan; dailyVerse: DailyVerseSettings;
+            recitePosition: RecitePosition; khatm: KhatmPlan; dailyVerse: DailyVerseSettings; quizResults: QuizResult[];
           }>;
           // Migrate the old single `language` pref → translation language.
           const tr = p.translationLanguage ?? p.language;
@@ -278,6 +285,9 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
           if (p.dailyVerse && typeof p.dailyVerse.enabled === "boolean" && typeof p.dailyVerse.hour === "number" && typeof p.dailyVerse.minute === "number") {
             setDailyVerseState({ enabled: p.dailyVerse.enabled, hour: p.dailyVerse.hour, minute: p.dailyVerse.minute });
           }
+          if (Array.isArray(p.quizResults)) {
+            setQuizResults(p.quizResults.filter((q) => q && typeof q.score === "number" && typeof q.total === "number"));
+          }
           if (Array.isArray(p.savedList)) setSavedList(p.savedList);
           if (p.onboarded) { setOnboarded(true); setStage("app"); }
         }
@@ -293,8 +303,8 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   // Persist preferences whenever they change (after hydration).
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, dailyVerse })).catch(() => {});
-  }, [hydrated, onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, dailyVerse]);
+    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, dailyVerse, quizResults })).catch(() => {});
+  }, [hydrated, onboarded, appLanguage, translationLanguage, tafsirLanguage, appearance, homeLayout, reciteView, savedList, recitePosition, khatm, dailyVerse, quizResults]);
 
   // Reconcile Daily-Verse local notifications after hydration and whenever the
   // setting or translation language changes; also re-sync on each foreground so
@@ -359,7 +369,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
   const api: AQApi = useMemo(
     () => ({
       stage, current, navKey, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, setRecitePlaying,
-      language, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, dailyVerse, refCollection, passageTarget, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
+      language, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, dailyVerse, quizResults, refCollection, passageTarget, activeTab, canBack: nav.length > 1, hydrated, mode, tokens,
       t: (key, vars) => translate(appLanguage, key, vars),
       uiRTL: isRTL(appLanguage),
       goOnboarding: () => setStage("onboarding"),
@@ -446,6 +456,13 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
           return nextV;
         });
       },
+      recordQuizResult: (category, difficulty, score, total) => {
+        const fresh: QuizResult = { ts: Date.now(), category, difficulty, score, total };
+        const outcome = evaluateResult(quizResults, fresh);
+        setQuizResults((prev) => [fresh, ...prev].slice(0, QUIZ_HISTORY_CAP));
+        track("quiz_complete", { category, difficulty, score, total, pct: outcome.pct, personal_best: outcome.isPersonalBest, new_badges: outcome.newBadges.length });
+        return outcome;
+      },
       setAppearance,
       setHomeLayout,
       setReciteView,
@@ -457,7 +474,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       },
       savedItems: savedList,
     }),
-    [stage, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, dailyVerse, refCollection, passageTarget, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
+    [stage, query, readerItem, factTab, appearance, homeLayout, reciteView, recitePlaying, appLanguage, translationLanguage, tafsirLanguage, lang, langSheetOpen, langSheetTarget, surahSheetOpen, reciteSurah, recitePosition, khatm, dailyVerse, quizResults, refCollection, passageTarget, navKey, savedList, hydrated, onboarded, mode, tokens, nav],
   );
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;

@@ -7,10 +7,14 @@ import { ScrollView, View, Pressable, ActivityIndicator } from "react-native";
 import { Text } from "../AppText";
 import { useApp } from "../AQContext";
 import { BlockTitle, FieldLabel, OrnDivider } from "../atoms";
+import { Icon } from "../Icon";
 import { FONTS, mix } from "../tokens";
 import { getQuiz, getQuizCategories, type QuizQuestion } from "@/api";
+import { BADGES, earnedBadgeIds, bestPct, type QuizOutcome } from "../lib/quizBadges";
 
 type Phase = "start" | "loading" | "playing" | "done";
+
+const BADGE_ICON: Record<string, string> = Object.fromEntries(BADGES.map((b) => [b.id, b.icon]));
 
 const CAT_LABEL: Record<string, string> = {
   all: "All",
@@ -39,6 +43,7 @@ export function Quiz() {
   const [chosen, setChosen] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [error, setError] = useState("");
+  const [outcome, setOutcome] = useState<QuizOutcome | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -69,7 +74,12 @@ export function Quiz() {
 
   function next() {
     if (idx < questions.length - 1) { setIdx((n) => n + 1); setChosen(null); }
-    else setPhase("done");
+    else {
+      // Final answer already folded into `score` by choose(); record + capture
+      // improvement/badges for the result screen.
+      setOutcome(app.recordQuizResult(cat, diff, score, questions.length));
+      setPhase("done");
+    }
   }
 
   /* ---------- start ---------- */
@@ -84,6 +94,32 @@ export function Quiz() {
           {app.t("m.quiz.lede")}
         </Text>
         <OrnDivider />
+
+        {app.quizResults.length > 0 ? (() => {
+          const earned = earnedBadgeIds(app.quizResults);
+          return (
+            <View style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 16, padding: 14, marginBottom: 4 }, tokens.cardShadow]}>
+              <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
+                <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[700], letterSpacing: 0.4, textTransform: "uppercase", color: tokens.text3 }}>{app.t("m.quiz.yourProgress")}</Text>
+                <Text style={{ fontSize: 12.5, color: tokens.text2 }}>{app.t("m.quiz.quizzesTaken", { n: app.quizResults.length })}</Text>
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, marginTop: 6 }}>
+                <Text style={{ fontFamily: FONTS.serif[600], fontSize: 24, color: tokens.brand }}>{bestPct(app.quizResults)}%</Text>
+                <Text style={{ fontSize: 12.5, color: tokens.text3 }}>{app.t("m.quiz.personalBest")}</Text>
+              </View>
+              {earned.length > 0 ? (
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+                  {BADGES.filter((b) => earned.includes(b.id)).map((b) => (
+                    <View key={b.id} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: mix(tokens.gold, 14, tokens.surface), borderWidth: 1, borderColor: mix(tokens.gold, 30, tokens.line), borderRadius: 999, paddingVertical: 6, paddingHorizontal: 11 }}>
+                      <Icon name={b.icon} size={14} w={1.9} color={tokens.goldDeep} />
+                      <Text style={{ fontSize: 12, fontFamily: FONTS.sans[600], color: tokens.goldDeep }}>{app.t(`m.quiz.badge.${b.id}`)}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+            </View>
+          );
+        })() : null}
 
         <FieldLabel>{app.t("m.quiz.category")}</FieldLabel>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
@@ -128,6 +164,35 @@ export function Quiz() {
         <Text style={{ fontFamily: FONTS.ar, fontSize: 20, color: tokens.orn, marginBottom: 14 }}>﷽</Text>
         <Text style={{ fontSize: 44, fontFamily: FONTS.serif[600], color: tokens.brand }}>{score}<Text style={{ fontSize: 22, color: tokens.text3 }}>/{questions.length}</Text></Text>
         <BlockTitle style={{ marginTop: 8 }}>{app.t(pct >= 70 ? "m.quiz.great" : "m.quiz.keepGoing")}</BlockTitle>
+
+        {/* Improvement — new personal best, or how this compares to your best. */}
+        {outcome?.isPersonalBest ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 7, marginTop: 12, backgroundColor: mix(tokens.gold, 14, tokens.surface), borderWidth: 1, borderColor: mix(tokens.gold, 30, tokens.line), borderRadius: 999, paddingVertical: 7, paddingHorizontal: 14 }}>
+            <Icon name="flame" size={15} w={1.9} color={tokens.goldDeep} />
+            <Text style={{ fontSize: 13, fontFamily: FONTS.sans[700], color: tokens.goldDeep }}>{app.t("m.quiz.newBest", { prev: outcome.prevBest })}</Text>
+          </View>
+        ) : (
+          <Text style={{ fontSize: 13, color: tokens.text2, marginTop: 10 }}>{app.t("m.quiz.bestSoFar", { pct: bestPct(app.quizResults) })}</Text>
+        )}
+
+        {/* Newly-earned badges from this attempt. */}
+        {outcome && outcome.newBadges.length > 0 ? (
+          <View style={{ alignSelf: "stretch", marginTop: 16, gap: 10 }}>
+            <Text style={{ fontSize: 12.5, fontFamily: FONTS.sans[700], letterSpacing: 0.4, textTransform: "uppercase", color: tokens.text3, textAlign: "center" }}>{app.t("m.quiz.newBadges")}</Text>
+            {outcome.newBadges.map((id) => (
+              <View key={id} style={[{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: tokens.surface, borderWidth: 1, borderColor: mix(tokens.gold, 34, tokens.line), borderRadius: 14, paddingVertical: 12, paddingHorizontal: 14 }, tokens.cardShadow]}>
+                <View style={{ width: 38, height: 38, borderRadius: 11, alignItems: "center", justifyContent: "center", backgroundColor: mix(tokens.gold, 16, tokens.surface) }}>
+                  <Icon name={BADGE_ICON[id] ?? "star"} size={19} w={1.9} color={tokens.goldDeep} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: FONTS.serif[600], fontSize: 15, color: tokens.text }}>{app.t(`m.quiz.badge.${id}`)}</Text>
+                  <Text style={{ fontSize: 12, color: tokens.text2, marginTop: 1 }}>{app.t(`m.quiz.badgeDesc.${id}`)}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         <OrnDivider />
         <Pressable onPress={start} style={[{ marginTop: 8, backgroundColor: tokens.brand, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 40, alignItems: "center" }, tokens.cardShadow]}>
           <Text style={{ fontSize: 15, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>{app.t("m.quiz.again")}</Text>
