@@ -205,7 +205,7 @@ export function Plan() {
             </View>
           </View>
           <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
-            <Pressable onPress={() => app.continueKhatm()} style={[{ flex: 1, backgroundColor: tokens.brand, borderRadius: 13, paddingVertical: 14, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }, tokens.cardShadow]}>
+            <Pressable onPress={() => app.openReadingSession()} style={[{ flex: 1, backgroundColor: tokens.brand, borderRadius: 13, paddingVertical: 14, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }, tokens.cardShadow]}>
               <Icon name="recite" size={17} w={2} color={tokens.onBrand} />
               <Text style={{ fontSize: 15, fontFamily: FONTS.sans[700], color: tokens.onBrand }}>{app.t("m.plan.readNow")}</Text>
             </Pressable>

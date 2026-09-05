@@ -22,7 +22,7 @@ import { screenName, surahName } from "@/analytics/events";
 const PREFS_KEY = "aq:prefs:v1";
 
 export type Stage = "splash" | "onboarding" | "app";
-export type Screen = "searchHome" | "results" | "reader" | "recite" | "facts" | "library" | "refList" | "passage" | "about" | "privacy" | "dataSafety" | "saved" | "settings" | "fonttest" | "quiz" | "plan";
+export type Screen = "searchHome" | "results" | "reader" | "recite" | "facts" | "library" | "refList" | "passage" | "about" | "privacy" | "dataSafety" | "saved" | "settings" | "fonttest" | "quiz" | "plan" | "readingSession";
 
 /** A reference card's passage opened as its own page (Arabic + transliteration +
  *  translation, with per-ayah tafsir on request). `refs` are S:A-B ranges. */
@@ -179,6 +179,7 @@ export interface AQApi {
   openPrivacy: () => void;
   openQuiz: () => void;
   openPlan: () => void;
+  openReadingSession: () => void;
   openDataSafety: () => void;
   openFontTest: () => void;
   back: () => void;
@@ -426,6 +427,7 @@ export function AQProvider({ children }: { children: React.ReactNode }) {
       openPrivacy: () => { setNav((n) => [...n, { screen: "privacy" }]); bump(); },
       openQuiz: () => { setNav((n) => [...n, { screen: "quiz" }]); bump(); },
       openPlan: () => { setNav((n) => [...n, { screen: "plan" }]); bump(); track("open_plan", {}); },
+      openReadingSession: () => { setNav((n) => [...n, { screen: "readingSession" }]); bump(); track("open_reading_session", {}); },
       openDataSafety: () => { setNav((n) => [...n, { screen: "dataSafety" }]); bump(); },
       openFontTest: () => { setNav((n) => [...n, { screen: "fonttest" }]); bump(); },
       back: () => { setNav((n) => (n.length > 1 ? n.slice(0, -1) : n)); bump(); },
