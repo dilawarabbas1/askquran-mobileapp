@@ -3,7 +3,8 @@
 // status bar / system nav are omitted — on a real device the OS provides those.
 
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Pressable, Text, View } from "react-native";
+import { Animated, Pressable, View } from "react-native";
+import { Text } from "./AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp, type Screen, type Tab } from "./AQContext";
 import { Mark, Wordmark } from "./atoms";
@@ -14,9 +15,15 @@ import { SearchHome, Results, Reader } from "./screens/core";
 import { Recite, SurahSheet } from "./screens/recite";
 import { Facts } from "./screens/facts";
 import { Library, About } from "./screens/library";
+import { Privacy, DataSafety } from "./screens/legal";
 import { RefList } from "./RefList";
+import { Passage } from "./screens/passage";
 import { Saved } from "./screens/saved";
 import { Settings } from "./screens/settings";
+import { FontTest } from "./screens/fonttest";
+import { Quiz } from "./screens/quiz";
+import { Plan } from "./screens/plan";
+import { ReadingSession } from "./screens/readingSession";
 import { COLLECTION_BY_ID } from "./refData";
 import { FONTS, mix } from "./tokens";
 
@@ -50,8 +57,13 @@ const TITLE_KEYS: Record<string, [string, string | null]> = {
   facts: ["m.title.facts", "m.title.factsSub"],
   library: ["m.title.library", "m.title.librarySub"],
   about: ["m.title.about", null],
+  privacy: ["m.title.privacy", null],
+  dataSafety: ["m.title.dataSafety", null],
   saved: ["m.title.saved", null],
   settings: ["m.title.settings", null],
+  quiz: ["m.quiz.title", null],
+  plan: ["m.plan.title", null],
+  readingSession: ["m.plan.title", null],
 };
 
 function AppBar({ screen }: { screen: Screen }) {
@@ -59,8 +71,11 @@ function AppBar({ screen }: { screen: Screen }) {
   const { tokens } = app;
 
   if (screen === "searchHome") {
+    // Pin the branding bar to LTR so the logo stays on the left and the
+    // globe/bell actions on the right even under an RTL (Urdu) interface — the
+    // wordmark is a fixed Latin brand lockup and shouldn't mirror.
     return (
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 12, backgroundColor: tokens.bg }}>
+      <View style={{ direction: "ltr", flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 12, backgroundColor: tokens.bg }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
           <Mark size={26} />
           <Wordmark size={18} />
@@ -77,13 +92,16 @@ function AppBar({ screen }: { screen: Screen }) {
   }
   if (screen === "results") return <ResultsBar />;
 
-  // refList's title comes from the open collection; everything else from TITLE_KEYS.
-  const refTitle = screen === "refList" && app.refCollection ? COLLECTION_BY_ID[app.refCollection]?.title : undefined;
+  // refList's title comes from the open collection (localized via i18n — names
+  // uses its dedicated key), passage's from its target; else from TITLE_KEYS.
+  const refColl = screen === "refList" && app.refCollection ? COLLECTION_BY_ID[app.refCollection] : undefined;
+  const refTitle = refColl ? app.t(refColl.kind === "names" ? "names.title" : `${refColl.ns}.title`) : undefined;
+  const passageTitle = screen === "passage" ? app.passageTarget?.title : undefined;
   const [titleKey, subKey] = TITLE_KEYS[screen] ?? [screen, null];
-  const title = refTitle ?? (TITLE_KEYS[screen] ? app.t(titleKey) : screen);
+  const title = passageTitle ?? refTitle ?? (TITLE_KEYS[screen] ? app.t(titleKey) : screen);
   const sub = subKey ? app.t(subKey) : null;
-  const pushed = screen === "reader" || screen === "refList" || screen === "about";
-  const showGlobe = screen === "facts" || screen === "recite" || screen === "refList";
+  const pushed = screen === "reader" || screen === "refList" || screen === "passage" || screen === "about" || screen === "privacy" || screen === "dataSafety" || screen === "fonttest" || screen === "quiz" || screen === "plan" || screen === "readingSession";
+  const showGlobe = screen === "facts" || screen === "recite" || screen === "refList" || screen === "passage";
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 12, backgroundColor: tokens.bg, borderBottomWidth: pushed ? 1 : 0, borderBottomColor: tokens.lineSoft }}>
       {pushed ? (
@@ -124,9 +142,16 @@ function ScreenRouter({ screen }: { screen: Screen }) {
     case "facts": return <Facts />;
     case "library": return <Library />;
     case "refList": return <RefList />;
+    case "passage": return <Passage />;
     case "about": return <About />;
+    case "privacy": return <Privacy />;
+    case "dataSafety": return <DataSafety />;
     case "saved": return <Saved />;
     case "settings": return <Settings />;
+    case "fonttest": return <FontTest />;
+    case "quiz": return <Quiz />;
+    case "plan": return <Plan />;
+    case "readingSession": return <ReadingSession />;
     default: return <SearchHome />;
   }
 }
@@ -160,7 +185,7 @@ function TabBar() {
                 </View>
               ) : null}
             </View>
-            <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[600], color: on ? tokens.brand : tokens.text3 }}>{app.t(t.labelKey)}</Text>
+            <Text numberOfLines={1} style={{ fontSize: 10.5, fontFamily: FONTS.sans[600], color: on ? tokens.brand : tokens.text3 }}>{app.t(t.labelKey)}</Text>
           </Pressable>
         );
       })}
@@ -189,7 +214,9 @@ function MainApp() {
       <Animated.View style={{ flex: 1, opacity: fade }}>
         <ScreenRouter screen={screen} />
       </Animated.View>
-      <TabBar />
+      {/* Hide the bottom tab bar while Recite audio plays — frees the maximum vertical
+          room for long ayahs (owner request 2026-06-18). Restored the moment it pauses. */}
+      {app.recitePlaying ? null : <TabBar />}
     </View>
   );
 }

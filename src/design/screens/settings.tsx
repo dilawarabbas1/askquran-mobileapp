@@ -2,7 +2,8 @@
 // Arabic + tajweed toggles), Appearance (theme), Home screen, About + footer.
 
 import React, { useState } from "react";
-import { Pressable, ScrollView, Share, Text, View } from "react-native";
+import { Pressable, ScrollView, Share, View } from "react-native";
+import { Text } from "../AppText";
 import { useApp } from "../AQContext";
 import { Switch } from "../atoms";
 import { Icon } from "../Icon";
@@ -12,7 +13,7 @@ import type { Appearance } from "../AQContext";
 function Group({ label, tokens, children }: { label: string; tokens: Tokens; children: React.ReactNode }) {
   return (
     <View style={{ marginTop: 22 }}>
-      <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[700], letterSpacing: 1.35, textTransform: "uppercase", color: tokens.text3, marginHorizontal: 4, marginBottom: 9 }}>{label}</Text>
+      <Text style={{ fontSize: 10.5, fontFamily: FONTS.sans[700], letterSpacing: 1.35, textTransform: "uppercase", color: tokens.text3, marginHorizontal: 4, marginBottom: 9, textAlign: "left" }}>{label}</Text>
       <View style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 15, overflow: "hidden" }, tokens.cardShadow]}>{children}</View>
     </View>
   );
@@ -28,8 +29,11 @@ function Row({
         <Icon name={icon} size={17} color={tokens.brand} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 14, fontFamily: FONTS.sans[600], color: tokens.text }}>{title}</Text>
-        {sub ? <Text style={{ fontSize: 11.5, color: tokens.text2, marginTop: 1 }}>{sub}</Text> : null}
+        {/* Hug the icon side: textAlign "left" auto-swaps to "right" under RTL
+            (RN swapLeftAndRightInRTL), so title/sub sit beside the icon in both
+            directions instead of floating mid-row. */}
+        <Text style={{ fontSize: 14, fontFamily: FONTS.sans[600], color: tokens.text, textAlign: "left" }}>{title}</Text>
+        {sub ? <Text style={{ fontSize: 11.5, color: tokens.text2, marginTop: 1, textAlign: "left" }}>{sub}</Text> : null}
       </View>
       {right}
     </Wrap>
@@ -63,6 +67,30 @@ export function Settings() {
         <Row tokens={tokens} icon="info" title={app.t("m.set.tafLang")} sub={app.t("m.set.tafLangSub")} onPress={() => app.openLangSheet("tafsir")} right={val(app.tafsirLanguage)} />
         <Row tokens={tokens} icon="type" title={app.t("m.set.arabic")} sub={app.t("m.set.arabicSub")} right={<Switch on={arOn} onPress={() => setArOn((v) => !v)} />} />
         <Row tokens={tokens} icon="type" title={app.t("m.set.tajweed")} sub={app.t("m.set.tajweedSub")} last right={<Switch on={tajweed} onPress={() => setTajweed((v) => !v)} />} />
+      </Group>
+
+      <Group label={app.t("m.set.dailyVerseGroup")} tokens={tokens}>
+        <Row
+          tokens={tokens} icon="bell" title={app.t("m.set.dailyVerse")} sub={app.t("m.set.dailyVerseSub")} last={!app.dailyVerse.enabled}
+          right={<Switch on={app.dailyVerse.enabled} onPress={() => app.setDailyVerse({ enabled: !app.dailyVerse.enabled })} />}
+        />
+        {app.dailyVerse.enabled ? (
+          <Row
+            tokens={tokens} icon="clock" title={app.t("m.set.dvTime")} last
+            right={
+              <View style={{ flexDirection: "row", backgroundColor: tokens.surface2, borderWidth: 1, borderColor: tokens.line, borderRadius: 9, padding: 2, gap: 2 }}>
+                {([[7, "m.set.dvMorning"], [13, "m.set.dvMidday"], [20, "m.set.dvEvening"]] as [number, string][]).map(([h, l]) => {
+                  const on = app.dailyVerse.hour === h;
+                  return (
+                    <Pressable key={h} onPress={() => app.setDailyVerse({ hour: h, minute: 0 })} style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 7, backgroundColor: on ? (tokens.mode === "dark" ? tokens.bg : tokens.surface) : "transparent" }}>
+                      <Text style={{ fontSize: 11.5, fontFamily: FONTS.sans[600], color: on ? tokens.brand : tokens.text2 }}>{app.t(l)}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            }
+          />
+        ) : null}
       </Group>
 
       <Group label={app.t("m.set.appearance")} tokens={tokens}>
@@ -105,6 +133,11 @@ export function Settings() {
         <Row tokens={tokens} icon="shield" title={app.t("m.set.sources")} sub={app.t("m.set.sourcesSub")} onPress={() => { app.setFactTab("sources"); app.goTab("facts"); }} right={chev} />
         <Row tokens={tokens} icon="info" title={app.t("m.set.about")} sub={app.t("m.set.aboutSub")} onPress={app.openAbout} right={chev} />
         <Row tokens={tokens} icon="share" title={app.t("m.set.share")} onPress={shareApp} last right={chev} />
+      </Group>
+
+      <Group label={app.t("m.set.legalGroup")} tokens={tokens}>
+        <Row tokens={tokens} icon="shield" title={app.t("m.set.privacy")} sub={app.t("m.set.privacySub")} onPress={app.openPrivacy} right={chev} />
+        <Row tokens={tokens} icon="check" title={app.t("m.set.dataSafety")} sub={app.t("m.set.dataSafetySub")} onPress={app.openDataSafety} last right={chev} />
       </Group>
 
       {/* Footer — matches the web app's Footer verbatim. */}

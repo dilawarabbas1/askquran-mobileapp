@@ -10,7 +10,7 @@ export interface Neighbor { ref: string; ar: string; en: string; center?: boolea
 export interface AyahItem {
   surah: string; ref: string; arName: string; juz: number;
   place: "Mecca" | "Madinah"; relevance: string; topics: string[];
-  arabic: string; ur: string; en: string; tafseer: string;
+  arabic: string; transliteration?: string; ur: string; en: string; tafseer: string;
   surrounding: Neighbor[];
   sources: { arabic: string; translation: string; tafseer: string };
   audio?: { reciter: string; source: string; url: string };

@@ -83,7 +83,9 @@ export function createRequester(deps: RequesterDeps): Requester {
 
   async function attempt<T>(path: string): Promise<T> {
     const url = deps.baseUrl.replace(/\/$/, "") + path;
-    const headers = { "x-api-key": deps.apiKey, Accept: "application/json" };
+    // X-App-Source tags every request as mobile so the backend attributes it to
+    // the mobile surface (not "api") in analytics — same as the public client.
+    const headers = { "x-api-key": deps.apiKey, Accept: "application/json", "X-App-Source": "mobile" };
 
     let retried429 = 0;
     let retried5xx = 0;

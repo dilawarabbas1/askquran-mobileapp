@@ -130,7 +130,22 @@ export const FONTS = {
     italic: "Newsreader_400Regular_Italic",
     italic500: "Newsreader_500Medium_Italic",
   },
+  // Primary Quran text face — Amiri (same face the web falls back to). UthmanicHafs
+  // was trialled but its end-of-ayah rosette is the dashed KFGQPC mushaf ring, which
+  // read as a "broken/dotted circle" on the By Surah view; Amiri's U+06DD rosette is
+  // a clean solid ring that encloses the ayah number, matching the web exactly.
   ar: "Amiri_400Regular",
   arItalic: "Amiri_400Regular_Italic",
   ur: { 400: "NotoNastaliqUrdu_400Regular", 500: "NotoNastaliqUrdu_500Medium" },
+  // Decorative calligraphic surah-title face (web `--font-surah`), keyed by the
+  // PUA codepoints `surahNameChar()` emits. Used for the By Surah header band.
+  surah: "SurahNameV2",
+  // Decorative Juz / Para boundary header face (web `--font-juz`). Bundled for
+  // parity with the web font set; not yet wired to a visible surface.
+  juz: "JuzName",
+  // KFGQPC Arabic Symbols (web `--font-symbols`): tajweed / waqf / sajdah marks
+  // in the PUA U+F020… range. Bundled for parity / future tajweed rendering. The
+  // ayah-end rosette is rendered with `ar` (Amiri) via the U+06DD end-of-ayah glyph,
+  // which encloses the verse number in a clean ring.
+  symbols: "QuranSymbols",
 } as const;

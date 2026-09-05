@@ -69,3 +69,17 @@ export interface SuggestedGroup {
   priority?: number;
   questions: SuggestedQuestion[];
 }
+
+/** A "Test Your Knowledge" quiz question — options pre-shuffled by the backend. */
+export type QuizDifficulty = "basic" | "intermediate" | "advanced" | "expert";
+export interface QuizQuestion {
+  id: string;
+  category: string;
+  difficulty: QuizDifficulty;
+  q: string;
+  options: string[];
+  answer: number;
+  ref: string;
+  /** Short verse-grounded explanation shown after answering (teaches on a miss). */
+  explanation: string;
+}

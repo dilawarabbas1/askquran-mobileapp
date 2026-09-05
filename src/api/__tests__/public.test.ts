@@ -48,6 +48,8 @@ test("ask() posts to /api/ask with question + options and returns the response",
   assert.equal(calls[0].url, `${HOST}/ask`);
   assert.equal(calls[0].method, "POST");
   assert.equal(calls[0].headers["Content-Type"], "application/json");
+  // Search must tag its surface so the backend attributes the log to mobile.
+  assert.equal(calls[0].headers["X-App-Source"], "mobile");
   const sent = JSON.parse(calls[0].body!);
   assert.equal(sent.question, "patience");
   assert.equal(sent.language, "English");

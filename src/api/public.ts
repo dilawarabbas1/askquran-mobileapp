@@ -11,12 +11,19 @@
 import { AqError, mapStatusToError } from "./errors";
 import { PUBLIC_API_BASE_URL, API_KEY } from "./config";
 import { TtlCache, createMemoryStorage, type Storage } from "./cache";
-import type { AskResponse, AyahResult, SuggestedGroup, TranslationMeta, TafsirMeta } from "./publicTypes";
+import type { AskResponse, AyahResult, SuggestedGroup, TranslationMeta, TafsirMeta, QuizQuestion } from "./publicTypes";
 
-/** Headers for public /api calls — adds x-api-key when a key is configured. */
+/**
+ * Headers for public /api calls — adds x-api-key when a key is configured and
+ * always tags the request surface with `X-App-Source: mobile`. The backend's
+ * /api/ask route reads this header (web → "web", mobile → "mobile", anything
+ * else → "api") to attribute search logs to the right client. Mirrors the web
+ * frontend's apiHeaders(), which sends "X-App-Source": "web".
+ */
 function publicHeaders(extra?: Record<string, string>): Record<string, string> {
   return {
     Accept: "application/json",
+    "X-App-Source": "mobile",
     ...(API_KEY ? { "x-api-key": API_KEY } : {}),
     ...(extra ?? {}),
   };
@@ -109,11 +116,20 @@ export async function getTafsirLanguages(): Promise<string[]> {
   }
 }
 
+// A language can have several editions (Urdu ships 8). Where the owner has a
+// preferred default, pin it by id; we still fall back to the first matching
+// edition if that id isn't in the catalog. Keyed by lowercased language name.
+const PREFERRED_EDITION: Record<string, string> = {
+  urdu: "ur.maududi", // ابوالاعلی مودودی
+};
+
 /** Resolve a translation edition id for a UI language name ("English"/"Urdu"…). */
 export async function translationIdForLanguage(language: string): Promise<string | undefined> {
   try {
     const { default: def, translations } = await getTranslations();
     const want = language.toLowerCase();
+    const preferredId = PREFERRED_EDITION[want];
+    if (preferredId && translations.some((t) => t.id === preferredId)) return preferredId;
     const match = translations.find((t) => t.language?.toLowerCase().includes(want));
     return match?.id ?? def;
   } catch {
@@ -174,4 +190,35 @@ export async function getSuggestedQuestions(): Promise<SuggestedGroup[]> {
     });
     return data.groups ?? [];
   });
+}
+
+/**
+ * GET /api/quiz — a shuffled "Test Your Knowledge" quiz (approved, verse-referenced
+ * questions only). Never cached — each play should be a fresh draw.
+ */
+export async function getQuiz(count = 10, category?: string, difficulty?: string, lang?: string): Promise<QuizQuestion[]> {
+  const qs = new URLSearchParams({ count: String(count) });
+  if (category && category !== "all") qs.set("category", category);
+  if (difficulty && difficulty !== "all") qs.set("difficulty", difficulty);
+  if (lang && lang !== "English") qs.set("lang", lang);
+  const data = await getJson<{ questions: QuizQuestion[] }>(`${PUBLIC_API_BASE_URL}/quiz?${qs.toString()}`, {
+    headers: publicHeaders(),
+  });
+  return data.questions ?? [];
+}
+
+/** GET /api/quiz/summary — categories + a count matrix [category][difficulty]. */
+export async function getQuizSummary(): Promise<{ categories: string[]; counts: Record<string, Record<string, number>> }> {
+  const data = await getJson<{ categories: string[]; counts: Record<string, Record<string, number>> }>(`${PUBLIC_API_BASE_URL}/quiz/summary`, {
+    headers: publicHeaders(),
+  });
+  return { categories: data.categories ?? [], counts: data.counts ?? {} };
+}
+
+/** GET /api/quiz/categories — available quiz categories. */
+export async function getQuizCategories(): Promise<string[]> {
+  const data = await getJson<{ categories: string[] }>(`${PUBLIC_API_BASE_URL}/quiz/categories`, {
+    headers: publicHeaders(),
+  });
+  return data.categories ?? [];
 }

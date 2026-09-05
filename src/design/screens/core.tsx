@@ -4,7 +4,8 @@
 // offline fallback so the screen is never empty.
 
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { Text } from "../AppText";
 import { useApp } from "../AQContext";
 import { AyahCard, BlockTitle, FieldLabel, IconBtn, OrnDivider, PlaceBadge, SegLabel, Translation, translationStyle } from "../atoms";
 import { Icon, RawIcon } from "../Icon";
@@ -12,7 +13,13 @@ import { SearchBar } from "../SearchBar";
 import { AudioBar } from "../AudioBar";
 import { TOPICS, type AyahItem } from "../data";
 import { FONTS, mix } from "../tokens";
-import { ask, getSuggestedQuestions, AqError, type AyahResult, type SuggestedGroup } from "@/api";
+import { ask, getSuggestedQuestions, translationIdForLanguage, AqError, type AyahResult, type SuggestedGroup } from "@/api";
+import { track } from "@/analytics";
+import { surahName, surahNoFromRef } from "@/analytics/events";
+import { copyAyah, shareAyah } from "../lib/ayahActions";
+import { withHonorifics } from "../lib/honorifics";
+import { QuranText } from "../../quran/QuranText";
+import { saFromKey } from "../../quran/qpcIndex";
 
 /* ---------- map an API AyahResult → the card's AyahItem shape ---------- */
 function placeNorm(p: string): "Mecca" | "Madinah" {
@@ -29,6 +36,7 @@ function toItem(r: AyahResult): AyahItem {
     relevance: (r.relevanceScore ?? 0).toFixed(2),
     topics: [],
     arabic: r.arabic,
+    transliteration: r.transliteration,
     en: r.translation,
     ur: r.translation,
     tafseer: r.tafseer || "",
@@ -63,10 +71,10 @@ export function SearchHome() {
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 26 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
       {/* hero band */}
       <View style={{ paddingHorizontal: 20, paddingTop: 28, paddingBottom: 20, alignItems: "center" }}>
-        <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: FONTS.ar, fontSize: 21, lineHeight: 42, color: tokens.text, textAlign: "center", writingDirection: "rtl", paddingTop: 4 }}>
+        <Text numberOfLines={1} adjustsFontSizeToFit style={{ alignSelf: "stretch", fontFamily: FONTS.ar, fontSize: 21, lineHeight: 42, color: tokens.text, textAlign: "center", writingDirection: "rtl", paddingTop: 4 }}>
           لَا إِلٰهَ إِلَّا ٱللَّٰهُ مُحَمَّدٌ رَسُولُ ٱللَّٰهِ
         </Text>
-        <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: FONTS.serif.italic, fontStyle: "italic", fontSize: 11.5, color: tokens.brand2, marginTop: 6, textAlign: "center" }}>
+        <Text numberOfLines={1} adjustsFontSizeToFit style={{ alignSelf: "stretch", fontFamily: FONTS.serif.italic, fontStyle: "italic", fontSize: 11.5, color: tokens.brand2, marginTop: 6, textAlign: "center" }}>
           {app.t("hero.shahadaEn")}
         </Text>
         <Text style={{ maxWidth: 300, marginTop: 8, fontSize: 13.5, lineHeight: 21.6, color: tokens.text2, textAlign: "center", fontFamily: FONTS.sans[400] }}>
@@ -78,16 +86,51 @@ export function SearchHome() {
       <View style={{ paddingHorizontal: 16, paddingTop: 6 }}>
         <SearchBar value={q} onChangeText={setQ} placeholder={app.t("search.placeholder")} onSubmit={submit} showGo />
 
+        {/* Test Your Knowledge — source-grounded quiz (opens the quiz screen). */}
+        <Pressable onPress={() => app.openQuiz()} style={[{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 14, backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 16, paddingVertical: 13, paddingHorizontal: 14 }, tokens.cardShadow]}>
+          <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: mix(tokens.brand, 11), borderWidth: 1, borderColor: mix(tokens.brand, 22, tokens.line) }}>
+            <Icon name="grid" size={17} w={1.9} color={tokens.brand} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: FONTS.serif[600], fontSize: 16, color: tokens.text }}>{app.t("m.quiz.title")}</Text>
+            <Text style={{ fontSize: 12.5, color: tokens.text2, marginTop: 2 }}>{app.t("m.quiz.ctaSub")}</Text>
+          </View>
+          <Icon name="chevR" size={16} w={2.1} color={tokens.text3} />
+        </Pressable>
+
+        {/* Reading Plan / Khatm tracker — shows live progress once a plan is active. */}
+        <Pressable onPress={() => app.openPlan()} style={[{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 10, backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 16, paddingVertical: 13, paddingHorizontal: 14 }, tokens.cardShadow]}>
+          <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: mix(tokens.brand, 11), borderWidth: 1, borderColor: mix(tokens.brand, 22, tokens.line) }}>
+            <Icon name="book" size={18} w={1.9} color={tokens.brand} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: FONTS.serif[600], fontSize: 16, color: tokens.text }}>{app.t("m.plan.title")}</Text>
+            <Text style={{ fontSize: 12.5, color: tokens.text2, marginTop: 2 }}>
+              {app.khatm ? app.t("m.plan.progressPages", { done: app.khatm.pagesRead, total: 604 }) : app.t("m.plan.ctaSub")}
+            </Text>
+          </View>
+          <Icon name="chevR" size={16} w={2.1} color={tokens.text3} />
+        </Pressable>
+
         {hasApiQuestions ? (
           /* API-loaded suggested questions, grouped by topic ("Try asking") */
           <>
             <FieldLabel>{app.t("suggest.tryAsking")}</FieldLabel>
-            {groups!.map((g) => (
+            {groups!.map((g) => {
+              // Group titles are translated via i18n keyed by the group's slug id
+              // (browse.group.<id>); fall back to the raw API title when the key
+              // is absent. translate() returns the key unchanged on a miss, so we
+              // compare against the key rather than rely on `|| g.title`.
+              const gKey = `browse.group.${g.id}`;
+              const gTitle = app.t(gKey);
+              return (
               <View key={g.id}>
-                <FieldLabel>{g.title}</FieldLabel>
+                <FieldLabel>{gTitle === gKey ? g.title : gTitle}</FieldLabel>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
                   {g.questions.map((qq) => {
-                    const label = (qq.translations && qq.translations[app.language]) || qq.text;
+                    // Chip label follows the UI/interface language (appLanguage),
+                    // not the Quran translation language; fall back to English text.
+                    const label = (qq.translations && qq.translations[app.appLanguage]) || qq.text;
                     return (
                       <Pressable key={qq.id} onPress={() => app.runSearch(label)} style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 999, paddingVertical: 9, paddingHorizontal: 15 }, tokens.cardShadow]}>
                         <Text style={{ fontSize: 13.5, fontFamily: FONTS.sans[600], color: tokens.text }}>{label}</Text>
@@ -96,7 +139,8 @@ export function SearchHome() {
                   })}
                 </View>
               </View>
-            ))}
+              );
+            })}
           </>
         ) : (
           <>
@@ -139,11 +183,20 @@ export function Results() {
   const run = React.useCallback(() => {
     let alive = true;
     setLoading(true); setError(null); setMessage(null);
-    ask(q, { language: app.language })
+    // Resolve the translation edition for the chosen language and pass it
+    // explicitly — `language` alone makes the backend fall back to en.sahih, so
+    // an Urdu translation preference would silently return English results.
+    translationIdForLanguage(app.language)
+      .then((trId) => ask(q, { language: app.language, ...(trId ? { translation: trId } : {}) }))
       .then((res) => {
         if (!alive) return;
         setItems(res.results.map(toItem));
-        setMessage(res.count === 0 ? res.message || "No matching Quran reference found." : null);
+        const count = res.count ?? res.results.length;
+        setMessage(count === 0 ? res.message || "No matching Quran reference found." : null);
+        // Fire once per resolved search now that result_count is known. A zero-
+        // result search additionally emits search_no_results.
+        track("search", { query: q, result_count: count, language: app.appLanguage, translation_language: app.translationLanguage });
+        if (count === 0) track("search_no_results", { query: q, language: app.appLanguage });
         setLoading(false);
       })
       .catch((e) => {
@@ -161,7 +214,18 @@ export function Results() {
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 18, paddingBottom: 26 }} showsVerticalScrollIndicator={false}>
       <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 10, marginBottom: 14, marginHorizontal: 2 }}>
         <Text style={{ fontSize: 14, fontFamily: FONTS.sans[700], color: tokens.text }}>
-          {app.t("results.resultsFor")} <Text style={{ color: tokens.brand }}>“{q}”</Text>
+          {(() => {
+            // `{q}` placeholder lets each locale set query/label word order — Urdu
+            // and other postpositional scripts read "X کے لیے نتائج" (query first),
+            // while LTR locales without the placeholder keep label-then-query.
+            const tpl = app.t("results.resultsFor");
+            const styledQ = <Text style={{ color: tokens.brand }}>“{q}”</Text>;
+            if (tpl.includes("{q}")) {
+              const [before, after] = tpl.split("{q}");
+              return <>{before}{styledQ}{after}</>;
+            }
+            return <>{tpl} {styledQ}</>;
+          })()}
         </Text>
         {!loading && !error ? <Text style={{ fontSize: 12, color: tokens.text3 }}>{items.length} {app.t(items.length === 1 ? "m.sourceOne" : "m.sourceMany")}</Text> : null}
       </View>
@@ -212,15 +276,28 @@ export function Reader() {
 
       <View style={{ paddingHorizontal: 16, paddingTop: 6 }}>
         <View style={[{ backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.line, borderRadius: 18, paddingHorizontal: 18, paddingTop: 18, paddingBottom: 15 }, tokens.cardShadow]}>
-          <Text style={{ fontFamily: FONTS.ar, fontSize: 30, lineHeight: 60, color: tokens.arColor, textAlign: "center", writingDirection: "rtl" }}>{item.arabic}</Text>
+          {(() => {
+            // QPC V2 glyphs (ref shown in the header → medallion suppressed); ayah
+            // justified per the app-wide rule. Range refs fall back to Unicode.
+            const sa = saFromKey(item.ref);
+            return sa
+              ? <QuranText surah={sa.surah} ayah={sa.ayah} uthmani={item.arabic} suppressMedallion color={tokens.arColor} fontSize={26} lineHeight={58} />
+              : <Text style={{ fontFamily: FONTS.ar, fontSize: 26, lineHeight: 58, color: tokens.arColor, textAlign: "justify", writingDirection: "rtl" }}>{item.arabic}</Text>;
+          })()}
+          {item.transliteration ? (
+            <Text style={{ fontFamily: FONTS.serif[400], fontStyle: "italic", fontSize: 16, lineHeight: 26, color: tokens.text3, textAlign: "center", marginTop: 8 }}>
+              {item.transliteration}
+            </Text>
+          ) : null}
           <View style={{ height: 1, backgroundColor: tokens.lineSoft, marginVertical: 12 }} />
           <Translation item={item} />
-          {item.audio?.url ? <AudioBar url={item.audio.url} reciter={item.audio.reciter} /> : null}
+          {item.audio?.url ? <AudioBar url={item.audio.url} reciter={item.audio.reciter} surahName={surahName(item.surah)} surahNo={surahNoFromRef(item.ref)} ayahKey={item.ref} /> : null}
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: tokens.lineSoft }}>
             <PlaceBadge place={item.place} tokens={tokens} madinahLabel="Madinan" />
             <View style={{ flexDirection: "row", gap: 6 }}>
               <IconBtn name={saved ? "bookmarkFill" : "bookmark"} active={saved} onPress={() => app.toggleSave(item)} />
-              <IconBtn name="share" onPress={() => {}} />
+              <IconBtn name="copy" onPress={() => { void copyAyah(item, app.lang); }} />
+              <IconBtn name="share" onPress={() => { void shareAyah(item, app.lang); }} />
             </View>
           </View>
         </View>
@@ -232,8 +309,8 @@ export function Reader() {
               {item.surrounding.map((n, i) => (
                 <View key={i} style={{ paddingHorizontal: 13, paddingVertical: 11, borderRadius: 11, borderWidth: 1, borderColor: n.center ? mix(tokens.brand, 35) : tokens.lineSoft, backgroundColor: n.center ? mix(tokens.brand, 5, tokens.surface2) : tokens.surface2 }}>
                   <Text style={{ fontSize: 10, fontFamily: FONTS.sans[700], letterSpacing: 0.4, color: tokens.text3, marginBottom: 5 }}>{n.ref}{n.center ? " · matched" : ""}</Text>
-                  <Text style={{ fontFamily: FONTS.ar, fontSize: 18, lineHeight: 33, color: tokens.arColor, textAlign: "right", writingDirection: "rtl" }}>{n.ar}</Text>
-                  <Text style={[translationStyle(app.language, tokens), { fontSize: 12.5, lineHeight: 20, color: tokens.text2, marginTop: 4 }]}>{n.en}</Text>
+                  <Text style={{ fontFamily: FONTS.ar, fontSize: 18, lineHeight: 33, color: tokens.arColor, textAlign: "center", writingDirection: "rtl" }}>{n.ar}</Text>
+                  <Text style={[translationStyle(app.language, tokens, 0.9), { color: tokens.text2, marginTop: 4 }]}>{n.en}</Text>
                 </View>
               ))}
             </View>
@@ -244,7 +321,14 @@ export function Reader() {
           <>
             <FieldLabel>{app.t("m.tafsir")}</FieldLabel>
             <View style={{ paddingHorizontal: 15, paddingVertical: 14, backgroundColor: mix(tokens.gold, 7, tokens.surface2), borderWidth: 1, borderColor: tokens.lineSoft, borderRadius: 12 }}>
-              <Text style={{ fontFamily: FONTS.serif[400], fontSize: 14, lineHeight: 24.5, color: tokens.text }}>{item.tafseer}</Text>
+              {/* Tafsir uses the exact same per-script font/size/leading as the verse
+                  translation (no down-scale) since that display reads perfectly.
+                  Honorifics render 2pt smaller so their stacked diacritics don't
+                  crowd the line above/below. */}
+              {(() => {
+                const tStyle = translationStyle(app.language, tokens);
+                return <Text style={tStyle}>{withHonorifics(item.tafseer, tStyle.fontSize)}</Text>;
+              })()}
             </View>
           </>
         ) : null}

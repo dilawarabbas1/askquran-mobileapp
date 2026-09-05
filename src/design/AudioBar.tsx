@@ -4,21 +4,34 @@
 // plays at a time across the app: starting one pauses whatever was playing.
 
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
+import { Text } from "./AppText";
 import { Audio, type AVPlaybackStatus } from "expo-av";
 import { useApp } from "./AQContext";
 import { Icon } from "./Icon";
 import { FONTS, mix } from "./tokens";
+import { track } from "@/analytics";
 
 // The currently-sounding player (module-level), so a new play stops the prior.
 let active: { stop: () => void } | null = null;
 
 type State = "idle" | "loading" | "playing" | "paused";
 
-export function AudioBar({ url, reciter }: { url: string; reciter?: string }) {
+/** `surahName`/`surahNo`/`ayahKey` are optional analytics context; when present
+ *  the bar emits `ayah_played` on a fresh play and `audio_paused` on pause. */
+export function AudioBar({
+  url, reciter, surahName, surahNo, ayahKey,
+}: {
+  url: string; reciter?: string; surahName?: string; surahNo?: number; ayahKey?: string;
+}) {
   const { tokens, t } = useApp();
   const soundRef = useRef<Audio.Sound | null>(null);
+  const progressRef = useRef(0);
   const [state, setState] = useState<State>("idle");
+
+  const canTrack = !!ayahKey;
+  const playedProps = { surah_name: surahName ?? "", surah_no: surahNo ?? 0, ayah_key: ayahKey ?? "", reciter: reciter ?? "" };
+  const pausedProps = () => ({ surah_name: surahName ?? "", ayah_key: ayahKey ?? "", progress_percent: Math.round(progressRef.current * 100) });
 
   // A stable registry entry: pauses this player without unloading it.
   const selfRef = useRef<{ stop: () => void }>({
@@ -42,6 +55,7 @@ export function AudioBar({ url, reciter }: { url: string; reciter?: string }) {
 
   function onStatus(st: AVPlaybackStatus) {
     if (!st.isLoaded) return;
+    if (st.durationMillis) progressRef.current = (st.positionMillis || 0) / st.durationMillis;
     if (st.didJustFinish) {
       const s = soundRef.current;
       soundRef.current = null;
@@ -56,6 +70,7 @@ export function AudioBar({ url, reciter }: { url: string; reciter?: string }) {
     if (state === "playing") {
       if (s) { try { await s.pauseAsync(); } catch { /* noop */ } }
       setState("paused");
+      if (canTrack) track("audio_paused", pausedProps());
       return;
     }
     if (state === "paused" && s) {
@@ -71,6 +86,7 @@ export function AudioBar({ url, reciter }: { url: string; reciter?: string }) {
       soundRef.current = sound;
       active = selfRef.current;
       setState("playing");
+      if (canTrack) track("ayah_played", playedProps);
     } catch {
       setState("idle");
     }
