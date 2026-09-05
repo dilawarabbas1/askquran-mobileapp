@@ -61,6 +61,7 @@ export function ReadingSession() {
   const tokenRef = useRef(0);
   const itemsRef = useRef<Item[]>([]);
   itemsRef.current = items;
+  const activeRef = useRef(-1); // authoritative current index for status-callback closures
 
   const range = useMemo(() => {
     if (!k || k.pagesRead >= QPC_PAGE_COUNT) return null;
@@ -114,7 +115,7 @@ export function ReadingSession() {
     const list = itemsRef.current;
     if (index < 0 || index >= list.length) return;
     const uri = list[index].audio;
-    setActive(index);
+    activeRef.current = index; setActive(index);
     if (!uri) { advance(tokenRef.current); return; } // no audio for this ayah → skip
     const my = ++tokenRef.current;
     setPlaying(true); setProgress(0);
@@ -130,9 +131,9 @@ export function ReadingSession() {
 
   function advance(my: number) {
     if (my !== tokenRef.current) return;
-    const next = active + 1;
+    const next = activeRef.current + 1;
     if (next < itemsRef.current.length) void playAt(next);
-    else { setPlaying(false); setActive(-1); } // portion finished
+    else { setPlaying(false); activeRef.current = -1; setActive(-1); } // portion finished
   }
 
   async function togglePlay() {
@@ -142,8 +143,8 @@ export function ReadingSession() {
       setPlaying(false);
       return;
     }
-    if (active >= 0 && soundRef.current) { try { await soundRef.current.playAsync(); setPlaying(true); } catch { /* */ } return; }
-    void playAt(active >= 0 ? active : 0);
+    if (activeRef.current >= 0 && soundRef.current) { try { await soundRef.current.playAsync(); setPlaying(true); } catch { /* */ } return; }
+    void playAt(activeRef.current >= 0 ? activeRef.current : 0);
   }
 
   async function finishSession() {
